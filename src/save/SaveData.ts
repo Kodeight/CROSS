@@ -27,6 +27,7 @@ export interface SaveData {
   achievements: Record<string, boolean>;
   settings: GameSettings;
   stats: GameStats;
+  tutorialShown: boolean;
 }
 
 export function defaultSave(): SaveData {
@@ -44,5 +45,6 @@ export function defaultSave(): SaveData {
     achievements: {},
     settings: { music: true, sfx: true, reducedMotion: false, quality: 'AUTO' },
     stats: { totalSteps: 0, gamesPlayed: 0, totalNearMiss: 0 },
+    tutorialShown: false,
   };
 }

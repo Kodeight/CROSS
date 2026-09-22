@@ -97,23 +97,5 @@ export class InputManager {
         else this.emit(dy < 0 ? 'MOVE_FORWARD' : 'MOVE_BACK');
       });
     }
-
-    // On-screen touch buttons.
-    const wire = (id: string, action: GameAction) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        this.emit(action);
-      });
-      el.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        this.emit(action);
-      });
-    };
-    wire('t-forward', 'MOVE_FORWARD');
-    wire('t-backward', 'MOVE_BACK');
-    wire('t-left', 'MOVE_LEFT');
-    wire('t-right', 'MOVE_RIGHT');
   }
 }

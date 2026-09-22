@@ -236,22 +236,36 @@ export class WorldGenerator {
     const world = def.config;
     if (world.id === 'city' && lane.type !== 'car' && lane.type !== 'truck') {
       for (const side of [-1, 1]) {
-        const hb = new THREE.Group();
         const r = Math.random();
-        if (r < 0.38) this.buildings.smallHouse(hb);
-        else if (r < 0.68) this.buildings.shop(hb);
-        else this.buildings.apartment(hb);
-        hb.position.x = side * (1050 + Math.random() * 60);
-        hb.position.y = (Math.random() - 0.5) * PW * ZOOM * 0.35;
+        const hb = new THREE.Group();
+        if (r < 0.30) this.buildings.apartment(hb);
+        else if (r < 0.60) this.buildings.shop(hb);
+        else if (r < 0.82) this.buildings.smallHouse(hb);
+        else this.buildings.cafe(hb);
+        hb.position.x = side * (1050 + Math.random() * 80);
+        hb.position.y = (Math.random() - 0.5) * PW * ZOOM * 0.55;
         lane.mesh.add(hb);
+      }
+      for (const side of [-1, 1]) {
+        const tree = new THREE.Group();
+        this.trees.streetTree(tree);
+        tree.position.x = side * (BOARD * 0.78 + Math.random() * BOARD * 0.2);
+        tree.position.y = (Math.random() - 0.5) * PW * ZOOM * 0.45;
+        lane.mesh.add(tree);
       }
     }
     if (world.id === 'city' && (lane.type === 'car' || lane.type === 'truck')) {
       for (const side of [-1, 1]) {
         const lamp = new THREE.Group();
         this.props.lamp(lamp);
-        lamp.position.x = side * BOARD * 0.62;
+        lamp.position.x = side * BOARD * 0.55;
         lane.mesh.add(lamp);
+      }
+      if (Math.random() < 0.3) {
+        const stop = new THREE.Group();
+        this.buildings.busStop(stop);
+        stop.position.x = Math.random() < 0.5 ? BOARD * 0.8 : -BOARD * 0.8;
+        lane.mesh.add(stop);
       }
     }
     if (world.id === 'beach' && (lane.type === 'car' || lane.type === 'truck')) {
@@ -263,11 +277,12 @@ export class WorldGenerator {
       }
     }
     void playerColumnX;
-    if (Math.random() > 0.65) return;
     const builders: PropBuilder[] =
       world.id === 'beach' ? [(g) => this.trees.palm(g), (g) => this.props.dune(g)] : def.decor;
+    const buildChance = world.id === 'city' ? 0.55 : 0.65;
+    if (Math.random() > buildChance) return;
     for (const side of [-1, 1]) {
-      if (Math.random() < 0.4) continue;
+      if (Math.random() < (world.id === 'city' ? 0.15 : 0.4)) continue;
       const holder = new THREE.Group();
       pick(builders)(holder);
       holder.position.x = side * (BOARD * 0.75 + Math.random() * BOARD * 0.45);

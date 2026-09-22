@@ -1,7 +1,12 @@
 /**
- * §10 — third-person follow camera. Owns ONLY the camera: follows the player
+ * Third-person follow camera. Owns ONLY the camera: follows the player
  * from behind with look-ahead, smooth damping, intro positioning and
  * responsive portrait/landscape adjustments. Never owns the world.
+ *
+ * Framing goal: the playable world fills the entire viewport — no blue
+ * bands above/below, no visible world boundaries. The camera sits
+ * lower and closer so the road/lane system dominates the screen while
+ * still showing several lanes ahead.
  */
 import * as THREE from 'three';
 import { isTouchDevice } from '../utils/DeviceUtils';
@@ -20,14 +25,23 @@ export class FollowCamera {
   private introFrom = new THREE.Vector3();
   private reducedMotion = false;
 
-  // Tunables — behind + above, looking ahead of the player.
-  private readonly distBehind = 520;
-  private readonly heightAbove = 430;
-  private readonly lookAhead = 260;
+  // Tunables — closer and lower so the playable world fills the screen.
+  // distBehind is measured in world units along z; heightAbove along y.
+  // The lane height = POSITION_WIDTH * ZOOM = 84 units.
+  // Camera sits just above lane height so the road fills vertical FOV,
+  // with enough forward sight to see upcoming traffic.
+  private readonly distBehind = 230;
+  private readonly heightAbove = 95;
+  private readonly lookAhead = 180;
+
+  // Mobile portrait: slightly wider FOV + lower height for more forward
+  // visibility while keeping the character centered and readable.
+  private readonly mobileFov = 70;
+  private readonly desktopFov = 56;
 
   constructor() {
     const aspect = window.innerWidth / Math.max(1, window.innerHeight);
-    this.camera = new THREE.PerspectiveCamera(58, aspect, 1, 9000);
+    this.camera = new THREE.PerspectiveCamera(this.desktopFov, aspect, 0.5, 9000);
   }
 
   setReducedMotion(v: boolean): void {
@@ -35,21 +49,22 @@ export class FollowCamera {
   }
 
   onResize(): void {
-    this.camera.aspect = window.innerWidth / Math.max(1, window.innerHeight);
-    // Portrait phones: widen FOV for vertical forward visibility.
-    this.camera.fov = this.camera.aspect < 0.8 ? 66 : isTouchDevice() ? 60 : 56;
+    const w = window.innerWidth;
+    const h = Math.max(1, window.innerHeight);
+    this.camera.aspect = w / h;
+    this.camera.fov = h > w ? this.mobileFov : this.desktopFov;
     this.camera.updateProjectionMatrix();
   }
 
-  /** §27 — cinematic entrance: start elevated, settle behind the player. */
+  /** Cinematic entrance: start elevated, settle behind the player. */
   beginIntro(playerPos: THREE.Vector3): void {
     this.introActive = true;
     this.introT = 0;
     this.introFrom.copy(this.camera.position);
     if (this.introFrom.lengthSq() < 1) {
-      this.introFrom.set(playerPos.x, playerPos.y - this.distBehind * 1.6, this.heightAbove * 2.2);
+      this.introFrom.set(playerPos.x, playerPos.y - this.distBehind * 1.4, this.heightAbove * 1.6);
     }
-    this.lookCurrent.set(playerPos.x, playerPos.y + this.lookAhead * 0.5, 0);
+    this.lookCurrent.set(playerPos.x, playerPos.y + this.lookAhead * 0.4, 0);
   }
 
   snapToPlayer(playerPos: THREE.Vector3): void {

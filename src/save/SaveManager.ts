@@ -31,6 +31,7 @@ export class SaveManager {
         ...parsed,
         settings: { ...base.settings, ...(parsed.settings ?? {}) },
         stats: { ...base.stats, ...(parsed.stats ?? {}) },
+        tutorialShown: parsed.tutorialShown ?? base.tutorialShown,
       } as SaveData;
       this.data = merged;
     } catch {

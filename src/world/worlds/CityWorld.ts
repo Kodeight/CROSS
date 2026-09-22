@@ -5,8 +5,6 @@ import type { BuildingFactory } from '../environment/BuildingFactory';
 import type { TreeFactory } from '../environment/TreeFactory';
 
 export function createCityWorld(props: PropFactory, buildings: BuildingFactory, trees: TreeFactory): World {
-  void buildings;
-  void trees;
   return {
     config: worldById('city'),
     obstacles: props.obstacleSets().city,
@@ -18,6 +16,9 @@ export function createCityWorld(props: PropFactory, buildings: BuildingFactory, 
       (g) => props.trashCan(g),
       (g) => buildings.fence(g),
       (g) => props.crossSign(g),
+      (g) => props.kiosk(g),
+      (g) => props.planter(g),
+      (g) => buildings.cafe(g),
     ],
   };
 }

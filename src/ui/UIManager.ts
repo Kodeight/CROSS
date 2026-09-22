@@ -15,6 +15,7 @@ export class UIManager {
   returnTo: GameState = GameState.MAIN_MENU;
   private toastTimer = 0;
   private introTimers: number[] = [];
+  private tutorialTimer: number = 0;
   deferredInstallPrompt: unknown = null;
 
   get el() {
@@ -33,8 +34,45 @@ export class UIManager {
       worldIntroSub: el('world-intro-sub'),
       menuTop: el('menu-top'),
       touchControls: el('touch-controls'),
+      tutorial: el('tutorial'),
+      tutorialText: el('tutorial-text'),
+      tutorialGesture: el('tutorial-gesture'),
       debug: el('debug'),
     };
+  }
+
+  /** Show the swipe tutorial on first play. Auto-dismisses after ms or on first touch. */
+  showTutorial(text: string, gesture: string, ms = 4000): void {
+    try {
+      const t = el('tutorial');
+      el('tutorial-text').textContent = text;
+      el('tutorial-gesture').textContent = gesture;
+      t.hidden = false;
+      t.style.display = 'flex';
+      if (this.tutorialTimer) clearTimeout(this.tutorialTimer);
+      this.tutorialTimer = window.setTimeout(() => {
+        t.hidden = true;
+        t.style.display = '';
+      }, ms);
+      // Dismiss on first touch.
+      const dismiss = (): void => {
+        t.hidden = true;
+        t.style.display = '';
+        document.removeEventListener('touchstart', dismiss);
+        document.removeEventListener('pointerdown', dismiss);
+      };
+      document.addEventListener('touchstart', dismiss, { once: true });
+      document.addEventListener('pointerdown', dismiss, { once: true });
+    } catch { /* ignore */ }
+  }
+
+  hideTutorial(): void {
+    try {
+      const t = el('tutorial');
+      t.hidden = true;
+      t.style.display = '';
+      if (this.tutorialTimer) clearTimeout(this.tutorialTimer);
+    } catch { /* ignore */ }
   }
 
   setLoad(pct: number, text?: string): void {

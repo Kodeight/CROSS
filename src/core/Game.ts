@@ -301,6 +301,14 @@ export class Game implements LoopDelegate {
     this.ui.showWorldIntro(w.name, `CROSS! WORLD ${w.num}`, this.reducedMotion, () => {
       if (this.ui.state === GameState.WORLD_INTRO) this.setState(GameState.PLAYING);
     });
+    // Show swipe tutorial on first run.
+    if (!this.save.data.tutorialShown) {
+      this.save.data.tutorialShown = true;
+      this.save.save();
+      window.setTimeout(() => {
+        this.ui.showTutorial('Swipe to dodge', '◀→↑↓', 3500);
+      }, 600);
+    }
   }
 
   private toMenu(): void {
