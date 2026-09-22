@@ -34,7 +34,7 @@ export class GameRenderer {
   static create(container: HTMLElement): GameRenderer {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x9fd3ef);
-    scene.fog = new THREE.Fog(0x9fd3ef, 1400, 3400);
+    scene.fog = new THREE.Fog(0x9fd3ef, 2600, 6000);
 
     const hemi = new THREE.HemisphereLight(0xffffff, 0x88aa66, 0.75);
     scene.add(hemi);

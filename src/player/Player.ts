@@ -24,6 +24,8 @@ export class Player {
   moving = false;
   dying = false;
   squashAt = 0;
+  /** World-space character scale tuned for the elevated diorama camera. */
+  static readonly SCALE = 1.3;
 
   private readonly factory: CharacterFactory;
   private readonly events: PlayerEvents;
@@ -68,6 +70,7 @@ export class Player {
     this.dying = false;
     this.squashAt = 0;
     this.group.rotation.set(0, 0, 0);
+    this.group.scale.setScalar(Player.SCALE);
     this.group.position.set(this.colToX(column), this.laneToY(lane), 0);
   }
 

@@ -25,6 +25,7 @@ export interface RunCallbacks {
   onToast: (msg: string) => void;
   onNearMiss: () => void;
   onWorldIntro: (name: string, sub: string) => void;
+  onCoin: () => void;
   onDeath: () => void;
   onGameOver: (score: number, newBest: boolean, coins: number, stats: string) => void;
 }
@@ -122,23 +123,43 @@ export class GameManager {
     }
   }
 
+  /**
+   * Coin pickup via real 3D world-space distance — never column matching
+   * alone. Scans the player's lane plus neighbours so a coin is collected
+   * the moment the player physically touches it (works mid-hop, on
+   * desktop and mobile, with no tapping required). Safe to call every
+   * frame: only nearby lanes are scanned and taken coins are skipped.
+   */
   checkCollect(): void {
-    const lane = this.lanes.laneAt(this.player.lane);
-    if (!lane?.coins) return;
-    for (const c of lane.coins) {
-      if (!c.taken && c.col === this.player.column) {
+    const px = this.player.position.x;
+    const py = this.player.position.y;
+    const pz = this.player.position.z;
+    const laneH = GAME_CONFIG.positionWidth * GAME_CONFIG.zoom;
+    const pickupR = 48;
+    for (const lane of this.lanes.lanes) {
+      if (!lane.coins.length) continue;
+      const laneY = lane.mesh.position.y;
+      if (Math.abs(laneY - py) > laneH) continue;
+      for (const c of lane.coins) {
+        if (c.taken) continue;
+        const wx = c.mesh.position.x;
+        const wy = laneY + c.mesh.position.y;
+        const wz = c.mesh.position.z;
+        const dx = wx - px;
+        const dy = wy - py;
+        const dz = wz - pz;
+        if (dx * dx + dy * dy > pickupR * pickupR) continue;
+        if (Math.abs(dz) > 70) continue;
         c.taken = true;
-        lane.mesh.remove(c.mesh);
+        this.coins.beginCollect(c.mesh);
         this.coins.collect();
         this.score.addBonus(1);
         this.audio.coin();
         vibrate(10);
-        this.particles.burst(
-          this.player.position.x, this.player.position.y, 30,
-          0xffc93c, 8, 200, 0.6, 300, this.lowQuality,
-        );
+        this.particles.burst(px, py, 30, 0xffc93c, 8, 200, 0.6, 300, this.lowQuality);
         this.bus.emit('coinCollected');
         this.cb.onHud();
+        this.cb.onCoin();
         const msgs = this.missions.check(this.score.maxLane, this.runNear);
         for (const m of msgs) this.cb.onToast(`Mission complete: ${m}`);
       }

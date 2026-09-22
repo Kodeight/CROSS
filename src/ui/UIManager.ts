@@ -85,7 +85,12 @@ export class UIManager {
 
   hideLoading(): void {
     try {
-      el('loading').style.display = 'none';
+      const l = el('loading');
+      l.style.transition = 'opacity .3s ease';
+      l.style.opacity = '0';
+      window.setTimeout(() => {
+        l.style.display = 'none';
+      }, 320);
     } catch { /* ignore */ }
   }
 
@@ -141,12 +146,49 @@ export class UIManager {
     for (const id of ['menu', 'chars-screen', 'worlds-screen', 'missions-screen', 'settings-screen', 'pause-screen', 'gameover']) {
       el(id).hidden = !ids.includes(id);
     }
-    el('hud').hidden = !(this.state === GameState.PLAYING || this.state === GameState.PAUSED);
-    if (ids.includes('playing')) {
-      el('world-header').hidden = false;
-    } else {
-      el('world-header').hidden = true;
-    }
+    // Top HUD (coins left / world notch center / button right) is visible
+    // on the menu, the world intro, and during gameplay — one responsive
+    // architecture, only scale/spacing changes between breakpoints.
+    const hudVisible = this.state === GameState.MAIN_MENU
+      || this.state === GameState.WORLD_INTRO
+      || this.state === GameState.PLAYING
+      || this.state === GameState.PAUSED;
+    el('hud').hidden = !hudVisible;
+    try {
+      el('world-header').hidden = !hudVisible;
+    } catch { /* ignore */ }
+  }
+
+  /**
+   * Top-right HUD zone: settings gear on the menu, pause during gameplay.
+   * Same anchor, same size — only the glyph and action change by state.
+   */
+  syncTopButton(s: GameState): void {
+    try {
+      const b = el('btn-pause');
+      if (s === GameState.MAIN_MENU) {
+        b.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5zm0-5.2l1.2 2.1 2.3-.5 1 2.1 2.3.7-.3 2.4 1.6 1.8-1.6 1.8.3 2.4-2.3.7-1 2.1-2.3-.5L12 20l-1.2-2.1-2.3.5-1-2.1-2.3-.7.3-2.4L3.9 12l1.6-1.8-.3-2.4 2.3-.7 1-2.1 2.3.5z"/></svg>';
+        b.setAttribute('aria-label', 'Settings');
+      } else {
+        b.textContent = 'II';
+        b.setAttribute('aria-label', 'Pause game');
+      }
+    } catch { /* ignore */ }
+  }
+
+  /** Coin collect feedback: counter pops + a small floating +1. */
+  coinPulse(): void {
+    try {
+      const pill = el('hud-coins');
+      pill.classList.remove('coin-pulse');
+      void pill.offsetWidth;
+      pill.classList.add('coin-pulse');
+      const plus = document.createElement('div');
+      plus.className = 'coin-plus';
+      plus.textContent = '+1';
+      pill.appendChild(plus);
+      window.setTimeout(() => plus.remove(), 750);
+    } catch { /* ignore */ }
   }
 
   setTouchControlsVisible(playing: boolean, isTouch: boolean): void {

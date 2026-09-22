@@ -36,7 +36,7 @@ export const WORLDS: WorldConfig[] = [
   {
     id: 'city', name: 'CITY', num: '01', price: 0,
     safe: 0x8f959f, safeDark: 0x7a808a, road: 0x353a45, marking: 0xffe9a3, walk: 0xb9bec7,
-    sky: 0x9fd3ef, fog: 0x9fd3ef, fogNear: 1400, fogFar: 3400,
+    sky: 0x9fd3ef, fog: 0x9fd3ef, fogNear: 2600, fogFar: 6000,
     hemiSky: 0xffffff, hemiGround: 0x8a8f7a, hemiI: 0.75, dirColor: 0xfff2dd, dirI: 0.62,
     laneMix: { road: 0.46, obst: 0.28 }, carSplit: 0.62, speedMul: 1.0,
     carKinds: ['car', 'car', 'taxi', 'hatch', 'van', 'moto'], truckKinds: ['bus', 'truck', 'van'],

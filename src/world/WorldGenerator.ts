@@ -77,7 +77,7 @@ export class WorldGenerator {
     }
   }
 
-  private buildTerrain(g: THREE.Group, world: WorldConfig, variant: string | null): void {
+  private buildTerrain(g: THREE.Group, world: WorldConfig, variant: string | null, laneIndex: number): void {
     if (variant === 'bridge' || variant === 'boardwalk' || variant === 'pier') {
       const waterColor = variant === 'bridge' ? 0x3f9fd8 : 0x3fa8d8;
       for (const side of [0, -1, 1]) {
@@ -136,15 +136,30 @@ export class WorldGenerator {
       return;
     }
     const sandy = world.id === 'beach' || world.id === 'desert';
-    const m2 = this.slab(sandy ? this.sandTone(world.safe) : world.safe);
+    // CITY spawn: the starting lanes are already city sidewalk/pavement,
+    // never a giant featureless gray platform. Sidewalk tone + curbs read
+    // as a street entrance with the city around it.
+    const cityStart = world.id === 'city' && laneIndex <= 4;
+    const baseColor = cityStart ? world.walk : sandy ? this.sandTone(world.safe) : world.safe;
+    const edgeColor = cityStart ? world.safeDark : sandy ? this.sandTone(world.safeDark) : world.safeDark;
+    const m2 = this.slab(baseColor);
     m2.position.z = 1.5 * ZOOM;
     g.add(m2);
-    const l = this.slab(sandy ? this.sandTone(world.safeDark) : world.safeDark);
+    const l = this.slab(edgeColor);
     l.position.set(-BOARD, 0, 1.5 * ZOOM);
     g.add(l);
-    const r = this.slab(sandy ? this.sandTone(world.safeDark) : world.safeDark);
+    const r = this.slab(edgeColor);
     r.position.set(BOARD, 0, 1.5 * ZOOM);
     g.add(r);
+    // Outer ground skirts: extend the world far beyond the playable board
+    // so the elevated camera never exposes background void at the sides.
+    // Static per-lane geometry in world space — tiles with the lanes.
+    const ol = this.slab(edgeColor);
+    ol.position.set(-BOARD * 2, 0, 1.5 * ZOOM);
+    g.add(ol);
+    const orr = this.slab(edgeColor);
+    orr.position.set(BOARD * 2, 0, 1.5 * ZOOM);
+    g.add(orr);
   }
 
   private buildRoad(g: THREE.Group, world: WorldConfig, variant: string | null): void {
@@ -321,7 +336,7 @@ export class WorldGenerator {
       }
       lane.variant = variant;
       const g = new THREE.Group();
-      this.buildTerrain(g, world, variant);
+      this.buildTerrain(g, world, variant, index);
       lane.mesh.add(g);
       this.consecutiveRoads = 0;
       if (type === 'forest') {

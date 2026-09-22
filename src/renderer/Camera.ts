@@ -29,31 +29,32 @@ export class FollowCamera {
   private introFrom = new THREE.Vector3();
   private reducedMotion = false;
 
-  // High top-down camera parameters.
-  // distBehind: distance behind the player along -Y (looking forward).
-  // elevation: height above the world along +Z.
-  // lookAhead: how far ahead of the player the camera looks toward along +Y.
+  // Elevated diorama camera parameters.
+  // distBehind: distance behind the player along -Y (slightly behind
+  //   the movement direction). elevation: height above the world (+Z).
+  // lookAhead: how far ahead of the player the camera looks toward (+Y).
   // The camera looks from (px, py - distBehind, elevation) toward
-  // (px, py + lookAhead, laneHeight) producing a steep downward angle.
+  // (px, py + lookAhead, 0) producing a steep downward angle.
   //
-  // For ~55° downward angle from horizontal:
-  //   elevation / (distBehind + lookAhead) ≈ tan(55°) ≈ 1.43
-  // With elevation=320 and laneHeight≈80: total horizontal ≈ 240
-  // distBehind=180 + lookAhead=60 = 240 → angle ≈ 53°
-  // Slightly adjust for visual feel.
-  private readonly distBehind = 200;
-  private readonly elevation = 350;
-  private readonly lookAhead = 100;
+  // Downward angle from horizontal:
+  //   elevation / (distBehind + lookAhead) ≈ tan(angle)
+  //   520 / (260 + 180) ≈ 1.18 → ≈ 50°
+  // The look point ahead of the player pushes the player to the
+  // lower-middle of the viewport with the upcoming world above.
+  private readonly distBehind = 260;
+  private readonly elevation = 520;
+  private readonly lookAhead = 180;
   private readonly lookAtZ = 0;
 
-  // FOV: narrower for top-down depth, wider for mobile portrait.
-  private readonly desktopFov = 52;
-  private readonly mobileFov = 58;
+  // FOV: perspective (never orthographic) so farther objects read smaller.
+  // Mobile portrait gets a wider FOV for forward visibility.
+  private readonly desktopFov = 55;
+  private readonly mobileFov = 62;
 
   // Intro camera start position: higher and more behind for cinematic entry.
-  private readonly introDistBehind = 350;
-  private readonly introElevation = 480;
-  private readonly introLookAhead = 80;
+  private readonly introDistBehind = 420;
+  private readonly introElevation = 640;
+  private readonly introLookAhead = 140;
 
   constructor() {
     const aspect = window.innerWidth / Math.max(1, window.innerHeight);

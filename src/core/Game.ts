@@ -186,6 +186,7 @@ export class Game implements LoopDelegate {
           this.audio.fanfare();
           this.ui.showWorldIntro(name, sub, this.reducedMotion, () => this.bus.emit('worldIntroFinished'));
         },
+        onCoin: () => this.ui.coinPulse(),
         onDeath: () => undefined,
         onGameOver: () => undefined,
       },
@@ -250,6 +251,7 @@ export class Game implements LoopDelegate {
     if (parent) parent.remove(this.player.group);
     const pos = this.player.position.clone();
     this.player.rebuild(this.save.data.selectedCharacter);
+    this.player.group.scale.setScalar(Player.SCALE);
     this.player.position.copy(pos);
     if (parent) parent.add(this.player.group);
   }
@@ -273,6 +275,7 @@ export class Game implements LoopDelegate {
       [GameState.RESULTS]: ['gameover'],
     };
     this.ui.showOnly(map[s] ?? []);
+    this.ui.syncTopButton(s);
     this.controller.setEnabled(s === GameState.PLAYING);
     this.ui.setTouchControlsVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO, this.isTouch);
     if (s === GameState.MAIN_MENU) {
@@ -361,6 +364,7 @@ export class Game implements LoopDelegate {
         if (nowMs - this.manager.deathAt > 1000) this.doGameOver();
       } else {
         this.manager.stepPlayer(nowMs);
+        this.manager.checkCollect();
         this.lanes.maintain(this.player.lane, (i) => {
           const def = this.worlds.worldDefForLane(i, this.save.data.selectedWorld);
           const lane = this.generator.makeLane(i, def, { playerX: this.player.position.x, playerLane: this.player.lane });
@@ -369,7 +373,7 @@ export class Game implements LoopDelegate {
         });
         this.traffic.update(this.lanes.lanes, dt, DEBUG);
         this.particles.update(dt);
-        this.coins.update(nowMs, GAME_CONFIG.zoom);
+        this.coins.update(nowMs, GAME_CONFIG.zoom, dt);
         this.generator.updateWater(nowMs);
         this.manager.collisionCheck((ms, scale) => this.time.slowMo(ms, scale));
         this.player.updateIdle(nowMs, this.reducedMotion);
@@ -388,7 +392,7 @@ export class Game implements LoopDelegate {
         this.traffic.update(this.lanes.lanes, this.reducedMotion ? 0 : dt * 0.35, false);
         this.manager.checkWorldTransition();
       }
-      this.coins.update(nowMs, GAME_CONFIG.zoom);
+      this.coins.update(nowMs, GAME_CONFIG.zoom, dt);
       this.generator.updateWater(nowMs);
       this.particles.update(dt);
       this.player.updateIdle(nowMs, this.reducedMotion);
@@ -420,7 +424,6 @@ export class Game implements LoopDelegate {
     on('btn-restart-pause', () => this.newRun());
     on('btn-home-pause', () => { this.audio.click(); this.toMenu(); });
     on('btn-home', () => { this.audio.click(); this.toMenu(); });
-    on('btn-pause', () => this.pause());
     const openScreen = (target: GameState) => {
       this.ui.returnTo = this.ui.state === GameState.GAME_OVER ? GameState.GAME_OVER
         : this.ui.state === GameState.PAUSED ? GameState.PAUSED : GameState.MAIN_MENU;
@@ -429,9 +432,15 @@ export class Game implements LoopDelegate {
       this.audio.click();
       this.setState(target);
     };
+    // Top-right HUD button routes by state: settings on the menu,
+    // pause during gameplay. One zone, one anchor — never moves.
+    on('btn-pause', () => {
+      if (this.ui.state === GameState.PLAYING) this.pause();
+      else if (this.ui.state === GameState.MAIN_MENU) openScreen(GameState.SETTINGS);
+      else if (this.ui.state === GameState.PAUSED) this.resume();
+    });
     on('btn-chars', () => openScreen(GameState.CHARACTER_SELECT));
     on('btn-worlds', () => openScreen(GameState.WORLD_SELECT));
-    on('btn-top-settings', () => openScreen(GameState.SETTINGS));
     on('btn-chars2', () => openScreen(GameState.CHARACTER_SELECT));
     on('btn-missions', () => openScreen(GameState.MISSIONS));
     on('btn-settings', () => openScreen(GameState.SETTINGS));
