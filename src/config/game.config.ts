@@ -26,8 +26,10 @@ export interface QualityProfile {
 }
 
 export const QUALITY_PROFILES: Record<QualityLevel, QualityProfile> = {
-  LOW: { pixelRatioCap: 1, shadows: false, shadowSize: 512, particles: false },
-  MEDIUM: { pixelRatioCap: 1.5, shadows: true, shadowSize: 1536, particles: true },
+  // LOW = sacred baseline: same context AA as always, no runtime shadows,
+  // DPR 1, particles off. Gameplay identical at every quality.
+  LOW: { pixelRatioCap: 1, shadows: false, shadowSize: 512, particles: false, antialias: true },
+  MEDIUM: { pixelRatioCap: 1.5, shadows: true, shadowSize: 1536, particles: true, antialias: true },
   HIGH: { pixelRatioCap: 2, shadows: true, shadowSize: 2048, particles: true, antialias: true },
-  AUTO: { pixelRatioCap: 1.5, shadows: true, shadowSize: 1024, particles: true },
+  AUTO: { pixelRatioCap: 1.5, shadows: true, shadowSize: 1024, particles: true, antialias: true },
 };

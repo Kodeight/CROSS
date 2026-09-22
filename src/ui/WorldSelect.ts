@@ -5,6 +5,7 @@ import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
 import type { ProgressionSystem } from '../gameplay/ProgressionSystem';
 import { LOCK_SVG, type WorldPreviewManager } from './Previews';
+import { liquidUI } from './liquidUI';
 import type { UIManager } from './UIManager';
 
 export class WorldSelect {
@@ -88,6 +89,7 @@ export class WorldSelect {
       grid.appendChild(card);
     }
     this.previews.open(this.canvases);
+    liquidUI.refresh();
     void WORLDS;
   }
 }

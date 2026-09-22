@@ -87,22 +87,47 @@ export class GameRenderer {
       ? Math.min(profile.pixelRatioCap, 1.5)
       : profile.pixelRatioCap;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
-    this.renderer.shadowMap.enabled = profile.shadows;
+
+    // Quality is rendering-only (§6/§67). Antialias is fixed at context
+    // creation (true = current LOW baseline); post-creation assignment is
+    // a Three.js no-op, so we never touch it here.
+    const shadowsOn = profile.shadows;
+    const shadowToggled = this.renderer.shadowMap.enabled !== shadowsOn;
+    this.renderer.shadowMap.enabled = shadowsOn;
+
     const s = profile.shadowSize;
-    if (this.dirLight.shadow.mapSize.width !== s) {
+    if (shadowsOn && this.dirLight.shadow.mapSize.width !== s) {
       this.dirLight.shadow.mapSize.set(s, s);
       if (this.dirLight.shadow.map) {
         this.dirLight.shadow.map.dispose();
         this.dirLight.shadow.map = null as unknown as THREE.WebGLRenderTarget;
       }
     }
-    (this.renderer as any).antialias = profile.antialias ?? true;
-    this.renderer.info.autoReset = false;
-    this.scene.traverse((o) => {
-      const mesh = o as THREE.Mesh;
-      const mat = (mesh as { material?: THREE.Material }).material;
-      if (mat) mat.needsUpdate = true;
-    });
+
+    // Keep the shadow frustum matched to the elevated camera view so
+    // MEDIUM/HIGH shadows never clip or produce wrong self-shadowing.
+    const d = 900;
+    const sc = this.dirLight.shadow.camera;
+    if (sc.left !== -d || sc.right !== d || sc.top !== d || sc.bottom !== -d) {
+      sc.left = -d;
+      sc.right = d;
+      sc.top = d;
+      sc.bottom = -d;
+      sc.updateProjectionMatrix();
+    }
+
+    // Materials must recompile only when the shadow pipeline toggles —
+    // never on every quality keystroke (avoids hitching mid-game).
+    if (shadowToggled) {
+      this.scene.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        const mat = (mesh as { material?: THREE.Material | THREE.Material[] }).material;
+        if (Array.isArray(mat)) mat.forEach((m) => { m.needsUpdate = true; });
+        else if (mat) mat.needsUpdate = true;
+      });
+    }
+    // render.info keeps its default autoReset (per-frame reset). Disabling
+    // it without a manual reset would accumulate counters unboundedly.
   }
 
   render(camera: THREE.Camera): void {

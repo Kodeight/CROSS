@@ -1,16 +1,20 @@
-/** Missions + achievements evaluation against run + lifetime stats. */
-import { MISSIONS, ACHIEVEMENTS } from '../config/missions.config';
+/** Missions + achievements evaluation against run + lifetime stats. World-aware. */
+import { MISSIONS, WORLD_MISSIONS } from '../config/missions.config';
 import type { SaveManager } from '../save/SaveManager';
 import type { EventBus } from '../core/EventBus';
 
 export class MissionSystem {
   constructor(private readonly save: SaveManager, private readonly bus: EventBus) {}
 
-  check(maxLane: number, nearMiss: number): string[] {
+  check(maxLane: number, nearMiss: number, activeWorldId?: string): string[] {
     const completed: string[] = [];
     const s = this.save.data;
     const run = { maxLane, nearMiss };
+    // §53 — only evaluate global missions + missions scoped to the active world.
+    const scoped = activeWorldId ? new Set(WORLD_MISSIONS[activeWorldId] ?? []) : null;
     for (const m of MISSIONS) {
+      if (scoped && m.worldId && !scoped.has(m.id)) continue;
+      if (!scoped && m.worldId) continue;
       if (s.missions[m.id]) continue;
       let ok = false;
       try {
@@ -38,9 +42,7 @@ export class MissionSystem {
     if (s.achievements[id]) return false;
     s.achievements[id] = true;
     this.save.save();
-    const def = ACHIEVEMENTS.find((a) => a.id === id);
     this.bus.emit('achievementUnlocked', id);
-    void def;
     return true;
   }
 }

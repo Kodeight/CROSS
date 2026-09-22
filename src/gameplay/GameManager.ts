@@ -114,17 +114,19 @@ export class GameManager {
         );
       }
       this.checkCollect();
-      const msgs = this.missions.check(this.score.maxLane, this.runNear);
+      const wid = this.worlds.current.config.id;
+      const msgs = this.missions.check(this.score.maxLane, this.runNear, wid);
       for (const m of msgs) {
         this.cb.onToast(`Mission complete: ${m}`);
         this.audio.unlock();
       }
       if (done.dir === 'forward') {
         if (this.score.reachLane(this.player.lane)) {
-          this.cb.onHud();
           this.checkWorldTransition();
+          this.cb.onHud();
+        } else {
+          this.cb.onHud();
         }
-        this.cb.onHud();
       }
     }
   }
@@ -166,7 +168,7 @@ export class GameManager {
         this.bus.emit('coinCollected');
         this.cb.onHud();
         this.cb.onCoin();
-        const msgs = this.missions.check(this.score.maxLane, this.runNear);
+        const msgs = this.missions.check(this.score.maxLane, this.runNear, this.worlds.current.config.id);
         for (const m of msgs) this.cb.onToast(`Mission complete: ${m}`);
       }
     }
@@ -181,7 +183,7 @@ export class GameManager {
     this.save.data.stats.totalNearMiss++;
     this.missions.unlock('close');
     this.cb.onHud();
-    const msgs = this.missions.check(this.score.maxLane, this.runNear);
+    const msgs = this.missions.check(this.score.maxLane, this.runNear, this.worlds.current.config.id);
     for (const m of msgs) this.cb.onToast(`Mission complete: ${m}`);
     this.cb.onNearMiss();
     this.audio.near();
@@ -250,10 +252,13 @@ export class GameManager {
   checkWorldTransition(): void {
     const w = this.worlds.worldForLane(this.score.maxLane, this.save.data.selectedWorld);
     if (w.id !== this.worlds.current.config.id) {
+      const prevId = this.worlds.current.config.id;
       this.worlds.setCurrent(this.worlds.byId(w.id));
       this.lighting.setWorld(w, false);
       this.cb.onWorldIntro(w.name, `CROSS! WORLD ${w.num}`);
-      this.bus.emit('worldLoaded', w.id);
+      // §15 — reactive world change: HUD notch updates from the same state.
+      this.bus.emit('worldLoaded', { previousWorldId: prevId, currentWorldId: w.id });
+      this.cb.onHud();
       const best = this.save.data.worldBest[w.id] ?? 0;
       if (this.score.maxLane > best) {
         this.save.data.worldBest[w.id] = this.score.maxLane;
@@ -261,7 +266,14 @@ export class GameManager {
       }
     } else {
       const best = this.save.data.worldBest[w.id] ?? 0;
-      if (this.score.maxLane > best) this.save.data.worldBest[w.id] = this.score.maxLane;
+      if (this.score.maxLane > best) {
+        this.save.data.worldBest[w.id] = this.score.maxLane;
+        // Persist stretch progress immediately: quitting mid-stretch must
+        // not lose the notch progress earned so far.
+        this.save.save();
+      }
+      // Keep notch progress live as the player pushes through the stretch.
+      this.cb.onHud();
     }
   }
 

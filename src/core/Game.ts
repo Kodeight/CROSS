@@ -43,6 +43,7 @@ import { MissionsScreen, SettingsScreen } from '../ui/Screens';
 import { CharacterPreviewManager, WorldPreviewManager } from '../ui/Previews';
 import { isTouchDevice, prefersReducedMotion } from '../utils/DeviceUtils';
 import { applyCoinTheme } from '../config/coin.config';
+import { liquidUI } from '../ui/liquidUI';
 import { registerPWA } from '../pwa';
 
 const DEBUG = /[?&]debug/i.test(location.search);
@@ -130,11 +131,14 @@ export class Game implements LoopDelegate {
       registerPWA(this.ui, () => this.audio.click());
       this.charSelect.render();
       this.worldSelect.render();
-      this.missionsScreen.render(0, 0);
+      this.missionsScreen.render(0, 0, this.worlds.current.config.id);
       this.settingsScreen.render();
       this.menu.render();
       this.hud.update();
       this.applyQuality();
+      liquidUI.setReducedMotion(this.reducedMotion);
+      liquidUI.setWorldTheme(this.worlds.current.config.id);
+      liquidUI.refresh();
       if (DEBUG) {
         this.ui.el.debug.hidden = false;
         this.traffic.enableAudit();
@@ -203,8 +207,13 @@ export class Game implements LoopDelegate {
     this.controller = new PlayerController(this.player, this.input, () => this.togglePause());
     this.input.bind();
 
-    this.hud = new HUD(this.save, () => this.coins.runCoins);
-    this.menu = new MainMenu(this.save, this.worlds);
+    this.hud = new HUD(
+      this.save,
+      () => this.coins.runCoins,
+      () => this.worlds.current.config,
+      () => this.score.maxLane,
+    );
+    this.menu = new MainMenu(this.save);
     this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion);
     this.worldPreviews = new WorldPreviewManager(vehicles, () => this.reducedMotion);
     this.charSelect = new CharacterSelect(
@@ -307,6 +316,7 @@ export class Game implements LoopDelegate {
     this.ui.setTouchControlsVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO, this.isTouch);
     if (s === GameState.MAIN_MENU) {
       this.menu.render();
+      this.hud.update();
       this.audio.startMusic('menu');
     }
     if (s === GameState.PLAYING) this.audio.startMusic('play');
@@ -315,6 +325,7 @@ export class Game implements LoopDelegate {
     else this.charPreviews.close();
     if (s === GameState.WORLD_SELECT) this.worldSelect.render();
     else this.worldPreviews.close();
+    liquidUI.refresh();
   }
 
   private newRun(): void {
@@ -324,6 +335,7 @@ export class Game implements LoopDelegate {
       () => this.rebuildPlayerMesh(),
     );
     this.hud.update();
+    liquidUI.setWorldTheme(this.worlds.current.config.id);
     this.setState(GameState.WORLD_INTRO);
     this.camera.beginIntro(this.player.position);
     const w = this.worlds.current.config;
@@ -344,7 +356,13 @@ export class Game implements LoopDelegate {
       this.save.data.tutorialShown = true;
       this.save.save();
       window.setTimeout(() => {
-        this.ui.showTutorial('Arrows / WASD to cross', '◀ ▲ ▼ ▶', 3000);
+        const keys = '<svg width="180" height="44" viewBox="0 0 180 44" aria-hidden="true">'
+          + '<rect x="64" y="2" width="36" height="18" rx="5" fill="#fff" opacity=".92"/><path fill="#1E2430" d="M82 6l6 8H76l6-8z"/>'
+          + '<rect x="24" y="22" width="36" height="18" rx="5" fill="#fff" opacity=".92"/><path fill="#1E2430" d="M36 36l-6-8h12l-6 8z"/>'
+          + '<rect x="64" y="22" width="36" height="18" rx="5" fill="#fff" opacity=".92"/><path fill="#1E2430" d="M82 30l-6 8h12l-6-8z"/>'
+          + '<rect x="104" y="22" width="36" height="18" rx="5" fill="#fff" opacity=".92"/><path fill="#1E2430" d="M132 36l6-8h-12l6 8z"/>'
+          + '</svg>';
+        this.ui.showTutorial('Arrows / WASD to cross', keys, 3000);
       }, 1400);
     }
   }
@@ -462,7 +480,7 @@ export class Game implements LoopDelegate {
     const openScreen = (target: GameState) => {
       this.ui.returnTo = this.ui.state === GameState.GAME_OVER ? GameState.GAME_OVER
         : this.ui.state === GameState.PAUSED ? GameState.PAUSED : GameState.MAIN_MENU;
-      this.missionsScreen.render(this.score.maxLane, this.manager.runNear);
+      this.missionsScreen.render(this.score.maxLane, this.manager.runNear, this.worlds.current.config.id);
       this.settingsScreen.render();
       this.audio.click();
       this.setState(target);
@@ -498,6 +516,17 @@ export class Game implements LoopDelegate {
     this.bus.on('worldIntroFinished', () => {
       if (this.ui.state === GameState.WORLD_INTRO) this.setState(GameState.PLAYING);
     });
+    // §15 — world change is reactive: notch updates from WorldManager.current.
+    this.bus.on('worldLoaded', (payload) => {
+      this.hud.update();
+      this.ui.fitHud();
+      try {
+        const p = payload as { currentWorldId?: string } | undefined;
+        if (p?.currentWorldId) liquidUI.setWorldTheme(p.currentWorldId);
+      } catch { /* ignore */ }
+      liquidUI.notifyWorldChange();
+      liquidUI.refresh();
+    });
   }
 
   private onSettingsChanged(what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset' | 'tutorial'): void {
@@ -509,6 +538,7 @@ export class Game implements LoopDelegate {
       this.reducedMotion = this.save.data.settings.reducedMotion || prefersReducedMotion();
       this.camera.setReducedMotion(this.reducedMotion);
       this.manager.setReducedMotion(this.reducedMotion);
+      liquidUI.setReducedMotion(this.reducedMotion);
     } else if (what === 'quality') {
       this.applyQuality();
     } else if (what === 'reset') {
@@ -519,8 +549,9 @@ export class Game implements LoopDelegate {
       this.settingsScreen.render();
       this.charSelect.render();
       this.worldSelect.render();
-      this.missionsScreen.render(0, 0);
+      this.missionsScreen.render(0, 0, this.worlds.current.config.id);
       this.menu.render();
+      this.hud.update();
       this.rebuildPlayerMesh();
       this.ui.toast('Progress reset');
     } else if (what === 'tutorial') {
@@ -535,6 +566,7 @@ export class Game implements LoopDelegate {
     this.renderer.applyQuality(q);
     this.manager.setLowQuality(q === 'LOW');
     this.particles.particlesEnabled = q !== 'LOW';
+    liquidUI.setQuality(q);
   }
 
   private updateDebug(nowMs: number, dtMs: number): void {

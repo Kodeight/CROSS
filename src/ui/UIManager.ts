@@ -3,6 +3,7 @@
  * callbacks + GameState, never touches Three.js gameplay logic.
  */
 import { GameState } from '../core/GameState';
+import { liquidUI } from './liquidUI';
 
 function el(id: string): HTMLElement {
   const e = document.getElementById(id);
@@ -43,13 +44,19 @@ export class UIManager {
     };
   }
 
-  /** Show a one-shot hint. Auto-dismisses after ms or on first touch. */
+  /** Show a one-shot hint. Auto-dismisses after ms or on first touch. Gesture may be SVG HTML. */
   showTutorial(text: string, gesture: string, ms = 4000): void {
     const session = ++this.tutorialSession;
     try {
       const t = el('tutorial');
       el('tutorial-text').textContent = text;
-      el('tutorial-gesture').textContent = gesture;
+      const g = el('tutorial-gesture');
+      if (gesture.startsWith('<svg')) {
+        g.textContent = '';
+        g.innerHTML = gesture;
+      } else {
+        g.textContent = gesture;
+      }
       t.hidden = false;
       t.style.display = 'flex';
       if (this.tutorialTimer) clearTimeout(this.tutorialTimer);
@@ -75,13 +82,26 @@ export class UIManager {
   /**
    * Staged first-run mobile tutorial, played inside the live world:
    * gestures → warning → send-off. Short, skippable, shown once.
+   * Gestures are real SVG icons — never emoji glyphs.
    */
   showMobileTutorial(onDone: () => void): void {
+    const swipeLR = '<svg width="72" height="40" viewBox="0 0 72 40" aria-hidden="true"><path fill="#fff" d="M14 20 4 8v24l10-12zm0 0h18v4H14V20zm44 0 10-12v24L58 20zm0 0H40v4h18v-4z"/><path fill="#FFC93C" d="M30 6h12v4H30zM30 30h12v4H30z"/></svg>';
+    const swipeUp = '<svg width="48" height="72" viewBox="0 0 48 72" aria-hidden="true"><path fill="#fff" d="M24 4 12 18h8v20h8V18h8L24 4zm0 64h8V48H16v20h8z"/><path fill="#FFC93C" d="M6 30h4v12H6zM38 30h4v12h-4z"/></svg>';
+    const traffic = '<svg width="160" height="44" viewBox="0 0 160 44" aria-hidden="true">'
+      + '<rect x="6" y="14" width="44" height="20" rx="6" fill="#e74c3c"/><rect x="14" y="8" width="24" height="12" rx="4" fill="#c0392b"/><circle cx="18" cy="36" r="6" fill="#2c3e50"/><circle cx="40" cy="36" r="6" fill="#2c3e50"/>'
+      + '<rect x="58" y="14" width="44" height="20" rx="6" fill="#f1c40f"/><rect x="66" y="8" width="24" height="12" rx="4" fill="#d4ac0d"/><circle cx="70" cy="36" r="6" fill="#2c3e50"/><circle cx="92" cy="36" r="6" fill="#2c3e50"/>'
+      + '<rect x="110" y="10" width="44" height="24" rx="6" fill="#3498db"/><rect x="118" y="4" width="20" height="12" rx="3" fill="#2980b9"/><circle cx="122" cy="36" r="6" fill="#2c3e50"/><circle cx="144" cy="36" r="6" fill="#2c3e50"/></svg>';
+    const chicken = '<svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">'
+      + '<ellipse cx="28" cy="34" rx="16" ry="14" fill="#fff"/><circle cx="28" cy="20" r="12" fill="#fff"/>'
+      + '<path d="M28 6c2 4 2 8 0 12-2-4-2-8 0-12z" fill="#e74c3c"/>'
+      + '<circle cx="24" cy="18" r="2.2" fill="#1E2430"/><circle cx="33" cy="18" r="2.2" fill="#1E2430"/>'
+      + '<path d="M36 22l8 2-8 3v-5z" fill="#f39c12"/>'
+      + '<path d="M44 14c4-2 8 0 10 4-4 0-7 1-10-4z" fill="#FFC93C"/></svg>';
     const steps: Array<[string, string, number]> = [
-      ['SWIPE ◀ ▶', 'Move left & right', 1700],
-      ['SWIPE ▲', 'Cross forward', 1700],
-      ['AVOID THE TRAFFIC', '🚗 🚕 🚚', 1600],
-      ['GOOD LUCK!', '🐔💨', 1400],
+      ['SWIPE LEFT & RIGHT', swipeLR, 1700],
+      ['SWIPE UP TO CROSS', swipeUp, 1700],
+      ['AVOID THE TRAFFIC', traffic, 1600],
+      ['GOOD LUCK!', chicken, 1400],
     ];
     let i = 0;
     const next = (): void => {
@@ -96,7 +116,9 @@ export class UIManager {
       try {
         const t = el('tutorial');
         el('tutorial-text').textContent = text;
-        el('tutorial-gesture').textContent = gesture;
+        const g = el('tutorial-gesture');
+        g.textContent = '';
+        g.innerHTML = gesture;
         t.hidden = false;
         t.style.display = 'flex';
         if (this.tutorialTimer) clearTimeout(this.tutorialTimer);
@@ -267,6 +289,7 @@ export class UIManager {
     try {
       el('world-header').hidden = !hudVisible;
     } catch { /* ignore */ }
+    liquidUI.refresh();
   }
 
   /**
@@ -280,7 +303,7 @@ export class UIManager {
         b.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5zm0-5.2l1.2 2.1 2.3-.5 1 2.1 2.3.7-.3 2.4 1.6 1.8-1.6 1.8.3 2.4-2.3.7-1 2.1-2.3-.5L12 20l-1.2-2.1-2.3.5-1-2.1-2.3-.7.3-2.4L3.9 12l1.6-1.8-.3-2.4 2.3-.7 1-2.1 2.3.5z"/></svg>';
         b.setAttribute('aria-label', 'Settings');
       } else {
-        b.textContent = 'II';
+        b.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 5h4v14H7V5zm6 0h4v14h-4V5z"/></svg>';
         b.setAttribute('aria-label', 'Pause game');
       }
     } catch { /* ignore */ }
@@ -296,7 +319,8 @@ export class UIManager {
       const plus = document.createElement('div');
       plus.className = 'coin-plus';
       plus.textContent = '+1';
-      pill.appendChild(plus);
+      // Fade lives inside .ql-content (never on the glass host itself).
+      liquidUI.contentLayer(pill).appendChild(plus);
       window.setTimeout(() => plus.remove(), 750);
     } catch { /* ignore */ }
   }

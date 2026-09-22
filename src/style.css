@@ -11,17 +11,17 @@ html,body{height:100%;overflow:hidden}
 html{height:100dvh}
 body{
   margin:0;font-family:'Nunito',system-ui,sans-serif;color:var(--ink);
-  background:#8fd0f5;user-select:none;-webkit-user-select:none;overscroll-behavior:none;
-  position:fixed;inset:0;width:100%; /* kills pull-to-refresh / rubber-banding */
+  background:#9fd3ef;user-select:none;-webkit-user-select:none;overscroll-behavior:none;
+  position:fixed;inset:0;width:100%;height:100%;min-height:100dvh; /* kills pull-to-refresh / rubber-banding */
   touch-action:manipulation;
 }
 img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #game canvas{touch-action:none;user-select:none;-webkit-user-select:none}
-#game,#game canvas{position:fixed;inset:0}
-#game canvas{display:block;touch-action:none}
+#game,#game canvas{position:fixed;inset:0;width:100%;height:100%}
+#game canvas{display:block;touch-action:none;width:100%;height:100%}
 
 /* Loading */
-#loading{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--green);color:#fff;gap:8px}
+#loading{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#9fd3ef;color:#fff;gap:8px}
 .load-logo,.logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.25);margin:0}
 .load-logo span,.logo span{color:var(--yellow)}
 .load-tag{font-weight:800;opacity:.95}
@@ -35,15 +35,15 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
 /* HUD */
 #hud{position:fixed;top:0;left:0;right:0;z-index:20;pointer-events:none;padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 0 calc(14px + env(safe-area-inset-left))}
-#hud-coins{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));display:flex;align-items:center;gap:8px;background:#FFFDF5;color:#1E2430;font-weight:800;padding:10px 14px;border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.25);font-size:clamp(13px,4vw,16px);min-width:0;max-width:36vw;white-space:nowrap}
+#hud-coins{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));display:flex;align-items:center;gap:8px;background:rgba(255,253,245,.72);color:#1E2430;font-weight:800;padding:10px 14px;border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.25);font-size:clamp(13px,4vw,16px);min-width:0;max-width:36vw;white-space:nowrap}
 #hud-coins-val{min-width:0;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-#world-header{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(300px,calc(100vw - 190px));background:#d63a3a;border-radius:18px;padding:10px 14px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(30,36,48,.9);z-index:21}
+#world-header{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(300px,calc(100vw - 190px));background:rgba(214,58,58,.8);border-radius:18px;padding:10px 14px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(30,36,48,.9);z-index:21}
 .wh-top{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:900;letter-spacing:3px}
 .wh-name{font-family:'Bungee';font-size:22px;line-height:1.2}
 .wh-bar{position:relative;margin-top:6px;height:12px;background:rgba(0,0,0,.45);border-radius:99px;overflow:hidden}
 #wh-fill{display:block;height:100%;width:0%;background:#fff;border-radius:99px;transition:width .3s}
 #wh-pct{position:absolute;inset:0;font-size:10px;font-weight:900;line-height:12px;letter-spacing:1px}
-#btn-pause{position:fixed;top:calc(10px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));width:44px;height:44px;border-radius:14px;border:none;background:#FFFDF5;color:#1E2430;font-weight:900;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
+#btn-pause{position:fixed;top:calc(10px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));width:44px;height:44px;border-radius:14px;border:none;background:rgba(255,253,245,.72);color:#1E2430;font-weight:900;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
 #btn-pause:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
 /* HUD coin icon — the same coin as the world collectible (COIN_SPEC):
    rim ring + inset face + emboss core. Outer stays exactly 16px. */
@@ -60,7 +60,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #world-intro.wi-out{opacity:0;transform:translateX(-50%) translateY(-18px) scale(1);transition:opacity .5s ease-in,transform .5s ease-in}
 #world-intro.wi-out #world-intro-sub{opacity:0;transition-delay:0s}
 #hud.hud-in{animation:hudIn .5s ease}
-@keyframes hudIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes hudIn{from{transform:translateY(8px)}to{transform:none}}
 #world-intro-name{font-family:'Bungee';font-size:clamp(38px,9vw,64px);color:#fff;text-shadow:0 5px 0 rgba(30,36,48,.9),0 0 26px rgba(0,0,0,.35)}
 #world-intro-sub{font-weight:900;letter-spacing:3px;font-size:13px;color:var(--yellow);text-shadow:0 2px 0 rgba(30,36,48,.9)}
 #event-banner{position:fixed;top:14%;left:50%;transform:translateX(-50%);z-index:21;background:var(--ink);color:#fff;font-weight:900;padding:10px 18px;border-radius:99px;white-space:nowrap}
@@ -69,7 +69,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 /* Menus & panels */
 #menu{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom));pointer-events:none}
 @keyframes cross-fade{from{opacity:0}to{opacity:1}}
-.menu-card{pointer-events:auto;background:var(--paper);border-radius:24px;padding:22px 22px 16px;width:min(400px,calc(100vw - 40px));max-height:calc(100dvh - 40px - env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;text-align:center;box-shadow:var(--card-shadow)}
+.menu-card{pointer-events:auto;background:rgba(255,253,245,.78);border-radius:24px;padding:22px 22px 16px;width:min(400px,calc(100vw - 40px));max-height:calc(100dvh - 40px - env(safe-area-inset-bottom));overflow-x:hidden;overflow-y:auto;text-align:center;box-shadow:var(--card-shadow)}
 .menu-card .logo{color:var(--ink);text-shadow:none;font-size:clamp(48px,10vw,72px)}
 .menu-card .logo span{color:#3fae2a;text-shadow:0 4px 0 rgba(0,0,0,.12)}
 .tagline{margin:2px 0 12px;font-weight:800}
@@ -77,9 +77,9 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .stat{flex:1;background:#eef3e4;border-radius:14px;padding:10px}
 .stat-label{display:block;font-size:11px;letter-spacing:2px;font-weight:800;opacity:.6}
 .stat span:last-child{font-family:'Bungee';font-size:24px}
-.btn{font-family:'Nunito';font-weight:900;border:none;border-radius:14px;padding:12px 14px;background:#e8e4d8;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(30,36,48,.85);font-size:14px;letter-spacing:.5px}
+.btn{font-family:'Nunito';font-weight:900;border:none;border-radius:14px;padding:12px 14px;background:rgba(232,228,216,.68);color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(30,36,48,.85);font-size:14px;letter-spacing:.5px}
 .btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(30,36,48,.85)}
-.btn.primary{background:var(--green);color:#fff}
+.btn.primary{background:rgba(122,199,79,.82);color:#fff}
 .btn.big{width:100%;font-family:'Bungee';font-size:26px;padding:14px}
 .btn.danger{background:#ffe1e1;color:#b3261e;margin-top:10px;width:100%}
 .btn.back{margin-top:12px;width:100%}
@@ -92,7 +92,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .hint{font-size:12px;opacity:.6;font-weight:700;margin:12px 0 2px}
 
 .panel-screen{position:fixed;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(30,36,48,.45)}
-.panel{background:var(--paper);border-radius:22px;padding:20px;width:min(520px,calc(100vw - 32px));max-height:88vh;overflow:auto;overflow-x:hidden;box-shadow:var(--card-shadow)}
+.panel{background:rgba(255,253,245,.84);border-radius:22px;padding:20px;width:min(520px,calc(100vw - 32px));max-height:88vh;overflow:auto;overflow-x:hidden;box-shadow:var(--card-shadow)}
 /* Masked scroll panels: outer panel clips (overflow hidden + radius), the
    inner scroll container does the actual scrolling so the scrollbar can
    never escape the rounded boundary. Header + BACK stay fixed. */
@@ -111,7 +111,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .toggle[aria-pressed="false"]{background:#c9c4b4;color:var(--ink)}
 .panel.narrow{width:min(360px,calc(100vw - 32px));text-align:center;display:grid;gap:10px}
 #chars-grid,#worlds-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.char-card{border:3px solid #e3ddc9;border-radius:16px;padding:12px;text-align:center;background:#fff}
+.char-card{border:3px solid #e3ddc9;border-radius:16px;padding:12px;text-align:center;background:rgba(255,255,255,.7)}
 .char-card.selected{border-color:var(--green);box-shadow:0 0 0 2px var(--green)}
 .char-card .prev-wrap{position:relative;height:150px;border-radius:12px;background:#dce8cf;overflow:hidden;margin-bottom:8px}
 .char-card .prev-canvas{width:100%;height:100%;display:block;transition:transform .25s}
@@ -122,12 +122,12 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .char-card h3{margin:0;font-family:'Bungee';font-size:16px}
 .char-card p{margin:4px 0 10px;font-size:12px;font-weight:800;opacity:.7}
 .char-card .btn{width:100%;padding:10px}
-.mission,.ach{display:flex;justify-content:space-between;gap:10px;background:#f4f1e5;border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px;font-weight:700}
+.mission,.ach{display:flex;justify-content:space-between;gap:10px;background:rgba(244,241,229,.72);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px;font-weight:700}
 .mission.done,.ach.done{outline:2px solid var(--green)}
 .ach-h{margin-top:16px}
 
 #gameover{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(30,36,48,.45)}
-.over-card{background:var(--paper);border-radius:24px;padding:24px;width:min(400px,calc(100vw - 36px));text-align:center;box-shadow:var(--card-shadow)}
+.over-card{background:rgba(255,253,245,.84);border-radius:24px;padding:24px;width:min(400px,calc(100vw - 36px));text-align:center;box-shadow:var(--card-shadow)}
 .over-card h2{font-family:'Bungee';margin:0}
 #new-best{background:var(--yellow);font-family:'Bungee';border-radius:10px;padding:6px;margin:10px 0}
 #final-score{font-family:'Bungee';font-size:64px;line-height:1;margin-top:6px}
@@ -148,10 +148,11 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .install-hint{font-size:13px;font-weight:700;background:#eef3e4;border-radius:12px;padding:10px 12px;margin:10px 0 0}
 .link-btn{background:none;border:none;text-decoration:underline;font-weight:800;cursor:pointer;padding:4px;min-height:32px}
 
-/* Standalone PWA: use full viewport, menu sits above home indicator */
+/* Standalone PWA: use full viewport, menu sits above home indicator.
+   Body matches the CITY sky so any sub-pixel gap never reads as a green strip. */
 @media (display-mode: standalone){
   #menu{padding-bottom:calc(20px + env(safe-area-inset-bottom))}
-  body{background:#7AC74F}
+  body{background:#9fd3ef}
 }
 
 /* Landscape phones: keep menu compact so PLAY stays reachable */
@@ -195,6 +196,11 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 @keyframes coinPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
 .coin-plus{position:absolute;top:-6px;right:6px;font-family:'Bungee';font-size:14px;color:#8a6d00;animation:coinRise .7s ease-out forwards;pointer-events:none}
 @keyframes coinRise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}
-/* Subtle cohesive screen transitions (killed by reduced-motion globally) */
+/* Screen entrances: transform-only on liquid hosts (opacity on a glass
+   host or its ancestors creates a backdrop root and silently kills
+   Chromium refraction — fades happen inside .ql-content only). */
 .menu-card,.panel,.over-card,#world-header{animation:cross-in .28s ease}
-@keyframes cross-in{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes cross-in{from{transform:translateY(10px) scale(.98)}to{transform:none}}
+/* World-notch content swap: liquid settle, transform-only (never moves center). */
+#world-header.wh-swap{animation:whSwap .38s ease}
+@keyframes whSwap{0%{transform:translateX(-50%) scale(1)}35%{transform:translateX(-50%) scale(.94,1.04)}70%{transform:translateX(-50%) scale(1.015,.99)}100%{transform:translateX(-50%) scale(1)}}

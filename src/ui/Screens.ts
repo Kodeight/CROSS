@@ -1,23 +1,28 @@
-/** Missions + settings screens. Pure DOM, driven by save data. */
+/** Missions + settings screens. Pure DOM, driven by save data. World-aware. */
 import { MISSIONS, ACHIEVEMENTS } from '../config/missions.config';
 import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
 import type { QualityLevel } from '../config/game.config';
+import { liquidUI } from './liquidUI';
 
 export class MissionsScreen {
   constructor(private readonly save: SaveManager) {}
 
-  render(maxLane: number, nearMiss: number): void {
+  render(maxLane: number, nearMiss: number, activeWorldId?: string): void {
     const ml = document.getElementById('missions-list');
     if (ml) {
       ml.innerHTML = '';
       const run = { maxLane, nearMiss };
+      // §53 — show global missions + missions for the active (or selected) world.
+      const worldId = activeWorldId ?? this.save.data.selectedWorld;
       for (const m of MISSIONS) {
+        if (m.worldId && m.worldId !== worldId) continue;
         const done = !!this.save.data.missions[m.id];
         const div = document.createElement('div');
         div.className = 'mission' + (done ? ' done' : '');
+        if (m.tier) div.classList.add(`tier-${m.tier}`);
         const l = document.createElement('span');
-        l.textContent = m.name;
+        l.textContent = (m.worldId ? `[${m.worldId.toUpperCase()}] ` : '') + m.name;
         div.appendChild(l);
         const r = document.createElement('strong');
         r.textContent = done ? `DONE +${m.reward}` : m.progress(run, this.save.data.totalCoins);
@@ -41,6 +46,7 @@ export class MissionsScreen {
         al.appendChild(div);
       }
     }
+    liquidUI.refresh();
   }
 }
 

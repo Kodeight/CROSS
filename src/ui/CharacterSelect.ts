@@ -4,6 +4,7 @@ import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
 import type { ProgressionSystem } from '../gameplay/ProgressionSystem';
 import { LOCK_SVG, type CharacterPreviewManager } from './Previews';
+import { liquidUI } from './liquidUI';
 import type { UIManager } from './UIManager';
 
 export class CharacterSelect {
@@ -85,5 +86,6 @@ export class CharacterSelect {
       grid.appendChild(card);
     }
     this.previews.open(this.canvases);
+    liquidUI.refresh();
   }
 }
