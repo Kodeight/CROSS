@@ -22,11 +22,12 @@ export interface QualityProfile {
   shadows: boolean;
   shadowSize: number;
   particles: boolean;
+  antialias?: boolean;
 }
 
 export const QUALITY_PROFILES: Record<QualityLevel, QualityProfile> = {
   LOW: { pixelRatioCap: 1, shadows: false, shadowSize: 512, particles: false },
-  MEDIUM: { pixelRatioCap: 1.5, shadows: true, shadowSize: 1024, particles: true },
-  HIGH: { pixelRatioCap: 2, shadows: true, shadowSize: 2048, particles: true },
+  MEDIUM: { pixelRatioCap: 1.5, shadows: true, shadowSize: 1536, particles: true },
+  HIGH: { pixelRatioCap: 2, shadows: true, shadowSize: 2048, particles: true, antialias: true },
   AUTO: { pixelRatioCap: 1.5, shadows: true, shadowSize: 1024, particles: true },
 };

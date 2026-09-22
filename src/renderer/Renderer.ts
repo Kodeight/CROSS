@@ -96,6 +96,8 @@ export class GameRenderer {
         this.dirLight.shadow.map = null as unknown as THREE.WebGLRenderTarget;
       }
     }
+    (this.renderer as any).antialias = profile.antialias ?? true;
+    this.renderer.info.autoReset = false;
     this.scene.traverse((o) => {
       const mesh = o as THREE.Mesh;
       const mat = (mesh as { material?: THREE.Material }).material;
