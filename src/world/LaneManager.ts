@@ -19,8 +19,18 @@ export class LaneManager {
     return this.lanes.length;
   }
 
+  /**
+   * Lane by world lane number. The array is a pruned sliding window, so a
+   * raw array slot is NOT the lane number — resolve via the head offset.
+   * (A naive `lanes[i]` here once made collision test the wrong lane and
+   * killed players standing on safe grass.)
+   */
   laneAt(index: number): Lane | undefined {
-    return this.lanes[index];
+    if (!this.lanes.length) return undefined;
+    const slot = index - this.lanes[0].index;
+    if (slot < 0 || slot >= this.lanes.length) return undefined;
+    const lane = this.lanes[slot];
+    return lane.index === index ? lane : undefined;
   }
 
   add(lane: Lane): void {
