@@ -43,6 +43,22 @@ export class AssetManager {
     return m;
   }
 
+  /** Metallic PBR material for hero collectibles (coins). Shared/cached. */
+  standard(key: string, color: number, opts: { metalness?: number; roughness?: number; emissive?: number } = {}): THREE.MeshStandardMaterial {
+    const cacheKey = `std:${key}:${color}:${opts.metalness ?? 0.8}:${opts.roughness ?? 0.35}:${opts.emissive ?? 0}`;
+    let m = this.materials.get(cacheKey) as THREE.MeshStandardMaterial | undefined;
+    if (!m) {
+      m = new THREE.MeshStandardMaterial({
+        color,
+        metalness: opts.metalness ?? 0.8,
+        roughness: opts.roughness ?? 0.35,
+        emissive: opts.emissive ?? 0x000000,
+      });
+      this.materials.set(cacheKey, m);
+    }
+    return m;
+  }
+
   /** Rounded box via beveled ExtrudeGeometry — kills the "primitive cube" look. */
   roundedBox(w: number, h: number, d: number, radius: number, segments = 2): THREE.BufferGeometry {
     const key = `rbox:${w}x${h}x${d}r${radius}s${segments}`;
@@ -84,6 +100,10 @@ export class AssetManager {
 
   cylinder(key: string, rt: number, rb: number, h: number, seg = 10): THREE.CylinderGeometry {
     return this.geometry(`cyl:${key}:${rt}/${rb}x${h}x${seg}`, () => new THREE.CylinderGeometry(rt, rb, h, seg));
+  }
+
+  torus(key: string, r: number, tube: number, radial = 10, tubular = 20): THREE.TorusGeometry {
+    return this.geometry(`tor:${key}:${r}x${tube}x${radial}x${tubular}`, () => new THREE.TorusGeometry(r, tube, radial, tubular));
   }
 
   dispose(): void {

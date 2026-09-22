@@ -216,28 +216,45 @@ export class WorldGenerator {
     }
   }
 
+  /**
+   * Proper 3D collectible coin: stands VERTICALLY in world space.
+   * CylinderGeometry's axis is Y (the lane direction), so with no
+   * rotation the circular caps face ±Y — directly readable from the
+   * elevated camera behind the player. The group spins around world Z
+   * (CoinSystem), i.e. around the true vertical axis.
+   */
   makeCoinMesh(): THREE.Group {
     const g = new THREE.Group();
-    const outer = new THREE.Mesh(
-      this.assets.cylinder('coin', 14 * ZOOM, 14 * ZOOM, 5 * ZOOM, 16),
-      this.assets.phong('coin', 0xffc93c, { emissive: 0x7a5200, shininess: 120 }),
+    const R = 8 * ZOOM;
+    const T = 2.5 * ZOOM;
+    const edge = new THREE.Mesh(
+      this.assets.cylinder('coin-v', R, R, T, 20),
+      this.assets.standard('coin-edge', 0xd99a00, { metalness: 0.85, roughness: 0.35, emissive: 0x2a1a00 }),
     );
-    outer.rotation.x = Math.PI / 2;
-    outer.castShadow = true;
-    g.add(outer);
-    const inner = new THREE.Mesh(
-      this.assets.cylinder('coin-in', 7 * ZOOM, 7 * ZOOM, 5.5 * ZOOM, 14),
-      this.assets.phong('coin-in', 0xffe27a, { emissive: 0x7a5200, shininess: 60 }),
+    edge.castShadow = true;
+    g.add(edge);
+    for (const s of [-1, 1]) {
+      const face = new THREE.Mesh(
+        this.assets.cylinder('coin-face', R * 0.72, R * 0.72, T + 1, 20),
+        this.assets.standard('coin-face', 0xffe27a, { metalness: 0.9, roughness: 0.28, emissive: 0x3a2600 }),
+      );
+      face.position.y = s * 0.2;
+      face.castShadow = true;
+      g.add(face);
+    }
+    const emboss = new THREE.Mesh(
+      this.assets.cylinder('coin-emboss', 3 * ZOOM, 3 * ZOOM, T + 2, 14),
+      this.assets.standard('coin-emboss', 0xffc93c, { metalness: 0.9, roughness: 0.3, emissive: 0x3a2600 }),
     );
-    inner.rotation.x = Math.PI / 2;
-    g.add(inner);
+    emboss.castShadow = true;
+    g.add(emboss);
     const rim = new THREE.Mesh(
-      this.assets.cylinder('coin-rim', 14 * ZOOM, 14.5 * ZOOM, 0.8 * ZOOM, 16),
-      this.assets.phong('coin-rim', 0xd99a00, { emissive: 0x5a3a00, shininess: 60 }),
+      this.assets.torus('coin-rim', R, 1.1 * ZOOM, 10, 24),
+      this.assets.standard('coin-rim', 0xb57e00, { metalness: 0.85, roughness: 0.4, emissive: 0x241500 }),
     );
     rim.rotation.x = Math.PI / 2;
+    rim.castShadow = true;
     g.add(rim);
-    g.scale.set(1.2, 1.2, 1.2);
     return g;
   }
 
@@ -422,12 +439,26 @@ export class WorldGenerator {
       this.enforceLaneSpacing(lane, TRAFFIC_CONFIG.minGap);
     }
 
-    // Coins on safe lanes.
-    if ((type === 'field' || type === 'forest') && index > 2 && Math.random() < 0.4) {
-      const col = Math.floor(Math.random() * COLS);
-      if (!lane.occupied[col]) {
+    // Coins on safe lanes: intentional patterns (singles, pairs, short
+    // runs), never random spam. Standing height keeps the coin just above
+    // the ground: slab top (3*ZOOM) + coin radius (8*ZOOM) + small offset.
+    if ((type === 'field' || type === 'forest') && index > 2 && Math.random() < 0.45) {
+      const r = Math.random();
+      const cols: number[] = [];
+      const start = Math.floor(Math.random() * COLS);
+      if (r < 0.5 || COLS < 3) cols.push(start);
+      else if (r < 0.75) {
+        cols.push(start, Math.min(COLS - 1, start + 1));
+      } else {
+        cols.push(
+          Math.max(0, start - 1), start, Math.min(COLS - 1, start + 1),
+        );
+      }
+      for (const col of cols) {
+        if (lane.occupied[col]) continue;
+        if (lane.coins.some((c) => c.col === col)) continue;
         const mesh = this.makeCoinMesh();
-        mesh.position.set((col * PW + PW / 2) * ZOOM - BOARD / 2, 0, 1.5 * ZOOM);
+        mesh.position.set((col * PW + PW / 2) * ZOOM - BOARD / 2, 0, 12 * ZOOM);
         lane.mesh.add(mesh);
         lane.coins.push({ mesh, col, taken: false });
       }

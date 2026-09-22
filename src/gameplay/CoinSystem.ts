@@ -44,14 +44,15 @@ export class CoinSystem {
     for (const c of this.anims) {
       if (!c.mesh.parent) continue;
       if (this.isCollecting(c.mesh)) continue;
+      // Slow smooth spin around the true vertical axis (world Z).
       c.mesh.rotation.z = tMs / 500 + c.off;
-      c.mesh.position.z = 1.5 * zoom + Math.sin(tMs / 400 + c.off) * 0.5 * zoom;
+      c.mesh.position.z = 12 * zoom + Math.sin(tMs / 400 + c.off) * 0.5 * zoom;
     }
     for (let i = this.collecting.length - 1; i >= 0; i--) {
       const a = this.collecting[i];
       a.t += Math.max(dtMs, 0);
       const k = Math.min(a.t / COLLECT_MS, 1);
-      const s = 1.2 * (1 - k) + 0.05;
+      const s = 1.0 * (1 - k) + 0.05;
       a.mesh.scale.setScalar(Math.max(s, 0.01));
       a.mesh.position.z += Math.max(dtMs, 0) * 0.12;
       a.mesh.rotation.z += Math.max(dtMs, 0) * 0.02;

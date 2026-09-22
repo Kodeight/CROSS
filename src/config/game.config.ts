@@ -8,6 +8,7 @@ export const GAME_CONFIG = {
   zoom: 2,
   stepTimeMs: 170,
   worldLength: 40, // lanes per world stretch before transitioning onward
+  startLane: 10, // player spawns INSIDE the city, never at the world edge
   maxPixelRatio: 2,
   mobileMaxPixelRatio: 1.5,
   shadowMapSize: 2048,

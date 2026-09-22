@@ -1,16 +1,17 @@
-/** Score = max lane reached + bonus (coins +1, near-miss +2). */
-
+/** Score = forward progress since run start + bonus (coins +1, near-miss +2). */
 export class ScoreSystem {
   maxLane = 0;
   bonus = 0;
+  private base = 0;
 
-  reset(): void {
-    this.maxLane = 0;
+  reset(base = 0): void {
+    this.base = base;
+    this.maxLane = base;
     this.bonus = 0;
   }
 
   get score(): number {
-    return this.maxLane + this.bonus;
+    return this.maxLane - this.base + this.bonus;
   }
 
   reachLane(lane: number): boolean {

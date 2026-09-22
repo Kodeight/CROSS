@@ -211,10 +211,11 @@ export class Game implements LoopDelegate {
     this.missionsScreen = new MissionsScreen(this.save);
     this.settingsScreen = new SettingsScreen(this.save, this.audio, (what) => this.onSettingsChanged(what));
 
-    // Initial showcase lanes behind the menu.
-    for (let i = 0; i <= 14; i++) this.makeLane(i);
-    this.player.reset(0, Math.floor(GAME_CONFIG.columns / 2));
-    const w = this.worlds.worldForLane(0, this.save.data.selectedWorld);
+    // Initial showcase buffer behind the menu: full city section with the
+    // player placed inside it — the menu diorama is already a complete world.
+    for (let i = 0; i <= GAME_CONFIG.startLane + 30; i++) this.makeLane(i);
+    this.player.reset(GAME_CONFIG.startLane, Math.floor(GAME_CONFIG.columns / 2));
+    const w = this.worlds.worldForLane(GAME_CONFIG.startLane, this.save.data.selectedWorld);
     this.worlds.setCurrent(this.worlds.byId(w.id));
     this.lighting.setWorld(w, true);
     this.camera.snapToPlayer(this.player.position);

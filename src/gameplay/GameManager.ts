@@ -74,7 +74,7 @@ export class GameManager {
 
   /** Start a fresh run: reset state, rebuild lanes around the player. */
   newRun(makeLane: (index: number) => void, rebuildPlayerMesh: () => void): void {
-    this.score.reset();
+    this.score.reset(GAME_CONFIG.startLane);
     this.coins.reset();
     this.runNear = 0;
     this.runSteps = 0;
@@ -82,10 +82,13 @@ export class GameManager {
     this.shake = 0;
     this.eventActive = null;
     rebuildPlayerMesh();
-    this.player.reset(0, Math.floor(GAME_CONFIG.columns / 2));
+    // Order matters: generate the full initial buffer FIRST, then place
+    // the player inside it (never at the world edge), so the first frame
+    // is already a complete composed world.
     this.lanes.clear();
-    for (let i = 0; i <= 14; i++) makeLane(i);
-    const w = this.worlds.worldForLane(0, this.save.data.selectedWorld);
+    for (let i = 0; i <= GAME_CONFIG.startLane + 30; i++) makeLane(i);
+    this.player.reset(GAME_CONFIG.startLane, Math.floor(GAME_CONFIG.columns / 2));
+    const w = this.worlds.worldForLane(GAME_CONFIG.startLane, this.save.data.selectedWorld);
     this.worlds.setCurrent(this.worlds.byId(w.id));
     this.lighting.setWorld(w, true);
     this.save.data.stats.gamesPlayed++;
@@ -135,7 +138,7 @@ export class GameManager {
     const py = this.player.position.y;
     const pz = this.player.position.z;
     const laneH = GAME_CONFIG.positionWidth * GAME_CONFIG.zoom;
-    const pickupR = 48;
+    const pickupR = 44;
     for (const lane of this.lanes.lanes) {
       if (!lane.coins.length) continue;
       const laneY = lane.mesh.position.y;
