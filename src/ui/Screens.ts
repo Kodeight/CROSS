@@ -48,7 +48,7 @@ export class SettingsScreen {
   constructor(
     private readonly save: SaveManager,
     private readonly audio: AudioManager,
-    private readonly onChanged: (what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset') => void,
+    private readonly onChanged: (what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset' | 'tutorial') => void,
   ) {}
 
   render(): void {
@@ -111,6 +111,10 @@ export class SettingsScreen {
       if (window.confirm('Reset all CROSS! progress?')) {
         this.onChanged('reset');
       }
+    });
+    on('btn-replay-tutorial', () => {
+      this.audio.click();
+      this.onChanged('tutorial');
     });
   }
 }

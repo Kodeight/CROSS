@@ -16,6 +16,7 @@ export class UIManager {
   private toastTimer = 0;
   private introTimers: number[] = [];
   private tutorialTimer: number = 0;
+  private tutorialSession = 0;
   deferredInstallPrompt: unknown = null;
 
   get el() {
@@ -42,8 +43,9 @@ export class UIManager {
     };
   }
 
-  /** Show the swipe tutorial on first play. Auto-dismisses after ms or on first touch. */
+  /** Show a one-shot hint. Auto-dismisses after ms or on first touch. */
   showTutorial(text: string, gesture: string, ms = 4000): void {
+    const session = ++this.tutorialSession;
     try {
       const t = el('tutorial');
       el('tutorial-text').textContent = text;
@@ -52,11 +54,14 @@ export class UIManager {
       t.style.display = 'flex';
       if (this.tutorialTimer) clearTimeout(this.tutorialTimer);
       this.tutorialTimer = window.setTimeout(() => {
+        if (session !== this.tutorialSession) return;
         t.hidden = true;
         t.style.display = '';
       }, ms);
-      // Dismiss on first touch.
+      // Dismiss on first touch — invalidates any chained steps.
       const dismiss = (): void => {
+        this.tutorialSession++;
+        if (this.tutorialTimer) clearTimeout(this.tutorialTimer);
         t.hidden = true;
         t.style.display = '';
         document.removeEventListener('touchstart', dismiss);
@@ -64,6 +69,111 @@ export class UIManager {
       };
       document.addEventListener('touchstart', dismiss, { once: true });
       document.addEventListener('pointerdown', dismiss, { once: true });
+    } catch { /* ignore */ }
+  }
+
+  /**
+   * Staged first-run mobile tutorial, played inside the live world:
+   * gestures → warning → send-off. Short, skippable, shown once.
+   */
+  showMobileTutorial(onDone: () => void): void {
+    const steps: Array<[string, string, number]> = [
+      ['SWIPE ◀ ▶', 'Move left & right', 1700],
+      ['SWIPE ▲', 'Cross forward', 1700],
+      ['AVOID THE TRAFFIC', '🚗 🚕 🚚', 1600],
+      ['GOOD LUCK!', '🐔💨', 1400],
+    ];
+    let i = 0;
+    const next = (): void => {
+      if (i >= steps.length) {
+        this.hideTutorial();
+        onDone();
+        return;
+      }
+      const [text, gesture] = steps[i];
+      i++;
+      const session = ++this.tutorialSession;
+      try {
+        const t = el('tutorial');
+        el('tutorial-text').textContent = text;
+        el('tutorial-gesture').textContent = gesture;
+        t.hidden = false;
+        t.style.display = 'flex';
+        if (this.tutorialTimer) clearTimeout(this.tutorialTimer);
+        this.tutorialTimer = window.setTimeout(() => {
+          if (session !== this.tutorialSession) return;
+          next();
+        }, steps[i - 1][2]);
+        const dismiss = (): void => {
+          this.tutorialSession++;
+          if (this.tutorialTimer) clearTimeout(this.tutorialTimer);
+          t.hidden = true;
+          t.style.display = '';
+          document.removeEventListener('touchstart', dismiss);
+          document.removeEventListener('pointerdown', dismiss);
+          onDone();
+        };
+        document.addEventListener('touchstart', dismiss, { once: true });
+        document.addEventListener('pointerdown', dismiss, { once: true });
+      } catch {
+        onDone();
+      }
+    };
+    next();
+  }
+
+  isMobileTutorialCompleted(): boolean {
+    try {
+      return localStorage.getItem('cross_mobile_tutorial_completed') === '1';
+    } catch {
+      return true;
+    }
+  }
+
+  completeMobileTutorial(): void {
+    try {
+      localStorage.setItem('cross_mobile_tutorial_completed', '1');
+    } catch { /* ignore */ }
+  }
+
+  clearMobileTutorial(): void {
+    try {
+      localStorage.removeItem('cross_mobile_tutorial_completed');
+    } catch { /* ignore */ }
+  }
+
+  /**
+   * Content-responsive HUD guard: the coins pill compresses (never the
+   * notch moves) so huge values can never slide under WORLD 01 / CITY.
+   */
+  fitHud(): void {
+    try {
+      const hud = el('hud');
+      const coins = el('hud-coins');
+      const notch = el('world-header');
+      coins.style.fontSize = '';
+      coins.style.padding = '';
+      const val = el('hud-coins-val');
+      val.style.maxWidth = '';
+      if (hud.hidden || notch.hidden) return;
+      const gap = 8;
+      let size = 16;
+      for (let i = 0; i < 7; i++) {
+        const c = coins.getBoundingClientRect();
+        const n = notch.getBoundingClientRect();
+        if (c.right + gap <= n.left) break;
+        if (size > 11) {
+          size -= 1;
+          coins.style.fontSize = `${size}px`;
+          coins.style.padding = '8px 10px';
+        } else {
+          // Last resort: cap the number itself; the notch never moves.
+          const iconW = 16 + 8;
+          const avail = Math.max(28, n.left - gap - c.left - iconW - 20);
+          val.style.maxWidth = `${avail}px`;
+          break;
+        }
+      }
     } catch { /* ignore */ }
   }
 

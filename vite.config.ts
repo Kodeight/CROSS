@@ -15,8 +15,8 @@ export default defineConfig({
         name: 'CROSS!',
         short_name: 'CROSS!',
         description: "Cross as far as you can. Don't get hit.",
-        start_url: './index.html',
-        scope: './',
+        start_url: '/',
+        scope: '/',
         display: 'standalone',
         orientation: 'portrait',
         theme_color: '#7AC74F',
@@ -46,6 +46,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,woff2}'],
         globIgnores: ['**/favicon*.svg'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,

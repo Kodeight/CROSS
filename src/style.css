@@ -35,8 +35,9 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
 /* HUD */
 #hud{position:fixed;top:0;left:0;right:0;z-index:20;pointer-events:none;padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 0 calc(14px + env(safe-area-inset-left))}
-#hud-coins{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));display:flex;align-items:center;gap:8px;background:#FFFDF5;color:#1E2430;font-weight:800;padding:10px 14px;border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.25);font-size:16px}
-#world-header{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(320px,calc(100vw - 80px));background:#d63a3a;border-radius:18px;padding:10px 14px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(30,36,48,.9);z-index:21}
+#hud-coins{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));display:flex;align-items:center;gap:8px;background:#FFFDF5;color:#1E2430;font-weight:800;padding:10px 14px;border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.25);font-size:clamp(13px,4vw,16px);min-width:0;max-width:36vw;white-space:nowrap}
+#hud-coins-val{min-width:0;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+#world-header{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(300px,calc(100vw - 190px));background:#d63a3a;border-radius:18px;padding:10px 14px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(30,36,48,.9);z-index:21}
 .wh-top{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:900;letter-spacing:3px}
 .wh-name{font-family:'Bungee';font-size:22px;line-height:1.2}
 .wh-bar{position:relative;margin-top:6px;height:12px;background:rgba(0,0,0,.45);border-radius:99px;overflow:hidden}
@@ -172,9 +173,22 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   #menu .menu-row #btn-missions{grid-column:1/-1}
   .menu-row .btn{padding:12px 8px;font-size:12px}
   /* Narrower notch on small phones — still exactly centered at 50vw. */
-  #world-header{width:min(240px,calc(100vw - 170px));padding:8px 10px}
+  #world-header{padding:8px 10px}
   .wh-name{font-size:18px}
   .wh-top{font-size:10px}
+}
+/* Browser-mobile menu: compact. PWA standalone keeps its current good size. */
+@media screen and (max-width:480px) and (display-mode: browser){
+  .menu-card{width:min(330px,calc(100vw - 32px));padding:16px 16px 12px;max-height:calc(100dvh - 24px - env(safe-area-inset-bottom))}
+  .menu-card .logo{font-size:44px}
+  .tagline{margin:0 0 8px}
+  .menu-stats{margin-bottom:8px}
+  .stat{padding:8px}
+  .stat span:last-child{font-size:20px}
+  #btn-play{margin-top:4px}
+  .btn.big{font-size:22px;padding:12px}
+  .menu-row{margin-top:8px}
+  .hint{margin:8px 0 0}
 }
 /* Coin collect feedback: counter pops + floating +1. */
 #hud-coins.coin-pulse{animation:coinPulse .35s ease}

@@ -1,5 +1,6 @@
 /** Main menu stats + world progress header. */
 import { WORLD_LENGTH } from '../config/worlds.config';
+import { fmtCount } from '../utils/Format';
 import type { SaveManager } from '../save/SaveManager';
 import type { WorldManager } from '../world/WorldManager';
 
@@ -11,8 +12,8 @@ export class MainMenu {
       const e = document.getElementById(id);
       if (e) e.textContent = v;
     };
-    set('menu-best', String(this.save.data.bestScore));
-    set('menu-coins', String(this.save.data.coins));
+    set('menu-best', fmtCount(this.save.data.bestScore));
+    set('menu-coins', fmtCount(this.save.data.coins));
     try {
       const w = this.worlds.byId(this.save.data.selectedWorld).config;
       set('wh-num', `WORLD ${w.num}`);

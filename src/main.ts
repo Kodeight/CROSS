@@ -5,7 +5,7 @@ import { Game } from './core/Game';
 function boot(): void {
   try {
     const game = new Game();
-    game.boot();
+    void game.boot();
   } catch (err) {
     console.error('CROSS! startup failed:', err);
     try {

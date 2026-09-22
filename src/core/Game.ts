@@ -94,18 +94,18 @@ export class Game implements LoopDelegate {
 
   // ---------------- boot ----------------
 
-  boot(): void {
+  async boot(): Promise<void> {
     if (this.booted) return;
     this.booted = true;
     applyCoinTheme();
-    this.ui.setLoad(15, 'LOADING...');
+    this.ui.setLoad(10, 'CROSS!');
     this.save.load();
     this.reducedMotion = this.save.data.settings.reducedMotion || prefersReducedMotion();
 
     // Stage 1 — renderer only. The WebGL screen belongs exclusively to
     // genuine renderer-construction failure.
     try {
-      this.ui.setLoad(35, 'BUILDING WORLD...');
+      this.ui.setLoad(25, 'STARTING ENGINE...');
       const container = document.getElementById('game');
       if (!container) throw new Error('missing #game container');
       this.renderer = GameRenderer.create(container);
@@ -119,10 +119,12 @@ export class Game implements LoopDelegate {
     }
 
     // Stage 2 — everything else. Failures here are app bugs, never WebGL.
+    // Progress percentages track real completed milestones; the initial
+    // lane buffer reports per-chunk so the bar reflects actual work.
     try {
-      this.ui.setLoad(60, 'WAKING CHICKEN...');
-      this.buildSystems();
-      this.ui.setLoad(80, 'COUNTING COINS...');
+      this.ui.setLoad(35, 'WAKING CHICKEN...');
+      await this.buildSystems((pct, text) => this.ui.setLoad(pct, text));
+      this.ui.setLoad(82, 'COUNTING COINS...');
       this.bindUI();
       this.bindSystemEvents();
       registerPWA(this.ui, () => this.audio.click());
@@ -150,7 +152,7 @@ export class Game implements LoopDelegate {
     }
   }
 
-  private buildSystems(): void {
+  private async buildSystems(onProgress?: (pct: number, text: string) => void): Promise<void> {
     const scene = this.renderer.scene;
     this.camera = new FollowCamera();
     this.camera.setReducedMotion(this.reducedMotion);
@@ -181,7 +183,10 @@ export class Game implements LoopDelegate {
       this.traffic, this.score, this.coins, this.missions, this.progression,
       this.particles, this.lighting,
       {
-        onHud: () => this.hud.update(),
+        onHud: () => {
+          this.hud.update();
+          this.ui.fitHud();
+        },
         onToast: (m) => this.ui.toast(m),
         onNearMiss: () => this.ui.flashNearMiss(),
         onWorldIntro: (name, sub) => {
@@ -198,7 +203,7 @@ export class Game implements LoopDelegate {
     this.controller = new PlayerController(this.player, this.input, () => this.togglePause());
     this.input.bind();
 
-    this.hud = new HUD(this.save, () => this.score.score);
+    this.hud = new HUD(this.save, () => this.coins.runCoins);
     this.menu = new MainMenu(this.save, this.worlds);
     this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion);
     this.worldPreviews = new WorldPreviewManager(vehicles, () => this.reducedMotion);
@@ -213,26 +218,44 @@ export class Game implements LoopDelegate {
     this.missionsScreen = new MissionsScreen(this.save);
     this.settingsScreen = new SettingsScreen(this.save, this.audio, (what) => this.onSettingsChanged(what));
 
+    const worldName = this.worlds.current.config.name;
     // Initial showcase buffer behind the menu: full city section with the
     // player placed inside it — the menu diorama is already a complete world.
-    for (let i = 0; i <= GAME_CONFIG.startLane + 30; i++) this.makeLane(i);
+    // Chunked with progress so the loader reflects the actual generation work.
+    // Generate a generous buffer ahead of the player so the camera never
+    // sees ungenerated world (blue areas) during the transition to gameplay.
+    const initialBuffer = GAME_CONFIG.startLane + 200;
+    for (let i = 0; i <= initialBuffer; i++) {
+      this.makeLane(i);
+      if (onProgress && (i % 20 === 0 || i === initialBuffer)) {
+        onProgress(40 + Math.round((i / initialBuffer) * 35), `PREPARING ${worldName}... ${i + 1}/${initialBuffer + 1}`);
+        await new Promise((r) => requestAnimationFrame(r));
+      }
+    }
     this.player.reset(GAME_CONFIG.startLane, Math.floor(GAME_CONFIG.columns / 2));
     const w = this.worlds.worldForLane(GAME_CONFIG.startLane, this.save.data.selectedWorld);
     this.worlds.setCurrent(this.worlds.byId(w.id));
     this.lighting.setWorld(w, true);
     this.camera.snapToPlayer(this.player.position);
 
-    window.addEventListener('resize', () => {
-      this.renderer.onResize();
-      this.camera.onResize();
-    });
-    window.addEventListener('orientationchange', () => window.setTimeout(() => {
-      this.renderer.onResize();
-      this.camera.onResize();
-    }, 120));
+    window.addEventListener('resize', () => this.onViewportChange());
+    window.addEventListener('orientationchange', () => window.setTimeout(() => this.onViewportChange(), 120));
+    try {
+      window.addEventListener('cross:resize', () => this.onViewportChange());
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', () => this.onViewportChange());
+    } catch { /* ignore */ }
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && this.ui.state === GameState.PLAYING && !this.manager.dying) this.pause();
     });
+  }
+
+  /** Single viewport-change funnel: renderer, camera, HUD — one place. */
+  private onViewportChange(): void {
+    try {
+      this.renderer.onResize();
+      this.camera.onResize();
+      this.ui.fitHud();
+    } catch { /* ignore */ }
   }
 
   private allWorlds(): import('../world/World').World[] {
@@ -279,6 +302,7 @@ export class Game implements LoopDelegate {
     };
     this.ui.showOnly(map[s] ?? []);
     this.ui.syncTopButton(s);
+    this.ui.fitHud();
     this.controller.setEnabled(s === GameState.PLAYING);
     this.ui.setTouchControlsVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO, this.isTouch);
     if (s === GameState.MAIN_MENU) {
@@ -307,13 +331,21 @@ export class Game implements LoopDelegate {
     this.ui.showWorldIntro(w.name, `CROSS! WORLD ${w.num}`, this.reducedMotion, () => {
       if (this.ui.state === GameState.WORLD_INTRO) this.setState(GameState.PLAYING);
     });
-    // Show swipe tutorial on first run.
-    if (!this.save.data.tutorialShown) {
+    // First-run guidance, played inside the live world after the title exits.
+    if (this.isTouch) {
+      if (!this.ui.isMobileTutorialCompleted()) {
+        window.setTimeout(() => {
+          if (this.ui.state === GameState.PLAYING || this.ui.state === GameState.WORLD_INTRO) {
+            this.ui.showMobileTutorial(() => this.ui.completeMobileTutorial());
+          }
+        }, 1400);
+      }
+    } else if (!this.save.data.tutorialShown) {
       this.save.data.tutorialShown = true;
       this.save.save();
       window.setTimeout(() => {
-        this.ui.showTutorial('Swipe to dodge', '◀→↑↓', 3500);
-      }, 600);
+        this.ui.showTutorial('Arrows / WASD to cross', '◀ ▲ ▼ ▶', 3000);
+      }, 1400);
     }
   }
 
@@ -468,7 +500,7 @@ export class Game implements LoopDelegate {
     });
   }
 
-  private onSettingsChanged(what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset'): void {
+  private onSettingsChanged(what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset' | 'tutorial'): void {
     if (what === 'music') {
       if (this.save.data.settings.music) {
         this.audio.startMusic(this.ui.state === GameState.PLAYING ? 'play' : 'menu');
@@ -491,6 +523,9 @@ export class Game implements LoopDelegate {
       this.menu.render();
       this.rebuildPlayerMesh();
       this.ui.toast('Progress reset');
+    } else if (what === 'tutorial') {
+      this.ui.clearMobileTutorial();
+      this.ui.toast('Tutorial will play on your next run');
     }
     this.bus.emit('settingsChanged', what);
   }

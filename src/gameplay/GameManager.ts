@@ -86,7 +86,10 @@ export class GameManager {
     // the player inside it (never at the world edge), so the first frame
     // is already a complete composed world.
     this.lanes.clear();
-    for (let i = 0; i <= GAME_CONFIG.startLane + 30; i++) makeLane(i);
+    // Generate a generous initial buffer so the camera (elevated,
+    // top-down) never sees ungenerated world/blue areas on launch.
+    const initialBuffer = GAME_CONFIG.startLane + 200;
+    for (let i = 0; i <= initialBuffer; i++) makeLane(i);
     this.player.reset(GAME_CONFIG.startLane, Math.floor(GAME_CONFIG.columns / 2));
     const w = this.worlds.worldForLane(GAME_CONFIG.startLane, this.save.data.selectedWorld);
     this.worlds.setCurrent(this.worlds.byId(w.id));

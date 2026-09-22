@@ -6,9 +6,9 @@ import type * as THREE from 'three';
 import { GAME_CONFIG } from '../config/game.config';
 import type { Lane } from './World';
 
-const AHEAD = 30;
-const BEHIND = 12;
-const MAX_LANES = 400;
+const AHEAD = 200;
+const BEHIND = 50;
+const MAX_LANES = 500;
 
 export class LaneManager {
   lanes: Lane[] = [];

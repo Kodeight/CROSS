@@ -9,7 +9,7 @@
 <meta name="application-name" content="CROSS!">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CROSS!">
 <meta property="og:title" content="CROSS! — Don't Get Hit">
 <meta property="og:description" content="Cross as far as you can. Dodge traffic. Collect coins. Beat your best score.">
@@ -78,12 +78,13 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 /* HUD — three independent zones */
 #hud{position:fixed;top:0;left:0;right:0;z-index:20;pointer-events:none;padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 0 calc(14px + env(safe-area-inset-left))}
 .hud-zone{pointer-events:auto}
-#hud-coins{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));display:flex;align-items:center;gap:8px;background:#FFFDF5;color:#1E2430;font-weight:800;padding:10px 14px;border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.25);font-size:16px}
+#hud-coins{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));display:flex;align-items:center;gap:8px;background:#FFFDF5;color:#1E2430;font-weight:800;padding:10px 14px;border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.25);font-size:clamp(13px,4vw,16px);min-width:0;max-width:36vw;white-space:nowrap}
+#hud-coins-val{min-width:0;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 #hud-coins.coin-pulse{animation:coinPulse .35s ease}
 @keyframes coinPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
 .coin-plus{position:absolute;top:-6px;right:6px;font-family:'Bungee';font-size:14px;color:#8a6d00;animation:coinRise .7s ease-out forwards;pointer-events:none}
 @keyframes coinRise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}
-#world-header{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(320px,calc(100vw - 80px));background:#d63a3a;border-radius:18px;padding:10px 14px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(30,36,48,.9);z-index:21}
+#world-header{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(300px,calc(100vw - 190px));background:#d63a3a;border-radius:18px;padding:10px 14px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(30,36,48,.9);z-index:21}
 .wh-top{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:900;letter-spacing:3px}
 .wh-name{font-family:'Bungee';font-size:22px;line-height:1.2}
 .wh-bar{position:relative;margin-top:6px;height:12px;background:rgba(0,0,0,.45);border-radius:99px;overflow:hidden}
@@ -224,6 +225,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
     <label class="row"><span>Sound FX</span><button id="set-sfx" class="toggle" aria-pressed="true">ON</button></label>
     <label class="row"><span>Reduced motion</span><button id="set-motion" class="toggle" aria-pressed="false">OFF</button></label>
     <label class="row"><span>Quality</span><button id="set-quality" class="toggle">AUTO</button></label>
+    <button id="btn-replay-tutorial" class="btn wide">REPLAY TUTORIAL</button>
     <button id="btn-reset-save" class="btn danger">RESET PROGRESS</button>
     <button class="btn back" data-back>BACK</button>
   </div>
