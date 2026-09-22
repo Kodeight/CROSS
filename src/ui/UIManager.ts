@@ -190,7 +190,7 @@ export class UIManager {
           coins.style.padding = '8px 10px';
         } else {
           // Last resort: cap the number itself; the notch never moves.
-          const iconW = 16 + 8;
+          const iconW = 20 + 8;
           const avail = Math.max(28, n.left - gap - c.left - iconW - 20);
           val.style.maxWidth = `${avail}px`;
           break;

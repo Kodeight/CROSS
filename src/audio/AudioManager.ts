@@ -81,6 +81,7 @@ export class AudioManager {
 
   click(): void { this.tone(600, 0.06, 'square', 0.15); }
   hop(): void { this.tone(300, 0.09, 'square', 0.18, 0, 520); }
+  bump(): void { this.tone(140, 0.08, 'square', 0.15, 0, 90); }
   land(): void { this.noise(0.06, 0.12, 0, 900); }
   coin(): void { this.tone(950, 0.08, 'sine', 0.3); this.tone(1420, 0.12, 'sine', 0.3, 0.07); }
   near(): void { this.tone(500, 0.25, 'sawtooth', 0.16, 0, 1400); }

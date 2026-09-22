@@ -41,7 +41,8 @@ import { CharacterSelect } from '../ui/CharacterSelect';
 import { WorldSelect } from '../ui/WorldSelect';
 import { MissionsScreen, SettingsScreen } from '../ui/Screens';
 import { CharacterPreviewManager, WorldPreviewManager } from '../ui/Previews';
-import { isTouchDevice, prefersReducedMotion } from '../utils/DeviceUtils';
+import { isTouchDevice, prefersReducedMotion, vibrate } from '../utils/DeviceUtils';
+import { modalScrollInfo, installPointerProbe, lastPointerDown } from '../utils/DebugScroll';
 import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
 import { registerPWA } from '../pwa';
@@ -142,6 +143,11 @@ export class Game implements LoopDelegate {
       if (DEBUG) {
         this.ui.el.debug.hidden = false;
         this.traffic.enableAudit();
+        // Functional-test handle (?debug only, never production): lets an
+        // automated browser assert real game state (lanes, occupancy,
+        // player position, scroll containers) instead of screenshots.
+        (window as unknown as { __cross?: Game }).__cross = this;
+        installPointerProbe();
       }
       this.ui.setLoad(100, 'READY!');
       this.setState(GameState.MAIN_MENU);
@@ -167,6 +173,12 @@ export class Game implements LoopDelegate {
     this.player = new Player(this.factory, {
       onHopStart: () => this.audio.hop(),
       onLand: () => undefined,
+      // Blocked feedback only: soft thud + haptic. The move itself was
+      // already rejected — position and animation stay untouched.
+      onBlocked: () => {
+        this.audio.bump();
+        vibrate(12);
+      },
     });
     scene.add(this.player.group);
 
@@ -204,7 +216,14 @@ export class Game implements LoopDelegate {
     );
     this.manager.setReducedMotion(this.reducedMotion);
 
-    this.controller = new PlayerController(this.player, this.input, () => this.togglePause());
+    // Authoritative occupancy: the target cell's lane reports what chunk
+    // generation registered (Lane.occupied). Unknown/pruned lanes are free.
+    this.controller = new PlayerController(
+      this.player,
+      this.input,
+      () => this.togglePause(),
+      (lane, col) => this.lanes.laneAt(lane)?.occupied[col] === true,
+    );
     this.input.bind();
 
     this.hud = new HUD(
@@ -390,6 +409,23 @@ export class Game implements LoopDelegate {
   private togglePause(): void {
     if (this.ui.state === GameState.PLAYING) this.pause();
     else if (this.ui.state === GameState.PAUSED) this.resume();
+    // Escape/P in a sub-screen goes back — reuses the existing keyboard
+    // system (InputManager → PlayerController → onPause), no new listeners.
+    else if (
+      this.ui.state === GameState.CHARACTER_SELECT ||
+      this.ui.state === GameState.WORLD_SELECT ||
+      this.ui.state === GameState.MISSIONS ||
+      this.ui.state === GameState.SETTINGS
+    ) this.goBack();
+  }
+
+  /** Shared "back" destination: game-over/pause return, otherwise the menu. */
+  private goBack(): void {
+    this.audio.click();
+    const r = this.ui.returnTo;
+    if (r === GameState.GAME_OVER) this.setState(GameState.GAME_OVER);
+    else if (r === GameState.PAUSED) this.setState(GameState.PAUSED);
+    else this.toMenu();
   }
 
   private doGameOver(): void {
@@ -498,12 +534,37 @@ export class Game implements LoopDelegate {
     on('btn-missions', () => openScreen(GameState.MISSIONS));
     on('btn-settings', () => openScreen(GameState.SETTINGS));
     for (const b of document.querySelectorAll('[data-back]')) {
-      b.addEventListener('click', () => {
-        this.audio.click();
-        const r = this.ui.returnTo;
-        if (r === GameState.GAME_OVER) this.setState(GameState.GAME_OVER);
-        else if (r === GameState.PAUSED) this.setState(GameState.PAUSED);
-        else this.toMenu();
+      b.addEventListener('click', () => this.goBack());
+    }
+    // Backdrop tap closes sub-screens: only when BOTH the press and the
+    // release land on the backdrop itself (target === currentTarget).
+    // A scroll-drag starting inside the modal and releasing outside must
+    // never close it (§10) — press and release share the section as their
+    // click target in that case, so the press anchor is tracked.
+    for (const id of ['chars-screen', 'worlds-screen', 'missions-screen', 'settings-screen']) {
+      const sec = document.getElementById(id);
+      if (sec && !(sec as unknown as { _backdropBound?: boolean })._backdropBound) {
+        (sec as unknown as { _backdropBound?: boolean })._backdropBound = true;
+        const st = sec as unknown as { _downOnBackdrop?: boolean };
+        sec.addEventListener('pointerdown', (e) => {
+          st._downOnBackdrop = e.target === sec;
+        });
+        sec.addEventListener('click', (e) => {
+          if (e.target === sec && st._downOnBackdrop !== false) this.goBack();
+          st._downOnBackdrop = undefined;
+        });
+      }
+    }
+    const pauseSec = document.getElementById('pause-screen');
+    if (pauseSec && !(pauseSec as unknown as { _backdropBound?: boolean })._backdropBound) {
+      (pauseSec as unknown as { _backdropBound?: boolean })._backdropBound = true;
+      const pst = pauseSec as unknown as { _downOnBackdrop?: boolean };
+      pauseSec.addEventListener('pointerdown', (e) => {
+        pst._downOnBackdrop = e.target === pauseSec;
+      });
+      pauseSec.addEventListener('click', (e) => {
+        if (e.target === pauseSec && pst._downOnBackdrop !== false) this.resume();
+        pst._downOnBackdrop = undefined;
       });
     }
     this.settingsScreen.bind();
@@ -574,12 +635,23 @@ export class Game implements LoopDelegate {
     this.debugLast = nowMs;
     const fps = dtMs > 0 ? Math.round(1000 / dtMs) : 0;
     const audit = this.traffic.audit ?? { worst: 0, lane: -1, braking: 0 };
+    // Live modal-scroll classification (?debug overlay, visible on device):
+    // A) sh<=ch -> no overflow · B) el/tgt outside modal -> layering issue
+    // D) st frozen while swiping -> interaction issue.
+    let modalLine = '';
+    try {
+      const open = modalScrollInfo().find((m) => m.visible);
+      if (open) {
+        modalLine = `\n modal ${open.section} sh ${open.sh} ch ${open.ch} st ${open.st} ovf ${open.overflowY} ta ${open.touchAction} pe ${open.pointerEvents}` +
+          `\n  el ${open.elAtCenter}\n  down ${lastPointerDown()}`;
+      }
+    } catch { /* probes must never break the overlay */ }
     this.ui.el.debug.textContent =
       `FPS ${fps} STATE ${this.ui.state}\n lane ${this.player.lane} score ${this.score.score} ` +
       `dif x${this.generator.difficultyFor(this.score.maxLane).speedMul.toFixed(2)}\n` +
       ` world ${this.worlds.current.config.id} veh ${this.lanes.vehicleCount()}\n` +
       ` player ${Math.round(this.player.position.x)},${Math.round(this.player.position.y)} moves ${this.player.moves.length}\n` +
-      ` traffic overlap worst ${Math.round(audit.worst)} (lane ${audit.lane}) braking ${audit.braking}`;
+      ` traffic overlap worst ${Math.round(audit.worst)} (lane ${audit.lane}) braking ${audit.braking}${modalLine}`;
   }
 }
 

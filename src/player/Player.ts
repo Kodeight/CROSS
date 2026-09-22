@@ -13,6 +13,7 @@ export interface PlayerEvents {
   onHopStart?: () => void;
   onStep?: () => void;
   onLand?: () => void;
+  onBlocked?: () => void;
 }
 
 export class Player {
@@ -74,7 +75,13 @@ export class Player {
     this.group.position.set(this.colToX(column), this.laneToY(lane), 0);
   }
 
-  queueMove(dir: MoveDir, maxQueue = 3): boolean {
+  /**
+   * Queue a grid step. The target cell is validated against the
+   * authoritative world occupancy (Lane.occupied, set at chunk generation):
+   * a blocked target rejects the move — the logical position never enters
+   * it, no animation plays, only the onBlocked feedback fires.
+   */
+  queueMove(dir: MoveDir, maxQueue = 3, isBlocked?: (lane: number, col: number) => boolean): boolean {
     if (this.dying) return false;
     if (this.moves.length >= maxQueue) return false;
     // Clamp so queued moves can never leave the board.
@@ -90,6 +97,10 @@ export class Player {
     else if (dir === 'backward') { if (lane <= 0) return false; lane--; }
     else if (dir === 'left') { if (col <= 0) return false; col--; }
     else { if (col >= GAME_CONFIG.columns - 1) return false; col++; }
+    if (isBlocked?.(lane, col)) {
+      this.events.onBlocked?.();
+      return false;
+    }
     this.moves.push(dir);
     return true;
   }

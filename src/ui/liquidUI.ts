@@ -162,12 +162,16 @@ class LiquidUIManager {
     for (const b of qa('#menu .menu-row .btn, #btn-settings, #menu .btn.wide, #btn-install')) {
       this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true });
     }
-    for (const p of qa('#chars-screen .panel, #worlds-screen .panel, #missions-screen .panel, #settings-screen .panel, #pause-screen .panel')) {
+    for (const p of qa('#chars-screen .panel, #worlds-screen .panel, #missions-screen .panel, #pause-screen .panel')) {
       this.attachOne(p, { preset: 'panel', borderRadius: 22 });
     }
+    // Settings rows are short but can exceed small landscape heights —
+    // keep the host scrollable while the engine owns overflow.
+    const settings = q('#settings-screen .panel');
+    if (settings) this.attachOne(settings, { preset: 'panel', borderRadius: 22, allowScroll: true });
     const over = q('#gameover .over-card');
     if (over) this.attachOne(over, { preset: 'panel', borderRadius: 24 });
-    for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, #app-error .btn')) {
+    for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, .panel .modal-x, #app-error .btn')) {
       this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true });
     }
     for (const c of qa('.char-card')) {

@@ -9,6 +9,14 @@ arc.md
 TODO.md
 todo.md
 task.md
+ref.png
+
+# Local reference checkouts / scratch material (own history, never export)
+SKILL/
+
+# TypeScript / test artefacts
+*.tsbuildinfo
+coverage/
 
 # Vercel
 .vercel/

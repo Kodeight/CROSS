@@ -74,10 +74,19 @@ export class GameRenderer {
     return inst;
   }
 
+  /** Full-viewport sizing: the visual viewport is the truth on iOS
+   * (toolbar collapse, home indicator, standalone PWA). CSS owns the
+   * element box (100dvw/100dvh); the backing store follows the same
+   * numbers so no page-background strip can ever show through. */
   onResize(): void {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const vv = window.visualViewport;
+    const w = Math.max(1, Math.round(vv?.width ?? window.innerWidth));
+    const h = Math.max(1, Math.round(vv?.height ?? window.innerHeight));
     this.renderer.setSize(w, h, false);
+    try {
+      this.renderer.domElement.style.width = '100dvw';
+      this.renderer.domElement.style.height = '100dvh';
+    } catch { /* older browsers keep the stylesheet 100% fallback */ }
   }
 
   /** §28 — never render above the DPR cap; touch devices get a lower cap. */

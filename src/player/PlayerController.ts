@@ -12,6 +12,7 @@ export class PlayerController {
     private readonly player: Player,
     private readonly input: InputManager,
     private readonly onPause: () => void,
+    private readonly isBlocked?: (lane: number, col: number) => boolean,
   ) {
     this.input.onAction((a: GameAction) => this.handle(a));
   }
@@ -34,6 +35,6 @@ export class PlayerController {
       PAUSE: null,
     };
     const dir = map[action];
-    if (dir) this.player.queueMove(dir);
+    if (dir) this.player.queueMove(dir, 3, this.isBlocked);
   }
 }
