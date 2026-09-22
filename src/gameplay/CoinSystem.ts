@@ -29,7 +29,7 @@ export class CoinSystem {
     for (const c of this.anims) {
       if (!c.mesh.parent) continue;
       c.mesh.rotation.z = tMs / 500 + c.off;
-      c.mesh.position.z = 16 * zoom + Math.sin(tMs / 400 + c.off) * 2 * zoom;
+      c.mesh.position.z = 1.5 * zoom + Math.sin(tMs / 400 + c.off) * 0.5 * zoom;
     }
   }
 }

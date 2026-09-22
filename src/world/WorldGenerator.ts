@@ -204,17 +204,25 @@ export class WorldGenerator {
   makeCoinMesh(): THREE.Group {
     const g = new THREE.Group();
     const outer = new THREE.Mesh(
-      this.assets.cylinder('coin', 9 * ZOOM, 9 * ZOOM, 3 * ZOOM, 14),
-      this.assets.phong('coin', 0xffc93c, { emissive: 0x7a5200, shininess: 80 }),
+      this.assets.cylinder('coin', 14 * ZOOM, 14 * ZOOM, 5 * ZOOM, 16),
+      this.assets.phong('coin', 0xffc93c, { emissive: 0x7a5200, shininess: 120 }),
     );
     outer.rotation.x = Math.PI / 2;
     outer.castShadow = true;
     g.add(outer);
     const inner = new THREE.Mesh(
-      this.assets.cylinder('coin-in', 5 * ZOOM, 5 * ZOOM, 3.4 * ZOOM, 12),
-      this.assets.phong('coin-in', 0xffe27a, { emissive: 0x7a5200 }),
+      this.assets.cylinder('coin-in', 7 * ZOOM, 7 * ZOOM, 5.5 * ZOOM, 14),
+      this.assets.phong('coin-in', 0xffe27a, { emissive: 0x7a5200, shininess: 60 }),
     );
+    inner.rotation.x = Math.PI / 2;
     g.add(inner);
+    const rim = new THREE.Mesh(
+      this.assets.cylinder('coin-rim', 14 * ZOOM, 14.5 * ZOOM, 0.8 * ZOOM, 16),
+      this.assets.phong('coin-rim', 0xd99a00, { emissive: 0x5a3a00, shininess: 60 }),
+    );
+    rim.rotation.x = Math.PI / 2;
+    g.add(rim);
+    g.scale.set(1.2, 1.2, 1.2);
     return g;
   }
 
@@ -404,7 +412,7 @@ export class WorldGenerator {
       const col = Math.floor(Math.random() * COLS);
       if (!lane.occupied[col]) {
         const mesh = this.makeCoinMesh();
-        mesh.position.set((col * PW + PW / 2) * ZOOM - BOARD / 2, 0, 16 * ZOOM);
+        mesh.position.set((col * PW + PW / 2) * ZOOM - BOARD / 2, 0, 1.5 * ZOOM);
         lane.mesh.add(mesh);
         lane.coins.push({ mesh, col, taken: false });
       }

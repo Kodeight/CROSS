@@ -14,7 +14,6 @@ export class MainMenu {
     set('menu-best', String(this.save.data.bestScore));
     set('menu-coins', String(this.save.data.coins));
     try {
-      set('menu-top-coins', String(this.save.data.coins));
       const w = this.worlds.byId(this.save.data.selectedWorld).config;
       set('wh-num', `WORLD ${w.num}`);
       set('wh-name', w.name);
@@ -23,8 +22,6 @@ export class MainMenu {
       const fill = document.getElementById('wh-fill');
       if (fill) fill.style.width = `${pct}%`;
       set('wh-pct', `${pct}%`);
-      const header = document.getElementById('world-header');
-      if (header) header.hidden = false;
     } catch { /* ignore */ }
   }
 }

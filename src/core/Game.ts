@@ -399,7 +399,7 @@ export class Game implements LoopDelegate {
     const shake = this.manager.decayShake(dtMs);
     if (shake > 0) this.camera.shake(shake);
     // Sun follows the player so shadows stay crisp.
-    this.renderer.dirLight.position.set(-100 + this.player.position.x, -100 + this.player.position.y, 220);
+    this.renderer.dirLight.position.set(-100 + this.player.position.x, -100 + this.player.position.y, 400);
     if (DEBUG) this.updateDebug(nowMs, dtMs);
   }
 

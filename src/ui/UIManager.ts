@@ -27,12 +27,13 @@ export class UIManager {
       appError: el('app-error'),
       appErrorText: el('app-error-text'),
       hud: el('hud'),
+      hudCoinsVal: el('hud-coins-val'),
       toast: el('toast'),
       nearMiss: el('near-miss'),
       worldIntro: el('world-intro'),
       worldIntroName: el('world-intro-name'),
       worldIntroSub: el('world-intro-sub'),
-      menuTop: el('menu-top'),
+      worldHeader: el('world-header'),
       touchControls: el('touch-controls'),
       tutorial: el('tutorial'),
       tutorialText: el('tutorial-text'),
@@ -141,9 +142,11 @@ export class UIManager {
       el(id).hidden = !ids.includes(id);
     }
     el('hud').hidden = !(this.state === GameState.PLAYING || this.state === GameState.PAUSED);
-    try {
-      el('menu-top').hidden = this.state !== GameState.MAIN_MENU;
-    } catch { /* ignore */ }
+    if (ids.includes('playing')) {
+      el('world-header').hidden = false;
+    } else {
+      el('world-header').hidden = true;
+    }
   }
 
   setTouchControlsVisible(playing: boolean, isTouch: boolean): void {

@@ -39,18 +39,20 @@ export class GameRenderer {
     const hemi = new THREE.HemisphereLight(0xffffff, 0x88aa66, 0.75);
     scene.add(hemi);
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.62);
-    dirLight.position.set(-100, -100, 220);
+    dirLight.position.set(-100, -100, 400);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.set(2048, 2048);
-    const d = 550;
+    const d = 900;
     dirLight.shadow.camera.left = -d;
     dirLight.shadow.camera.right = d;
     dirLight.shadow.camera.top = d;
     dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.camera.near = 10;
+    dirLight.shadow.camera.far = 1500;
     scene.add(dirLight);
     scene.add(dirLight.target);
     const backLight = new THREE.DirectionalLight(0xffffff, 0.25);
-    backLight.position.set(200, 200, 60);
+    backLight.position.set(200, 300, 100);
     scene.add(backLight);
 
     let renderer: THREE.WebGLRenderer;

@@ -1,20 +1,24 @@
 /**
- * Third-person follow camera. Owns ONLY the camera: follows the player
- * from behind with look-ahead, smooth damping, intro positioning and
- * responsive portrait/landscape adjustments. Never owns the world.
+ * High top-down follow camera for CROSS!. The camera is elevated
+ * high above the world looking down at ~50-65° angle from horizontal.
  *
- * Framing goal: the playable world fills the entire viewport — no blue
- * bands above/below, no visible world boundaries. The camera sits
- * lower and closer so the road/lane system dominates the screen while
- * still showing several lanes ahead.
+ * Composition:
+ *   UPCOMING WORLD (above player in viewport)
+ *   TRAFFIC
+ *   OBSTACLES
+ *   PLAYER (lower-middle of viewport)
+ *
+ * The world stays stationary in world coordinates. The camera
+ * follows the player smoothly with interpolation. Never move the
+ * world around the player.
+ *
+ * Three.js coordinate system for this game:
+ *   X = left-right
+ *   Y = forward-backward (lane direction, player moves along +Y)
+ *   Z = up (vertical)
  */
 import * as THREE from 'three';
 import { isTouchDevice } from '../utils/DeviceUtils';
-
-export interface CameraTarget {
-  x: number;
-  y: number;
-}
 
 export class FollowCamera {
   readonly camera: THREE.PerspectiveCamera;
@@ -25,19 +29,31 @@ export class FollowCamera {
   private introFrom = new THREE.Vector3();
   private reducedMotion = false;
 
-  // Tunables — closer and lower so the playable world fills the screen.
-  // distBehind is measured in world units along z; heightAbove along y.
-  // The lane height = POSITION_WIDTH * ZOOM = 84 units.
-  // Camera sits just above lane height so the road fills vertical FOV,
-  // with enough forward sight to see upcoming traffic.
-  private readonly distBehind = 230;
-  private readonly heightAbove = 95;
-  private readonly lookAhead = 180;
+  // High top-down camera parameters.
+  // distBehind: distance behind the player along -Y (looking forward).
+  // elevation: height above the world along +Z.
+  // lookAhead: how far ahead of the player the camera looks toward along +Y.
+  // The camera looks from (px, py - distBehind, elevation) toward
+  // (px, py + lookAhead, laneHeight) producing a steep downward angle.
+  //
+  // For ~55° downward angle from horizontal:
+  //   elevation / (distBehind + lookAhead) ≈ tan(55°) ≈ 1.43
+  // With elevation=320 and laneHeight≈80: total horizontal ≈ 240
+  // distBehind=180 + lookAhead=60 = 240 → angle ≈ 53°
+  // Slightly adjust for visual feel.
+  private readonly distBehind = 200;
+  private readonly elevation = 350;
+  private readonly lookAhead = 100;
+  private readonly lookAtZ = 0;
 
-  // Mobile portrait: slightly wider FOV + lower height for more forward
-  // visibility while keeping the character centered and readable.
-  private readonly mobileFov = 70;
-  private readonly desktopFov = 56;
+  // FOV: narrower for top-down depth, wider for mobile portrait.
+  private readonly desktopFov = 52;
+  private readonly mobileFov = 58;
+
+  // Intro camera start position: higher and more behind for cinematic entry.
+  private readonly introDistBehind = 350;
+  private readonly introElevation = 480;
+  private readonly introLookAhead = 80;
 
   constructor() {
     const aspect = window.innerWidth / Math.max(1, window.innerHeight);
@@ -56,20 +72,28 @@ export class FollowCamera {
     this.camera.updateProjectionMatrix();
   }
 
-  /** Cinematic entrance: start elevated, settle behind the player. */
+  /** Cinematic entrance: start even higher, smoothly move into gameplay position. */
   beginIntro(playerPos: THREE.Vector3): void {
     this.introActive = true;
     this.introT = 0;
     this.introFrom.copy(this.camera.position);
     if (this.introFrom.lengthSq() < 1) {
-      this.introFrom.set(playerPos.x, playerPos.y - this.distBehind * 1.4, this.heightAbove * 1.6);
+      this.introFrom.set(
+        playerPos.x,
+        playerPos.y - this.introDistBehind,
+        this.introElevation,
+      );
     }
-    this.lookCurrent.set(playerPos.x, playerPos.y + this.lookAhead * 0.4, 0);
+    this.lookCurrent.set(playerPos.x, playerPos.y + this.introLookAhead, this.lookAtZ);
   }
 
   snapToPlayer(playerPos: THREE.Vector3): void {
-    this.camera.position.set(playerPos.x, playerPos.y - this.distBehind, this.heightAbove);
-    this.lookCurrent.set(playerPos.x, playerPos.y + this.lookAhead, 0);
+    this.camera.position.set(
+      playerPos.x,
+      playerPos.y - this.distBehind,
+      this.elevation,
+    );
+    this.lookCurrent.set(playerPos.x, playerPos.y + this.lookAhead, this.lookAtZ);
     this.camera.lookAt(this.lookCurrent);
   }
 
@@ -78,12 +102,12 @@ export class FollowCamera {
     const desired = new THREE.Vector3(
       playerPos.x,
       playerPos.y - this.distBehind,
-      this.heightAbove,
+      this.elevation,
     );
-    this.lookDesired.set(playerPos.x, playerPos.y + this.lookAhead, 0);
+    this.lookDesired.set(playerPos.x, playerPos.y + this.lookAhead, this.lookAtZ);
 
     if (this.introActive && !this.reducedMotion) {
-      this.introT += dt / 1.1;
+      this.introT += dt / 0.9;
       const t = Math.min(this.introT, 1);
       const e = 1 - Math.pow(1 - t, 3);
       this.camera.position.lerpVectors(this.introFrom, desired, e);
