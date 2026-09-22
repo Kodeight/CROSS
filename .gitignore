@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Production build output (Vercel builds from source)
+dist/
+
+# Local prompt/spec docs — not part of the game
+arc.md
+TODO.md
+todo.md
+
+# Vercel
+.vercel/
+
+# Environment / editor
+.env
+.env*.local
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

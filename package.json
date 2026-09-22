@@ -1,0 +1,22 @@
+{
+  "name": "cross-game",
+  "private": true,
+  "version": "2.0.0",
+  "description": "CROSS! — Don't Get Hit. Production-grade TypeScript + Three.js arcade game.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.3",
+    "vite-plugin-pwa": "^0.21.1"
+  }
+}
