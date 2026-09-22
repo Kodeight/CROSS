@@ -42,6 +42,7 @@ import { WorldSelect } from '../ui/WorldSelect';
 import { MissionsScreen, SettingsScreen } from '../ui/Screens';
 import { CharacterPreviewManager, WorldPreviewManager } from '../ui/Previews';
 import { isTouchDevice, prefersReducedMotion } from '../utils/DeviceUtils';
+import { applyCoinTheme } from '../config/coin.config';
 import { registerPWA } from '../pwa';
 
 const DEBUG = /[?&]debug/i.test(location.search);
@@ -96,6 +97,7 @@ export class Game implements LoopDelegate {
   boot(): void {
     if (this.booted) return;
     this.booted = true;
+    applyCoinTheme();
     this.ui.setLoad(15, 'LOADING...');
     this.save.load();
     this.reducedMotion = this.save.data.settings.reducedMotion || prefersReducedMotion();

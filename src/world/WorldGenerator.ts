@@ -13,6 +13,7 @@ import type { BuildingFactory } from './environment/BuildingFactory';
 import type { TreeFactory } from './environment/TreeFactory';
 import type { Lane, LaneType, World } from './World';
 import { TRAFFIC_CONFIG } from '../config/traffic.config';
+import { COIN_SPEC, coinColor } from '../config/coin.config';
 import { pick } from '../utils/Random';
 
 const PW = GAME_CONFIG.positionWidth;
@@ -222,6 +223,9 @@ export class WorldGenerator {
    * rotation the circular caps face ±Y — directly readable from the
    * elevated camera behind the player. The group spins around world Z
    * (CoinSystem), i.e. around the true vertical axis.
+   *
+   * Visual identity comes from COIN_SPEC — the same spec as the HUD
+   * coin icon. Same silhouette, same golds, same face/rim detailing.
    */
   makeCoinMesh(): THREE.Group {
     const g = new THREE.Group();
@@ -229,28 +233,28 @@ export class WorldGenerator {
     const T = 2.5 * ZOOM;
     const edge = new THREE.Mesh(
       this.assets.cylinder('coin-v', R, R, T, 20),
-      this.assets.standard('coin-edge', 0xd99a00, { metalness: 0.85, roughness: 0.35, emissive: 0x2a1a00 }),
+      this.assets.standard('coin-edge', coinColor(COIN_SPEC.edge), { metalness: 0.85, roughness: 0.35, emissive: 0x2a1a00 }),
     );
     edge.castShadow = true;
     g.add(edge);
     for (const s of [-1, 1]) {
       const face = new THREE.Mesh(
-        this.assets.cylinder('coin-face', R * 0.72, R * 0.72, T + 1, 20),
-        this.assets.standard('coin-face', 0xffe27a, { metalness: 0.9, roughness: 0.28, emissive: 0x3a2600 }),
+        this.assets.cylinder('coin-face', R * COIN_SPEC.faceRatio, R * COIN_SPEC.faceRatio, T + 1, 20),
+        this.assets.standard('coin-face', coinColor(COIN_SPEC.face), { metalness: 0.9, roughness: 0.28, emissive: 0x3a2600 }),
       );
       face.position.y = s * 0.2;
       face.castShadow = true;
       g.add(face);
     }
     const emboss = new THREE.Mesh(
-      this.assets.cylinder('coin-emboss', 3 * ZOOM, 3 * ZOOM, T + 2, 14),
-      this.assets.standard('coin-emboss', 0xffc93c, { metalness: 0.9, roughness: 0.3, emissive: 0x3a2600 }),
+      this.assets.cylinder('coin-emboss', R * COIN_SPEC.embossRatio, R * COIN_SPEC.embossRatio, T + 2, 14),
+      this.assets.standard('coin-emboss', coinColor(COIN_SPEC.emboss), { metalness: 0.9, roughness: 0.3, emissive: 0x3a2600 }),
     );
     emboss.castShadow = true;
     g.add(emboss);
     const rim = new THREE.Mesh(
       this.assets.torus('coin-rim', R, 1.1 * ZOOM, 10, 24),
-      this.assets.standard('coin-rim', 0xb57e00, { metalness: 0.85, roughness: 0.4, emissive: 0x241500 }),
+      this.assets.standard('coin-rim', coinColor(COIN_SPEC.rim), { metalness: 0.85, roughness: 0.4, emissive: 0x241500 }),
     );
     rim.rotation.x = Math.PI / 2;
     rim.castShadow = true;
