@@ -2,7 +2,7 @@
  * §13 — LaneManager: owns lane lifecycle (generate ahead / prune behind).
  * World-space: lane meshes sit at fixed y, added/removed from the scene.
  */
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { GAME_CONFIG } from '../config/game.config';
 import type { Lane } from './World';
 
@@ -12,8 +12,52 @@ const MAX_LANES = 500;
 
 export class LaneManager {
   lanes: Lane[] = [];
+  private underlayMesh?: THREE.Mesh;
+  private debugPlaneMesh?: THREE.Group;
 
-  constructor(private readonly scene: THREE.Scene) {}
+  constructor(private readonly scene: THREE.Scene) {
+    this.initGroundUnderlay();
+    this.checkDebugPlane();
+  }
+
+  private initGroundUnderlay(): void {
+    try {
+      const geo = new THREE.PlaneGeometry(35000, 35000);
+      const mat = new THREE.MeshPhongMaterial({ color: 0x5a606d, shininess: 10 });
+      this.underlayMesh = new THREE.Mesh(geo, mat);
+      this.underlayMesh.position.set(0, 0, -2);
+      this.underlayMesh.receiveShadow = false;
+      this.scene.add(this.underlayMesh);
+    } catch { /* ignore */ }
+  }
+
+  private checkDebugPlane(): void {
+    if (typeof location !== 'undefined' && /[?&](debugplane|testplane|viewportdebug=plane)/i.test(location.search)) {
+      try {
+        const group = new THREE.Group();
+        const geo = new THREE.PlaneGeometry(25000, 25000, 50, 50);
+        const mat = new THREE.MeshBasicMaterial({ color: 0x223344, wireframe: true });
+        const floor = new THREE.Mesh(geo, mat);
+        floor.position.set(0, 0, 1);
+        group.add(floor);
+
+        // Edge markers: solid colored boxes representing world extents
+        const makeMarker = (x: number, y: number, color: number, name: string) => {
+          const m = new THREE.Mesh(new THREE.BoxGeometry(400, 400, 50), new THREE.MeshBasicMaterial({ color }));
+          m.position.set(x, y, 25);
+          m.name = name;
+          group.add(m);
+        };
+        makeMarker(0, 4000, 0x00ff00, 'TOP_MARKER');
+        makeMarker(0, -2000, 0xff0000, 'BOTTOM_MARKER');
+        makeMarker(-3000, 1000, 0x00ffff, 'LEFT_MARKER');
+        makeMarker(3000, 1000, 0xffff00, 'RIGHT_MARKER');
+
+        this.debugPlaneMesh = group;
+        this.scene.add(group);
+      } catch { /* ignore */ }
+    }
+  }
 
   get length(): number {
     return this.lanes.length;
@@ -44,6 +88,12 @@ export class LaneManager {
 
   /** Generate lanes ahead of the player; prune safely behind. */
   maintain(playerLane: number, makeLane: (index: number) => Lane): void {
+    if (this.underlayMesh) {
+      this.underlayMesh.position.y = playerLane * GAME_CONFIG.positionWidth * GAME_CONFIG.zoom;
+    }
+    if (this.debugPlaneMesh) {
+      this.debugPlaneMesh.position.y = playerLane * GAME_CONFIG.positionWidth * GAME_CONFIG.zoom;
+    }
     const want = playerLane + AHEAD;
     while (this.topIndex() < want && this.lanes.length < MAX_LANES) {
       this.add(makeLane(this.topIndex() + 1));

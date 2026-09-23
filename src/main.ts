@@ -11,15 +11,25 @@ export function updateViewportSize(game: Game): void {
   const { width, height } = getActualViewportSize();
 
   if (game.renderer?.renderer) {
-    game.renderer.renderer.setSize(width, height, false);
+    game.renderer.renderer.setSize(width, height, true);
     game.renderer.cssWidth = width;
     game.renderer.cssHeight = height;
     try {
-      game.renderer.renderer.domElement.style.position = 'absolute';
-      game.renderer.renderer.domElement.style.top = '0';
-      game.renderer.renderer.domElement.style.left = '0';
-      game.renderer.renderer.domElement.style.width = '100%';
-      game.renderer.renderer.domElement.style.height = '100%';
+      const canvas = game.renderer.renderer.domElement;
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      const container = document.getElementById('game');
+      if (container) {
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
+        container.style.width = `${width}px`;
+        container.style.height = `${height}px`;
+      }
     } catch { /* stylesheet covers */ }
   }
 

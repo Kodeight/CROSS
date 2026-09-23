@@ -166,12 +166,18 @@ export class Game implements LoopDelegate {
           };
         });
       }
+      this.onViewportChange();
+      this.renderer.render(this.camera.camera);
+
       this.ui.setLoad(100, 'READY!');
-      this.setState(GameState.MAIN_MENU);
-      this.ui.setTouchControlsVisible(false, this.isTouch);
-      window.setTimeout(() => this.ui.hideLoading(), 350);
       this.time.reset(performance.now());
       this.loop.start();
+
+      requestAnimationFrame(() => {
+        this.setState(GameState.MAIN_MENU);
+        this.ui.setTouchControlsVisible(false, this.isTouch);
+        this.ui.hideLoading();
+      });
       console.log('CROSS! Game initialized');
     } catch (err) {
       console.error('CROSS! startup failed:', err);

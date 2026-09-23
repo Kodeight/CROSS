@@ -41,8 +41,8 @@ export class GameRenderer {
 
   static create(container: HTMLElement): GameRenderer {
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x9fd3ef);
-    scene.fog = new THREE.Fog(0x9fd3ef, 2600, 6000);
+    scene.background = new THREE.Color(0x1e2430);
+    scene.fog = new THREE.Fog(0x1e2430, 2600, 6000);
 
     const hemi = new THREE.HemisphereLight(0xffffff, 0x88aa66, 0.75);
     scene.add(hemi);
@@ -65,7 +65,11 @@ export class GameRenderer {
 
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer = new THREE.WebGLRenderer({
+        alpha: false,
+        antialias: true,
+        powerPreference: 'high-performance',
+      });
     } catch (err) {
       const e = new RendererError('WebGLRenderer construction failed');
       console.error('CROSS! WebGL initialization failed:', err);
@@ -88,15 +92,24 @@ export class GameRenderer {
    */
   onResize(): void {
     const { width, height } = getActualViewportSize();
-    this.renderer.setSize(width, height, false);
+    this.renderer.setSize(width, height, true);
     this.cssWidth = width;
     this.cssHeight = height;
     try {
-      this.renderer.domElement.style.position = 'absolute';
-      this.renderer.domElement.style.top = '0';
-      this.renderer.domElement.style.left = '0';
-      this.renderer.domElement.style.width = '100%';
-      this.renderer.domElement.style.height = '100%';
+      const canvas = this.renderer.domElement;
+      canvas.style.position = 'absolute';
+      canvas.style.top = '0';
+      canvas.style.left = '0';
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      if (this.container) {
+        this.container.style.position = 'fixed';
+        this.container.style.top = '0';
+        this.container.style.left = '0';
+        this.container.style.width = `${width}px`;
+        this.container.style.height = `${height}px`;
+      }
     } catch { /* stylesheet covers */ }
   }
 
