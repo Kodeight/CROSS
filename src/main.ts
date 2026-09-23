@@ -17,7 +17,7 @@ export function updateViewportSize(game: Game): void {
     try {
       const canvas = game.renderer.renderer.domElement;
       canvas.style.position = 'absolute';
-      canvas.style.top = '0';
+      canvas.style.bottom = '0';
       canvas.style.left = '0';
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
@@ -25,7 +25,7 @@ export function updateViewportSize(game: Game): void {
       const container = document.getElementById('game');
       if (container) {
         container.style.position = 'fixed';
-        container.style.top = '0';
+        container.style.bottom = '0';
         container.style.left = '0';
         container.style.width = `${width}px`;
         container.style.height = `${height}px`;
