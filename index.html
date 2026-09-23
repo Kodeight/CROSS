@@ -42,6 +42,14 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #game canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 #game,#game canvas{position:fixed;inset:0;width:100vw;height:100vh;width:100dvw;height:100dvh}
 #game canvas{display:block;width:100vw;height:100vh;width:100dvw;height:100dvh}
+/* Streamy iOS mechanism: on iOS (-webkit-touch-callout), -webkit-fill-available
+   tracks the real visible height (toolbar/PWA dynamics) where vh/dvh can
+   leave a gap. Declared last so it wins only where supported. */
+@supports (-webkit-touch-callout:none){
+html{min-height:-webkit-fill-available}
+body,#game,#game canvas{min-height:-webkit-fill-available}
+#game,#game canvas{height:-webkit-fill-available}
+}
 
 /* Loading — the only thing visible before JS hydrates. Paper + brand green. */
 #loading{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#FFFDF5;color:#1E2430;gap:8px}

@@ -21,6 +21,12 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #game canvas{touch-action:none;user-select:none;-webkit-user-select:none}
 #game,#game canvas{position:fixed;inset:0;width:100vw;height:100vh;width:100dvw;height:100dvh}
 #game canvas{display:block;touch-action:none;width:100vw;height:100vh;width:100dvw;height:100dvh}
+/* Streamy iOS mechanism (see index.html): fill-available wins on iOS. */
+@supports (-webkit-touch-callout:none){
+html{min-height:-webkit-fill-available}
+body,#game,#game canvas{min-height:-webkit-fill-available}
+#game,#game canvas{height:-webkit-fill-available}
+}
 
 /* Loading — paper + brand green accent (mirrors the first-paint inline CSS). */
 #loading{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--paper);color:var(--ink);gap:8px}

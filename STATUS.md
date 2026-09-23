@@ -16,7 +16,16 @@ Last update: 2026-09-23 · branch `main` · typecheck PASS · production build P
   intact; overlay layers are pointer-events:none (verified in engine source).
 - LOW = gameplay baseline; quality changes rendering only.
 
-## Changed this round (notch follows feet)
+## Changed this round (Streamy viewport mechanism)
+- Reference: `C:\Users\WinTen\Documents\web dev projects\streamy`
+  (`src/index.css` `.ios-full-height` + `App.tsx` root). Mechanism:
+  `min-height:100vh → 100dvh`, then `@supports (-webkit-touch-callout:none)`
+  overrides with `-webkit-fill-available`, which tracks the real visible
+  height on iOS Safari/PWA where vh/dvh can leave a gap.
+- Adapted to CROSS! shell (index.html + style.css): same layered stack on
+  `html`/`body`/`#game`/canvas, fill-available declared last, iOS-only.
+  Renderer already sizes from the measured container rect, so the
+  fill-available layout flows into the backing store automatically.
 - Active world now follows `player.lane`, not the `maxLane` frontier:
   stepping back into a previous stretch switches notch, environment,
   lighting and missions back to that world (`GameManager`).
