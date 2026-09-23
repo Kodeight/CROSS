@@ -87,9 +87,9 @@ body,#game,#game canvas{min-height:-webkit-fill-available}
 .stat{flex:1;background:#eef3e4;border-radius:14px;padding:10px}
 .stat-label{display:block;font-size:11px;letter-spacing:2px;font-weight:800;opacity:.6}
 .stat span:last-child{font-family:'Bungee';font-size:24px}
-.btn{font-family:'Nunito';font-weight:900;border:none;border-radius:14px;padding:12px 14px;background:rgba(232,228,216,.62);color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(30,36,48,.85);font-size:14px;letter-spacing:.5px}
+.btn{font-family:'Nunito';font-weight:900;border:none;border-radius:14px;padding:12px 14px;background:rgba(232,228,216,.45);color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(30,36,48,.85);font-size:14px;letter-spacing:.5px}
 .btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(30,36,48,.85)}
-.btn.primary{background:rgba(122,199,79,.8);color:#fff}
+.btn.primary{background:rgba(122,199,79,.55);color:#fff}
 .btn.big{width:100%;font-family:'Bungee';font-size:26px;padding:14px;text-shadow:0 2px 0 rgba(30,36,48,.25)}
 .btn.danger{background:#ffe1e1;color:#b3261e;margin-top:10px;width:100%}
 .btn.back{margin-top:12px;width:100%}

@@ -93,6 +93,13 @@ export class WorldSelect {
       grid.appendChild(card);
     }
     this.previews.open(this.canvases);
+    try {
+      const scroller = document.querySelector('#worlds-screen .panel-scroll');
+      if (scroller && !(scroller as unknown as { _holdBound?: boolean })._holdBound) {
+        (scroller as unknown as { _holdBound?: boolean })._holdBound = true;
+        scroller.addEventListener('scroll', () => this.previews.hold(), { passive: true });
+      }
+    } catch { /* scrolls natively regardless */ }
     liquidUI.refresh();
     void WORLDS;
   }

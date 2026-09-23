@@ -20,8 +20,16 @@ export class CharacterPreviewManager {
   private items: CharItem[] = [];
   private rafId = 0;
   private running = false;
+  /** User is actively scrolling the list: freeze rotation (rendering
+   * continues) so a vertical swipe never appears to manipulate the 3D
+   * models. Scroll listeners call hold(). */
+  private holdUntil = 0;
 
   constructor(private readonly factory: CharacterFactory, private readonly reducedMotion: () => boolean) {}
+
+  hold(ms = 900): void {
+    this.holdUntil = performance.now() + ms;
+  }
 
   open(canvases: Array<{ canvas: HTMLCanvasElement; id: string }>): void {
     this.close();
@@ -61,8 +69,9 @@ export class CharacterPreviewManager {
       if (!this.running) return;
       this.rafId = requestAnimationFrame(loop);
       try {
+        const held = performance.now() < this.holdUntil;
         for (const it of this.items) {
-          if (!this.reducedMotion()) {
+          if (!this.reducedMotion() && !held) {
             it.model.rotation.z += 0.012;
             this.factory.animate(it.model, t || 0);
           }
@@ -99,8 +108,13 @@ export class WorldPreviewManager {
   private items: WorldItem[] = [];
   private rafId = 0;
   private running = false;
+  private holdUntil = 0;
 
   constructor(private readonly vehicles: VehicleFactory, private readonly reducedMotion: () => boolean) {}
+
+  hold(ms = 900): void {
+    this.holdUntil = performance.now() + ms;
+  }
 
   open(canvases: Array<{ canvas: HTMLCanvasElement; world: World }>): void {
     this.close();
@@ -157,9 +171,10 @@ export class WorldPreviewManager {
       if (!this.running) return;
       this.rafId = requestAnimationFrame(loop);
       try {
+        const held = performance.now() < this.holdUntil;
         this.items.forEach((it, i) => {
           it.t += 0.016;
-          if (!this.reducedMotion()) {
+          if (!this.reducedMotion() && !held) {
             it.vehicle.position.x = Math.sin(it.t * 0.7) * 70;
           }
           it.camera.position.x = 150 + Math.sin((it.t + i) * 0.25) * 14;

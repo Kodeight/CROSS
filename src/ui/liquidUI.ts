@@ -49,7 +49,10 @@ const GLASS_BASE: Partial<LiquidGlassConfig> = {
   fresnelPower: 2.2,
   noiseOpacity: 0,
   refractionMode: 'svg',
-  hoverLighting: true,
+  // hoverLighting stays off per the repo's own guidance (config.ts:
+  // hover-triggered rim brightening "reads as a broken hover state").
+  // Interaction response comes from LiquidButton press springs instead.
+  hoverLighting: false,
   cursorTracking: false,
   parallax: false,
 };
@@ -174,15 +177,14 @@ class LiquidUIManager {
     const menu = q('#menu .menu-card');
     if (menu) this.attachOne(menu, { preset: 'panel', borderRadius: 24, allowScroll: true });
     const play = q('#btn-play');
-    if (play) this.attachOne(play, { preset: 'primary', borderRadius: 14, press: { scale: 0.94, squish: 0.025 }, tint: { rgb: '122,199,79', opacity: 0.14 } });
-    // Game color identity per button (coherent CROSS! palette, always
-    // subtle so the refraction underneath stays visible). PLAY stays green
-    // and strongest; settings/install remain neutral/system.
+    if (play) this.attachOne(play, { preset: 'primary', borderRadius: 14, press: { scale: 0.94, squish: 0.025 }, tint: { rgb: '122,199,79', opacity: 0.30 } });
+    // Game color identity per button, INSIDE the liquid material at clearly
+    // visible strength (NOT pale): violet/cyan/amber/coral + green primary.
     const menuTints: Record<string, { rgb: string; opacity: number }> = {
-      '#btn-chars': { rgb: '139,92,246', opacity: 0.14 },
-      '#btn-worlds': { rgb: '34,211,238', opacity: 0.14 },
-      '#btn-missions': { rgb: '245,158,11', opacity: 0.12 },
-      '#btn-settings': { rgb: '244,63,94', opacity: 0.10 },
+      '#btn-chars': { rgb: '139,92,246', opacity: 0.32 },
+      '#btn-worlds': { rgb: '34,211,238', opacity: 0.30 },
+      '#btn-missions': { rgb: '245,158,11', opacity: 0.30 },
+      '#btn-settings': { rgb: '244,63,94', opacity: 0.28 },
     };
     for (const b of qa('#menu .menu-row .btn, #btn-settings, #menu .btn.wide, #btn-install')) {
       const key = b.id ? `#${b.id}` : '';
@@ -200,8 +202,8 @@ class LiquidUIManager {
     // Primary continues (resume / play again) stay green; secondary actions
     // remain neutral.
     const actionTints: Record<string, { rgb: string; opacity: number }> = {
-      '#btn-resume': { rgb: '122,199,79', opacity: 0.12 },
-      '#btn-again': { rgb: '122,199,79', opacity: 0.12 },
+      '#btn-resume': { rgb: '122,199,79', opacity: 0.28 },
+      '#btn-again': { rgb: '122,199,79', opacity: 0.28 },
     };
     for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, .panel .modal-x, #app-error .btn')) {
       const key = b.id ? `#${b.id}` : '';

@@ -43,6 +43,7 @@ import { MissionsScreen, SettingsScreen } from '../ui/Screens';
 import { CharacterPreviewManager, WorldPreviewManager } from '../ui/Previews';
 import { isTouchDevice, prefersReducedMotion, vibrate } from '../utils/DeviceUtils';
 import { modalScrollInfo, installPointerProbe, lastPointerDown } from '../utils/DebugScroll';
+import { installViewportDebug } from '../utils/ViewportDebug';
 import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
 import { registerPWA } from '../pwa';
@@ -148,6 +149,15 @@ export class Game implements LoopDelegate {
         // player position, scroll containers) instead of screenshots.
         (window as unknown as { __cross?: Game }).__cross = this;
         installPointerProbe();
+      }
+      // On-device viewport diagnostic (?viewportdebug): live layer-by-layer
+      // dimensions + build id so a physical test pinpoints lost pixels.
+      if (/[?&]viewportdebug/i.test(location.search)) {
+        installViewportDebug(() => {
+          const size = new THREE.Vector2();
+          this.renderer.renderer.getDrawingBufferSize(size);
+          return { bufW: size.x, bufH: size.y };
+        });
       }
       this.ui.setLoad(100, 'READY!');
       this.setState(GameState.MAIN_MENU);

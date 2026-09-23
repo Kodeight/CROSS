@@ -86,6 +86,15 @@ export class CharacterSelect {
       grid.appendChild(card);
     }
     this.previews.open(this.canvases);
+    // Freeze preview rotation while the user scrolls: a list swipe must
+    // never appear to manipulate the 3D models.
+    try {
+      const scroller = document.querySelector('#chars-screen .panel-scroll');
+      if (scroller && !(scroller as unknown as { _holdBound?: boolean })._holdBound) {
+        (scroller as unknown as { _holdBound?: boolean })._holdBound = true;
+        scroller.addEventListener('scroll', () => this.previews.hold(), { passive: true });
+      }
+    } catch { /* scrolls natively regardless */ }
     liquidUI.refresh();
   }
 }

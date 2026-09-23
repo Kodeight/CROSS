@@ -1,9 +1,24 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
+
+function buildId(): string {
+  const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 12);
+  try {
+    const hash = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString().trim().slice(0, 7);
+    return `${stamp}-${hash}`;
+  } catch {
+    return stamp;
+  }
+}
 
 export default defineConfig({
   // Domain-root deployment (https://crosss-road.vercel.app/): root-relative URLs.
   base: '/',
+  define: {
+    __CROSS_BUILD__: JSON.stringify(buildId()),
+  },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
