@@ -19,6 +19,7 @@
  */
 import * as THREE from 'three';
 import { isTouchDevice } from '../utils/DeviceUtils';
+import { getActualViewportSize } from '../utils/Viewport';
 
 export class FollowCamera {
   readonly camera: THREE.PerspectiveCamera;
@@ -57,10 +58,8 @@ export class FollowCamera {
   private readonly introLookAhead = 140;
 
   constructor() {
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    const w = vv ? vv.width : (typeof window !== 'undefined' ? window.innerWidth : 800);
-    const h = vv ? vv.height : (typeof window !== 'undefined' ? window.innerHeight : 600);
-    const aspect = w / Math.max(1, h);
+    const { width, height } = getActualViewportSize();
+    const aspect = width / Math.max(1, height);
     this.camera = new THREE.PerspectiveCamera(this.desktopFov, aspect, 0.5, 9000);
   }
 
@@ -70,15 +69,12 @@ export class FollowCamera {
 
   /**
    * Follows the authoritative renderer size (container → renderer →
-   * camera: one measurement chain). Falls back to visualViewport/window dims when called
-   * before the renderer measured (identical for a fullscreen shell).
+   * camera: one measurement chain).
    */
   onResize(width?: number, height?: number): void {
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    const fallbackW = vv ? vv.width : window.innerWidth;
-    const fallbackH = vv ? vv.height : window.innerHeight;
-    const w = width && width > 0 ? width : fallbackW;
-    const h = height && height > 0 ? height : fallbackH;
+    const dims = getActualViewportSize();
+    const w = width && width > 0 ? width : dims.width;
+    const h = height && height > 0 ? height : dims.height;
     this.camera.aspect = w / Math.max(1, h);
     this.camera.fov = h > w ? this.mobileFov : this.desktopFov;
     this.camera.updateProjectionMatrix();

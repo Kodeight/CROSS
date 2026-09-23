@@ -1,4 +1,15 @@
 /**
+ * Exact integer formatting for the Main Menu coin counter (Phase 14 & 15).
+ * NEVER abbreviates with K, M, or B. Always displays the exact underlying integer balance.
+ * Examples: 0 -> "0", 1000 -> "1000", 15342 -> "15342", 1000000 -> "1000000".
+ */
+export function formatMenuCoins(n: number): string {
+  const v = Math.floor(Math.abs(Number.isFinite(n) ? n : 0));
+  const sign = n < 0 ? '-' : '';
+  return sign + String(v);
+}
+
+/**
  * Compact HUD number format (task.md coin-counter spec).
  *
  * DISPLAY ONLY — the underlying value stays a full integer everywhere
@@ -33,6 +44,11 @@ export function fmtCount(n: number): string {
     }
   }
   return sign + String(v);
+}
+
+/** HUD coin format alias */
+export function formatHudCoins(n: number): string {
+  return fmtCount(n);
 }
 
 /** <100 → up to 1 decimal (25.5K, 1.2K); >=100 → integer (100K, 250K). */

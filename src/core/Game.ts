@@ -5,6 +5,7 @@
  */
 import * as THREE from 'three';
 import { GAME_CONFIG } from '../config/game.config';
+import { getActualViewportSize } from '../utils/Viewport';
 import { EventBus } from './EventBus';
 import { GameLoop, type LoopDelegate } from './GameLoop';
 import { GameState } from './GameState';
@@ -156,7 +157,13 @@ export class Game implements LoopDelegate {
         installViewportDebug(() => {
           const size = new THREE.Vector2();
           this.renderer.renderer.getDrawingBufferSize(size);
-          return { bufW: size.x, bufH: size.y };
+          return {
+            bufW: size.x,
+            bufH: size.y,
+            cssW: this.renderer.cssWidth,
+            cssH: this.renderer.cssHeight,
+            aspect: this.camera.camera.aspect,
+          };
         });
       }
       this.ui.setLoad(100, 'READY!');
@@ -286,15 +293,16 @@ export class Game implements LoopDelegate {
       this.onViewportChange();
       window.setTimeout(() => this.onViewportChange(), 80);
       window.setTimeout(() => this.onViewportChange(), 250);
+      window.setTimeout(() => this.onViewportChange(), 600);
     });
-    // ResizeObserver on the game container: catches toolbar collapse,
-    // split-screen, PWA settle and rotation on every platform — cases
-    // window resize alone can miss.
+    // ResizeObserver on the game container and body: catches toolbar collapse,
+    // split-screen, PWA settle and rotation on every platform.
     try {
       const shell = document.getElementById('game');
       if (shell && typeof ResizeObserver !== 'undefined') {
         const ro = new ResizeObserver(() => this.onViewportChange());
         ro.observe(shell);
+        if (document.body) ro.observe(document.body);
       }
     } catch { /* listeners above already cover the basics */ }
     try {
@@ -312,8 +320,14 @@ export class Game implements LoopDelegate {
       } else {
         this.onViewportChange();
         window.setTimeout(() => this.onViewportChange(), 100);
+        window.setTimeout(() => this.onViewportChange(), 400);
       }
     });
+
+    // PWA layout settle checks
+    window.setTimeout(() => this.onViewportChange(), 100);
+    window.setTimeout(() => this.onViewportChange(), 500);
+    window.setTimeout(() => this.onViewportChange(), 1000);
   }
 
   /** Single viewport-change funnel: renderer, camera, HUD — one place. */
@@ -536,6 +550,10 @@ export class Game implements LoopDelegate {
   }
 
   render(): void {
+    const dims = getActualViewportSize();
+    if (dims.width !== this.renderer.cssWidth || dims.height !== this.renderer.cssHeight) {
+      this.onViewportChange();
+    }
     this.renderer.render(this.camera.camera);
   }
 

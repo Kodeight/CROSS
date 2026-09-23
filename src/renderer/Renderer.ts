@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { QUALITY_PROFILES, type QualityLevel } from '../config/game.config';
 import { isTouchDevice } from '../utils/DeviceUtils';
+import { getActualViewportSize } from '../utils/Viewport';
 
 export class RendererError extends Error {
   readonly rendererFailure = true;
@@ -82,38 +83,21 @@ export class GameRenderer {
   }
 
   /**
-   * Full-viewport sizing measured from the ACTUAL game container — never a
-   * blind window.innerHeight. Covers toolbar collapse, PWA settle-in,
-   * split-screen, rotation and desktop resize on every platform. CSS owns
-   * the element box (100dvw/100dvh); the backing store follows the same
-   * numbers so no page-background strip can ever show through.
+   * Full-bleed viewport sizing driven by the authoritative getActualViewportSize().
+   * Sized edge-to-edge covering status bar and behind the iOS home indicator.
    */
   onResize(): void {
-    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-    let w = vv ? Math.round(vv.width) : window.innerWidth;
-    let h = vv ? Math.round(vv.height) : window.innerHeight;
+    const { width, height } = getActualViewportSize();
+    this.renderer.setSize(width, height, false);
+    this.cssWidth = width;
+    this.cssHeight = height;
     try {
-      const rect = this.container.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        w = Math.max(w, Math.round(rect.width));
-        h = Math.max(h, Math.round(rect.height));
-      }
-    } catch { /* fall through to viewport */ }
-
-    const winW = typeof window !== 'undefined' ? window.innerWidth : w;
-    const winH = typeof window !== 'undefined' ? window.innerHeight : h;
-    if (winW > w) w = winW;
-    if (winH > h) h = winH;
-
-    w = Math.max(1, Math.round(w));
-    h = Math.max(1, Math.round(h));
-    this.renderer.setSize(w, h, false);
-    this.cssWidth = w;
-    this.cssHeight = h;
-    try {
+      this.renderer.domElement.style.position = 'absolute';
+      this.renderer.domElement.style.top = '0';
+      this.renderer.domElement.style.left = '0';
       this.renderer.domElement.style.width = '100%';
       this.renderer.domElement.style.height = '100%';
-    } catch { /* stylesheet fallback covers */ }
+    } catch { /* stylesheet covers */ }
   }
 
   /** §28 — never render above the DPR cap; touch devices get a lower cap. */

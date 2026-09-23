@@ -6,6 +6,9 @@
 export interface RendererViewportInfo {
   bufW: number;
   bufH: number;
+  cssW?: number;
+  cssH?: number;
+  aspect?: number;
 }
 
 declare const __CROSS_BUILD__: string | undefined;
@@ -16,13 +19,7 @@ function num(n: number): string {
 
 function rectStr(r: DOMRect | null | undefined): string {
   if (!r) return 'missing';
-  return `top:${num(r.top)} btm:${num(r.bottom)} h:${num(r.height)} w:${num(r.width)}`;
-}
-
-function rectOf(el: Element | null | undefined): string {
-  if (!(el instanceof HTMLElement)) return 'missing';
-  const r = el.getBoundingClientRect();
-  return `${num(r.width)}x${num(r.height)}@${num(r.left)},${num(r.top)} btm:${num(r.bottom)}`;
+  return `top:${num(r.top)} btm:${num(r.bottom)} left:${num(r.left)} right:${num(r.right)} w:${num(r.width)} h:${num(r.height)}`;
 }
 
 function cssComputed(sel: string, prop: string): string {
@@ -46,16 +43,22 @@ function displayModes(): string {
   }
 }
 
-function safeBottom(): string {
+function getSafeInsets(): { top: string; bottom: string; left: string; right: string } {
   try {
     const probe = document.createElement('div');
-    probe.style.cssText = 'position:fixed;bottom:0;height:0;padding-bottom:env(safe-area-inset-bottom);visibility:hidden;';
+    probe.style.cssText = 'position:fixed;top:0;left:0;height:0;width:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);';
     document.body.appendChild(probe);
-    const v = getComputedStyle(probe).paddingBottom;
+    const style = getComputedStyle(probe);
+    const insets = {
+      top: style.paddingTop || '0px',
+      bottom: style.paddingBottom || '0px',
+      left: style.paddingLeft || '0px',
+      right: style.paddingRight || '0px',
+    };
     probe.remove();
-    return v;
+    return insets;
   } catch {
-    return '?';
+    return { top: '?', bottom: '?', left: '?', right: '?' };
   }
 }
 
@@ -67,9 +70,9 @@ export function installViewportDebug(getRenderer: () => RendererViewportInfo): v
     box.setAttribute('aria-hidden', 'true');
     box.style.cssText = [
       'position:fixed', 'left:6px', 'bottom:6px', 'z-index:90',
-      'max-width:96vw', 'max-height:75vh', 'overflow:auto',
-      'background:rgba(0,0,0,.88)', 'color:#7CFC00',
-      'font:10px/1.4 monospace', 'white-space:pre',
+      'max-width:96vw', 'max-height:80vh', 'overflow:auto',
+      'background:rgba(0,0,0,.92)', 'color:#7CFC00',
+      'font:10px/1.3 monospace', 'white-space:pre',
       'padding:8px 10px', 'border-radius:8px', 'pointer-events:none',
     ].join(';');
     document.body.appendChild(box);
@@ -95,36 +98,63 @@ export function installViewportDebug(getRenderer: () => RendererViewportInfo): v
       const gameRect = game?.getBoundingClientRect();
       const canvasRect = canvas?.getBoundingClientRect();
       const r = getRenderer();
-      const vvH = vv?.height ?? window.innerHeight;
-      const gap = gameRect ? num(vvH - gameRect.bottom) : '?';
+      const insets = getSafeInsets();
+      const dpr = window.devicePixelRatio || 1;
       const isStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone;
+
+      // Authoritative target viewport
+      const targetW = Math.max(window.innerWidth, html.clientWidth);
+      const targetH = Math.max(window.innerHeight, html.clientHeight);
+
+      // Gap calculations
+      const gameBottom = gameRect ? gameRect.bottom : 0;
+      const canvasBottom = canvasRect ? canvasRect.bottom : 0;
+      const bottomGap = targetH - gameBottom;
+      const canvasBottomGap = targetH - canvasBottom;
+      const topGap = gameRect ? gameRect.top : 0;
+      const canvasTopGap = canvasRect ? canvasRect.top : 0;
+      const leftGap = gameRect ? gameRect.left : 0;
+      const rightGap = targetW - (gameRect ? gameRect.right : 0);
+
+      // PASS / FAIL conditions
+      const passGameFills = (gameRect && Math.abs(gameRect.width - targetW) <= 1 && Math.abs(gameRect.height - targetH) <= 1 && Math.abs(topGap) <= 1 && Math.abs(bottomGap) <= 1);
+      const passCanvasFills = (canvasRect && Math.abs(canvasRect.width - targetW) <= 1 && Math.abs(canvasRect.height - targetH) <= 1 && Math.abs(canvasTopGap) <= 1 && Math.abs(canvasBottomGap) <= 1);
+      const expectedBufW = Math.round(targetW * dpr);
+      const expectedBufH = Math.round(targetH * dpr);
+      const passRendererMatches = (Math.abs(r.bufW - expectedBufW) <= 2 && Math.abs(r.bufH - expectedBufH) <= 2);
+      const passNoBottomGap = Math.abs(bottomGap) <= 1 && Math.abs(canvasBottomGap) <= 1;
+      const passNoTopGap = Math.abs(topGap) <= 1 && Math.abs(canvasTopGap) <= 1;
+      const passNoLeftGap = Math.abs(leftGap) <= 1;
+      const passNoRightGap = Math.abs(rightGap) <= 1;
+
+      const flag = (ok: boolean) => ok ? '✅ PASS' : '❌ FAIL';
 
       const lines = [
         `=== CROSS! VIEWPORT DIAGNOSTIC ===`,
-        `Build: ${build} | DPR: ${window.devicePixelRatio || 1}`,
-        `Modes: ${displayModes()} | nav.standalone: ${isStandalone}`,
-        `matchMedia(standalone): ${window.matchMedia?.('(display-mode: standalone)').matches}`,
-        `matchMedia(fullscreen): ${window.matchMedia?.('(display-mode: fullscreen)').matches}`,
-        `matchMedia(minimal-ui): ${window.matchMedia?.('(display-mode: minimal-ui)').matches}`,
-        `--- WINDOW & VIEWPORT ---`,
-        `window.inner: ${num(window.innerWidth)}x${num(window.innerHeight)}`,
-        `visualViewport: ${num(vv?.width ?? NaN)}x${num(vvH)} (top:${num(vv?.offsetTop ?? 0)}, left:${num(vv?.offsetLeft ?? 0)})`,
+        `Build: ${build} | DPR: ${dpr} | Standalone: ${isStandalone} | Display: ${displayModes()}`,
+        `Safe insets: top:${insets.top} btm:${insets.bottom} left:${insets.left} right:${insets.right}`,
+        `--- STATUS SUMMARY ---`,
+        `GAME FILLS VIEWPORT:      ${flag(Boolean(passGameFills))}`,
+        `CANVAS FILLS VIEWPORT:    ${flag(Boolean(passCanvasFills))}`,
+        `RENDERER MATCHES VIEWPORT:${flag(passRendererMatches)}`,
+        `NO BOTTOM GAP:            ${flag(passNoBottomGap)} (gap: ${num(bottomGap)}px, canvasGap: ${num(canvasBottomGap)}px)`,
+        `NO TOP GAP:               ${flag(passNoTopGap)} (gap: ${num(topGap)}px)`,
+        `NO LEFT GAP:              ${flag(passNoLeftGap)} (gap: ${num(leftGap)}px)`,
+        `NO RIGHT GAP:             ${flag(passNoRightGap)} (gap: ${num(rightGap)}px)`,
+        `--- WINDOW & CLIENT SIZES ---`,
+        `window.inner:    ${num(window.innerWidth)}x${num(window.innerHeight)}`,
+        `visualViewport:  ${num(vv?.width ?? NaN)}x${num(vv?.height ?? NaN)}`,
         `docElement.client: ${num(html.clientWidth)}x${num(html.clientHeight)}`,
-        `body.client: ${num(body.clientWidth)}x${num(body.clientHeight)}`,
-        `--- LAYER MEASUREMENTS (top, btm, h) ---`,
+        `body.client:     ${num(body.clientWidth)}x${num(body.clientHeight)}`,
+        `--- ELEMENT RECTANGLES ---`,
         `HTML:   ${rectStr(htmlRect)}`,
         `BODY:   ${rectStr(bodyRect)}`,
         `#GAME:  ${rectStr(gameRect)}`,
         `CANVAS: ${rectStr(canvasRect)}`,
-        `--- CANVAS & THREE.JS RENDERER ---`,
-        `canvas.attr: ${canvas ? `${canvas.width}x${canvas.height}` : '?'}`,
-        `Three.js Buffer: ${num(r.bufW)}x${num(r.bufH)}`,
-        `--- BOTTOM GAP STATUS ---`,
-        `vv.bottom - game.bottom: ${gap}px ${gap === '0' ? '✅ (EDGE-TO-EDGE FULLSCREEN)' : '❌ (GAP DETECTED)'}`,
-        `env(safe-area-inset-bottom): ${safeBottom()}`,
-        `--- COMPUTED CSS HEIGHTS ---`,
-        `html: ${cssComputed('html', 'height')} | body: ${cssComputed('body', 'height')}`,
-        `#game: ${cssComputed('#game', 'height')} | canvas: ${cssComputed('#game canvas', 'height')}`,
+        `--- THREE.JS RENDERER & CAMERA ---`,
+        `Renderer Size:  ${r.cssW ?? '?'}x${r.cssH ?? '?'} (buf: ${num(r.bufW)}x${num(r.bufH)}, expected: ${expectedBufW}x${expectedBufH})`,
+        `Camera Aspect:  ${r.aspect ? r.aspect.toFixed(3) : '?'} (target: ${(targetW / Math.max(1, targetH)).toFixed(3)})`,
+        `Canvas attr:    ${canvas ? `${canvas.width}x${canvas.height}` : '?'}`,
       ];
       box.textContent = lines.join('\n');
     } catch { /* probes never break the game */ }

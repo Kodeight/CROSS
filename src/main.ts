@@ -1,25 +1,30 @@
 /** CROSS! entry point — Vite + TypeScript. Boots the Game. */
 import './style.css';
 import { Game } from './core/Game';
+import { getActualViewportSize } from './utils/Viewport';
 
 /**
- * Updates Three.js renderer.setSize() and camera.aspect using window.visualViewport
- * dimensions if available, rather than window.innerHeight, to ensure proper edge-to-edge
- * sizing as the PWA layout settles on iOS.
+ * Authoritative viewport updater. Drives Three.js renderer and camera
+ * from the single source of truth across iOS PWA, Android, and desktop.
  */
 export function updateViewportSize(game: Game): void {
-  const vv = typeof window !== 'undefined' ? window.visualViewport : null;
-  const width = Math.max(1, Math.round(vv ? vv.width : window.innerWidth));
-  const height = Math.max(1, Math.round(vv ? vv.height : window.innerHeight));
+  const { width, height } = getActualViewportSize();
 
   if (game.renderer?.renderer) {
     game.renderer.renderer.setSize(width, height, false);
     game.renderer.cssWidth = width;
     game.renderer.cssHeight = height;
+    try {
+      game.renderer.renderer.domElement.style.position = 'absolute';
+      game.renderer.renderer.domElement.style.top = '0';
+      game.renderer.renderer.domElement.style.left = '0';
+      game.renderer.renderer.domElement.style.width = '100%';
+      game.renderer.renderer.domElement.style.height = '100%';
+    } catch { /* stylesheet covers */ }
   }
 
   if (game.camera?.camera) {
-    game.camera.camera.aspect = width / height;
+    game.camera.camera.aspect = width / Math.max(1, height);
     game.camera.camera.updateProjectionMatrix();
   }
 
@@ -33,8 +38,6 @@ async function boot(): Promise<void> {
     const game = new Game();
     await game.boot();
 
-    // Ensure renderer.setSize() and camera.aspect are updated using window.visualViewport
-    // dimensions if available, rather than window.innerHeight, and bind to visualViewport.onresize.
     const onResize = () => updateViewportSize(game);
 
     if (typeof window !== 'undefined') {
@@ -47,13 +50,23 @@ async function boot(): Promise<void> {
         onResize();
         setTimeout(onResize, 100);
         setTimeout(onResize, 300);
+        setTimeout(onResize, 600);
       });
       window.addEventListener('pageshow', onResize);
       window.addEventListener('focus', onResize);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          onResize();
+          setTimeout(onResize, 100);
+        }
+      });
     }
 
     // Trigger initial adjustment as iOS PWA settles
     onResize();
+    setTimeout(onResize, 100);
+    setTimeout(onResize, 500);
+    setTimeout(onResize, 1000);
   } catch (err) {
     console.error('CROSS! startup failed:', err);
     try {
