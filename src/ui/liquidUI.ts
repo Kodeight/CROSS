@@ -60,7 +60,7 @@ const PRESETS = {
   /** Primary PLAY: stronger depth + rim + interaction response. */
   primary: { ...GLASS_BASE, material: 'regular', blur: 10, refractionStrength: 24, bezelWidth: 30, thickness: 26, edgeHighlight: 1, specularStrength: 0.5, elevation: 1.2 },
   /** Secondary buttons: same family, lighter emphasis. */
-  secondary: { ...GLASS_BASE, material: 'thin', blur: 8, refractionStrength: 16, bezelWidth: 24, thickness: 18, edgeHighlight: 0.6, specularStrength: 0.3, elevation: 0.7 },
+  secondary: { ...GLASS_BASE, material: 'thin', blur: 8, refractionStrength: 16, bezelWidth: 24, thickness: 18, edgeHighlight: 0.7, specularStrength: 0.3, elevation: 0.7 },
   /** Large panels/sheets: heavy frost so the backdrop reads as creamy
    * blur, with real displacement + rim light underneath for the liquid
    * identity. Text stays crisp above the filter layers. */
@@ -179,9 +179,10 @@ class LiquidUIManager {
     // subtle so the refraction underneath stays visible). PLAY stays green
     // and strongest; settings/install remain neutral/system.
     const menuTints: Record<string, { rgb: string; opacity: number }> = {
-      '#btn-chars': { rgb: '255,150,50', opacity: 0.10 },
-      '#btn-worlds': { rgb: '60,200,255', opacity: 0.10 },
-      '#btn-missions': { rgb: '255,205,70', opacity: 0.12 },
+      '#btn-chars': { rgb: '139,92,246', opacity: 0.14 },
+      '#btn-worlds': { rgb: '34,211,238', opacity: 0.14 },
+      '#btn-missions': { rgb: '245,158,11', opacity: 0.12 },
+      '#btn-settings': { rgb: '244,63,94', opacity: 0.10 },
     };
     for (const b of qa('#menu .menu-row .btn, #btn-settings, #menu .btn.wide, #btn-install')) {
       const key = b.id ? `#${b.id}` : '';

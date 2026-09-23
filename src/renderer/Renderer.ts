@@ -18,6 +18,9 @@ export class GameRenderer {
   readonly backLight: THREE.DirectionalLight;
   /** The fullscreen game container the canvas must exactly fill. */
   readonly container: HTMLElement;
+  /** Last CSS size applied — the single measured truth camera follows. */
+  cssWidth = 1;
+  cssHeight = 1;
 
   private constructor(
     container: HTMLElement,
@@ -99,6 +102,8 @@ export class GameRenderer {
       h = Math.max(1, Math.round(vv?.height ?? window.innerHeight));
     }
     this.renderer.setSize(w, h, false);
+    this.cssWidth = w;
+    this.cssHeight = h;
     // Pixel-exact element box from the same measurement — no CSS-unit
     // interpretation risk on quirky mobile browsers (stylesheet stays
     // as the fallback for anything that ignores inline styles).

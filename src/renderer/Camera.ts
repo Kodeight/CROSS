@@ -65,10 +65,15 @@ export class FollowCamera {
     this.reducedMotion = v;
   }
 
-  onResize(): void {
-    const w = window.innerWidth;
-    const h = Math.max(1, window.innerHeight);
-    this.camera.aspect = w / h;
+  /**
+   * Follows the authoritative renderer size (container → renderer →
+   * camera: one measurement chain). Falls back to window dims when called
+   * before the renderer measured (identical for a fullscreen shell).
+   */
+  onResize(width?: number, height?: number): void {
+    const w = width && width > 0 ? width : window.innerWidth;
+    const h = height && height > 0 ? height : window.innerHeight;
+    this.camera.aspect = w / Math.max(1, h);
     this.camera.fov = h > w ? this.mobileFov : this.desktopFov;
     this.camera.updateProjectionMatrix();
   }

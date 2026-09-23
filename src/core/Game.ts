@@ -296,7 +296,7 @@ export class Game implements LoopDelegate {
   private onViewportChange(): void {
     try {
       this.renderer.onResize();
-      this.camera.onResize();
+      this.camera.onResize(this.renderer.cssWidth, this.renderer.cssHeight);
       this.ui.fitHud();
     } catch { /* ignore */ }
   }
