@@ -16,7 +16,17 @@ Last update: 2026-09-23 · branch `main` · typecheck PASS · production build P
   intact; overlay layers are pointer-events:none (verified in engine source).
 - LOW = gameplay baseline; quality changes rendering only.
 
-## Changed this round (task.md menu/viewport)
+## Changed this round (task.md device-truth)
+- Engine trace: `updateConfig` merges (tints survive); `{...DEFAULT,
+  ...preset, ...config}` order means our values win; `hoverLighting`
+  reverted to false per repo authors' own guidance.
+- Tints now vivid (violet .32, cyan/amber .30, coral .28, green .28–.30);
+  button CSS paint lowered so engine color dominates.
+- Preview rotation freezes while its list scrolls (hold-until timestamp).
+- New `?viewportdebug` overlay: live layer-by-layer dims, GAP value,
+  display-mode, safe-area, CSS heights, build id (`__CROSS_BUILD__`
+  timestamp+hash via vite define). Deployment: vercel.json builds main
+  from source; canonical domain crosss-road.vercel.app (per vite comment).
 - Resize chain unified: container → renderer (`cssWidth/cssHeight`) →
   camera aspect; one funnel, no competing paths.
 - §4 audit: no rule shrinks #game/canvas/body/html; safe-area is UI-only;
