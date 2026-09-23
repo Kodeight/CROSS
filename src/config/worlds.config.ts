@@ -74,7 +74,7 @@ export const WORLDS: WorldConfig[] = [
     safe: 0x343a4d, safeDark: 0x272c3a, road: 0x1e2331, marking: 0x38e1ff, walk: 0x272c3a,
     sky: 0x1c2444, fog: 0x232c52, fogNear: 1400, fogFar: 4000,
     hemiSky: 0x8ba0d8, hemiGround: 0x2a3352, hemiI: 0.78, dirColor: 0xc4d6ff, dirI: 0.68,
-    laneMix: { road: 0.48, obst: 0.28 }, carSplit: 0.62, speedMul: 0.9,
+    laneMix: { road: 0.38, obst: 0.28 }, carSplit: 0.65, speedMul: 0.80,
     carKinds: ['hover', 'neocar', 'moto'], truckKinds: ['hover', 'neocar'],
     variants: ['crosswalk'], weather: 'embers',
   },

@@ -9,6 +9,7 @@ export interface RendererViewportInfo {
   cssW?: number;
   cssH?: number;
   aspect?: number;
+  pixelRatio?: number;
 }
 
 declare const __CROSS_BUILD__: string | undefined;
@@ -119,8 +120,9 @@ export function installViewportDebug(getRenderer: () => RendererViewportInfo): v
       // PASS / FAIL conditions
       const passGameFills = (gameRect && Math.abs(gameRect.width - targetW) <= 1 && Math.abs(gameRect.height - targetH) <= 1 && Math.abs(topGap) <= 1 && Math.abs(bottomGap) <= 1);
       const passCanvasFills = (canvasRect && Math.abs(canvasRect.width - targetW) <= 1 && Math.abs(canvasRect.height - targetH) <= 1 && Math.abs(canvasTopGap) <= 1 && Math.abs(canvasBottomGap) <= 1);
-      const expectedBufW = Math.round(targetW * dpr);
-      const expectedBufH = Math.round(targetH * dpr);
+      const rendererPr = r.pixelRatio && r.pixelRatio > 0 ? r.pixelRatio : dpr;
+      const expectedBufW = Math.round(targetW * rendererPr);
+      const expectedBufH = Math.round(targetH * rendererPr);
       const passRendererMatches = (Math.abs(r.bufW - expectedBufW) <= 2 && Math.abs(r.bufH - expectedBufH) <= 2);
       const passNoBottomGap = Math.abs(bottomGap) <= 1 && Math.abs(canvasBottomGap) <= 1;
       const passNoTopGap = Math.abs(topGap) <= 1 && Math.abs(canvasTopGap) <= 1;
@@ -131,7 +133,7 @@ export function installViewportDebug(getRenderer: () => RendererViewportInfo): v
 
       const lines = [
         `=== CROSS! VIEWPORT DIAGNOSTIC ===`,
-        `Build: ${build} | DPR: ${dpr} | Standalone: ${isStandalone} | Display: ${displayModes()}`,
+        `Build: ${build} | DPR: ${dpr} (Renderer PR: ${rendererPr}) | Standalone: ${isStandalone} | Display: ${displayModes()}`,
         `Safe insets: top:${insets.top} btm:${insets.bottom} left:${insets.left} right:${insets.right}`,
         `--- STATUS SUMMARY ---`,
         `GAME FILLS VIEWPORT:      ${flag(Boolean(passGameFills))}`,

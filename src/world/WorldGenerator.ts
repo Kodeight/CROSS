@@ -165,12 +165,12 @@ export class WorldGenerator {
 
   private buildRoad(g: THREE.Group, world: WorldConfig, variant: string | null): void {
     const mid = new THREE.Mesh(
-      new THREE.PlaneGeometry(BOARD * 3, PW * ZOOM),
+      new THREE.PlaneGeometry(BOARD * 5, PW * ZOOM),
       this.mat(world.road),
     );
     mid.receiveShadow = true;
     g.add(mid);
-    for (let i = -8; i <= 8; i++) {
+    for (let i = -14; i <= 14; i++) {
       const dash = new THREE.Mesh(
         new THREE.PlaneGeometry(18 * ZOOM, 2.4 * ZOOM),
         this.assets.basic(`gen-dash:${world.marking}`, world.marking),
@@ -181,7 +181,7 @@ export class WorldGenerator {
     if (world.id === 'neon') {
       for (const s of [-1, 1]) {
         const edge = new THREE.Mesh(
-          new THREE.PlaneGeometry(BOARD * 3, 1.6 * ZOOM),
+          new THREE.PlaneGeometry(BOARD * 5, 1.6 * ZOOM),
           this.assets.basic(`gen-neon:${s}`, s < 0 ? 0xff3fb4 : 0x38e1ff),
         );
         edge.position.set(0, s * (PW / 2 - 3) * ZOOM, 0.4);
@@ -191,13 +191,13 @@ export class WorldGenerator {
     if (world.id === 'city' || world.id === 'beach' || world.id === 'neon') {
       for (const s of [-1, 1]) {
         const curb = new THREE.Mesh(
-          this.assets.box('gen-curb', BOARD * 3, 4 * ZOOM, 4 * ZOOM),
+          this.assets.box('gen-curb', BOARD * 5, 4 * ZOOM, 4 * ZOOM),
           this.mat(world.safeDark),
         );
         curb.position.set(0, s * (PW / 2 - 1) * ZOOM, 2 * ZOOM);
         g.add(curb);
         const walk = new THREE.Mesh(
-          this.assets.box('gen-walk', BOARD * 3, 7 * ZOOM, 1.2 * ZOOM),
+          this.assets.box('gen-walk', BOARD * 5, 7 * ZOOM, 1.2 * ZOOM),
           this.mat(world.walk),
         );
         walk.position.set(0, s * (PW / 2 - 5.5) * ZOOM, 0.6 * ZOOM);
@@ -206,7 +206,7 @@ export class WorldGenerator {
       }
     }
     if (variant === 'intersection') {
-      for (let q = -3; q <= 3; q++) {
+      for (let q = -5; q <= 5; q++) {
         const bar = new THREE.Mesh(
           new THREE.PlaneGeometry(10 * ZOOM, PW * ZOOM * 0.8),
           this.assets.basic('gen-inter', 0xffffff),
@@ -267,13 +267,20 @@ export class WorldGenerator {
     // never a road, so PLAY/restart can never drop the player into traffic.
     if (Math.abs(index - GAME_CONFIG.startLane) <= 1) return 'field';
     if (index <= 4) return 'field';
-    if (this.consecutiveRoads >= 4) return Math.random() < 0.5 ? 'field' : 'forest';
+    // Strict consecutive road cap: maximum 3 across all worlds.
+    // For Neon, cap at 2 consecutive roads (prefer 1-2 road sections then safe area).
+    const maxConsecutive = world.id === 'neon' ? 2 : 3;
+    if (this.consecutiveRoads >= maxConsecutive) return Math.random() < 0.65 ? 'field' : 'forest';
     const r = Math.random();
     let roadW = world.laneMix.road;
     const forestW = world.laneMix.obst;
+    if (world.id === 'neon' && this.consecutiveRoads >= 1) {
+      // In Neon, after 1 road, heavily bias towards safe recovery areas (sidewalk / plaza / median)
+      roadW *= 0.42;
+    }
     if (world.id === 'beach' && district === 0) roadW += 0.08;
     if (world.id === 'beach' && district === 3) roadW = Math.max(0.2, roadW - 0.12);
-    if (index > 40) roadW = Math.min(0.52, roadW + 0.04);
+    if (index > 40 && world.id !== 'neon') roadW = Math.min(0.50, roadW + 0.04);
     if (r < roadW) return Math.random() < world.carSplit ? 'car' : 'truck';
     if (r < roadW + forestW) return 'forest';
     return 'field';
@@ -438,9 +445,10 @@ export class WorldGenerator {
         const probe = this.vehicles.create(kind);
         const px0 = (slot / slots - 0.5) * BOARD * 1.1;
         const ph0 = (probe.userData.length * ZOOM) / 2;
+        const minGap = world.id === 'neon' ? 95 : 50;
         let ok = true;
         for (const q of placed) {
-          if (Math.abs(px0 - q.x) < ph0 + q.half + 50) { ok = false; break; }
+          if (Math.abs(px0 - q.x) < ph0 + q.half + minGap) { ok = false; break; }
         }
         if (!ok) continue;
         used.add(slot);
@@ -469,7 +477,7 @@ export class WorldGenerator {
       }
       this.laneDecor(lane, def, opts.playerX);
       // Deterministic de-overlap at generation time only (never at runtime).
-      this.enforceLaneSpacing(lane, TRAFFIC_CONFIG.minGap);
+      this.enforceLaneSpacing(lane, world.id === 'neon' ? 55 : TRAFFIC_CONFIG.minGap);
     }
 
     // Coins on safe lanes: intentional patterns (singles, pairs, short

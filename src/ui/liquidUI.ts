@@ -171,7 +171,7 @@ class LiquidUIManager {
     const coins = q('#hud-coins');
     if (coins) this.attachOne(coins, { preset: 'utility', borderRadius: 999 });
     const notch = q('#world-header');
-    if (notch) this.attachOne(notch, { preset: 'utility', borderRadius: 18, waapi: false });
+    if (notch) this.attachOne(notch, { preset: 'utility', borderRadius: 999, waapi: false });
     const pause = q('#btn-pause');
     if (pause) this.attachOne(pause, { preset: 'utility', borderRadius: 14, press: true });
     const menu = q('#menu .menu-card');

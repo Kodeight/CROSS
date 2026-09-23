@@ -109,10 +109,10 @@ export class GameManager {
     this.player.reset(startLane, center);
     // Generate a generous initial buffer so the camera (elevated,
     // top-down) never sees ungenerated world/blue areas on launch.
-    // Lanes below zero are safe field: the camera sees ~4 lanes behind
-    // the player, so retreating to lane 0 must still show ground.
+    // Lanes below zero are safe field: the camera sees behind
+    // the player, so retreating or intro cameras still show ample ground.
     const initialBuffer = startLane + 200;
-    for (let i = -8; i <= initialBuffer; i++) makeLane(i);
+    for (let i = -25; i <= initialBuffer; i++) makeLane(i);
     // Prefer a calm field lane at/just behind the start point with a free
     // center cell — safe spawn for fresh runs and resumed journeys alike.
     let spawn = startLane;
@@ -125,6 +125,7 @@ export class GameManager {
     const w = this.worlds.worldForLane(spawn, base);
     this.worlds.setCurrent(this.worlds.byId(w.id));
     this.lighting.setWorld(w, true);
+    this.lanes.setWorldTheme(w.safeDark);
     this.save.data.stats.gamesPlayed++;
     this.missions.unlock('first');
     this.save.save();
@@ -297,6 +298,7 @@ export class GameManager {
       const prevId = this.worlds.current.config.id;
       this.worlds.setCurrent(this.worlds.byId(w.id));
       this.lighting.setWorld(w, false);
+      this.lanes.setWorldTheme(w.safeDark);
       this.cb.onWorldIntro(w.name, `CROSS! WORLD ${w.num}`);
       // §15 — reactive world change: HUD notch updates from the same state.
       this.bus.emit('worldLoaded', { previousWorldId: prevId, currentWorldId: w.id });

@@ -163,6 +163,7 @@ export class Game implements LoopDelegate {
             cssW: this.renderer.cssWidth,
             cssH: this.renderer.cssHeight,
             aspect: this.camera.camera.aspect,
+            pixelRatio: this.renderer.renderer.getPixelRatio(),
           };
         });
       }
@@ -173,10 +174,15 @@ export class Game implements LoopDelegate {
       this.time.reset(performance.now());
       this.loop.start();
 
+      // Ensure the first valid 3D frame is rendered and composited by WebGL
+      // before revealing the menu and dismissing loading (prevents white flash on Android).
       requestAnimationFrame(() => {
-        this.setState(GameState.MAIN_MENU);
-        this.ui.setTouchControlsVisible(false, this.isTouch);
-        this.ui.hideLoading();
+        this.renderer.render(this.camera.camera);
+        requestAnimationFrame(() => {
+          this.setState(GameState.MAIN_MENU);
+          this.ui.setTouchControlsVisible(false, this.isTouch);
+          this.ui.hideLoading();
+        });
       });
       console.log('CROSS! Game initialized');
     } catch (err) {
@@ -281,10 +287,10 @@ export class Game implements LoopDelegate {
     // sees ungenerated world (blue areas) during the transition to gameplay.
     // Starts below zero: retreating toward lane 0 must still show ground.
     const initialBuffer = GAME_CONFIG.startLane + 200;
-    for (let i = -8; i <= initialBuffer; i++) {
+    for (let i = -25; i <= initialBuffer; i++) {
       this.makeLane(i);
       if (onProgress && (i % 20 === 0 || i === initialBuffer)) {
-        onProgress(40 + Math.round((i / initialBuffer) * 35), `PREPARING ${worldName}... ${i + 1}/${initialBuffer + 1}`);
+        onProgress(40 + Math.round(((i + 25) / (initialBuffer + 25)) * 35), `PREPARING ${worldName}... ${i + 26}/${initialBuffer + 26}`);
         await new Promise((r) => requestAnimationFrame(r));
       }
     }
@@ -292,6 +298,7 @@ export class Game implements LoopDelegate {
     const w = this.worlds.worldForLane(GAME_CONFIG.startLane, this.save.data.selectedWorld);
     this.worlds.setCurrent(this.worlds.byId(w.id));
     this.lighting.setWorld(w, true);
+    this.lanes.setWorldTheme(w.safeDark);
     this.camera.snapToPlayer(this.player.position);
 
     window.addEventListener('resize', () => this.onViewportChange());

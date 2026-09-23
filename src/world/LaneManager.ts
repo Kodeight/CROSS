@@ -13,6 +13,7 @@ const MAX_LANES = 500;
 export class LaneManager {
   lanes: Lane[] = [];
   private underlayMesh?: THREE.Mesh;
+  private underlayMaterial?: THREE.MeshPhongMaterial;
   private debugPlaneMesh?: THREE.Group;
 
   constructor(private readonly scene: THREE.Scene) {
@@ -22,37 +23,69 @@ export class LaneManager {
 
   private initGroundUnderlay(): void {
     try {
-      const geo = new THREE.PlaneGeometry(35000, 35000);
-      const mat = new THREE.MeshPhongMaterial({ color: 0x5a606d, shininess: 10 });
-      this.underlayMesh = new THREE.Mesh(geo, mat);
-      this.underlayMesh.position.set(0, 0, -2);
+      const geo = new THREE.PlaneGeometry(60000, 60000);
+      this.underlayMaterial = new THREE.MeshPhongMaterial({ color: 0x7a808a, shininess: 10 });
+      this.underlayMesh = new THREE.Mesh(geo, this.underlayMaterial);
+      this.underlayMesh.position.set(0, 0, -0.5);
       this.underlayMesh.receiveShadow = false;
+      this.underlayMesh.frustumCulled = false;
+      this.underlayMesh.renderOrder = -1;
       this.scene.add(this.underlayMesh);
     } catch { /* ignore */ }
+  }
+
+  setWorldTheme(groundColor: number): void {
+    if (this.underlayMaterial) {
+      this.underlayMaterial.color.set(groundColor);
+    }
   }
 
   private checkDebugPlane(): void {
     if (typeof location !== 'undefined' && /[?&](debugplane|testplane|viewportdebug=plane)/i.test(location.search)) {
       try {
         const group = new THREE.Group();
-        const geo = new THREE.PlaneGeometry(25000, 25000, 50, 50);
-        const mat = new THREE.MeshBasicMaterial({ color: 0x223344, wireframe: true });
+        // High-contrast vibrant colored ground plane that fills the complete camera view
+        const geo = new THREE.PlaneGeometry(40000, 40000);
+        const mat = new THREE.MeshBasicMaterial({ color: 0x00d8f5 }); // High-visibility electric cyan
         const floor = new THREE.Mesh(geo, mat);
-        floor.position.set(0, 0, 1);
+        floor.position.set(0, 0, 0.5);
+        floor.frustumCulled = false;
         group.add(floor);
 
-        // Edge markers: solid colored boxes representing world extents
-        const makeMarker = (x: number, y: number, color: number, name: string) => {
-          const m = new THREE.Mesh(new THREE.BoxGeometry(400, 400, 50), new THREE.MeshBasicMaterial({ color }));
-          m.position.set(x, y, 25);
+        // Grid helper directly on floor to show perspective
+        const grid = new THREE.GridHelper(4000, 40, 0xffffff, 0x0088cc);
+        grid.rotation.x = Math.PI / 2;
+        grid.position.set(0, 500, 0.6);
+        group.add(grid);
+
+        const makeBar = (w: number, l: number, h: number, x: number, y: number, color: number, name: string) => {
+          const m = new THREE.Mesh(new THREE.BoxGeometry(w, l, h), new THREE.MeshBasicMaterial({ color }));
+          m.position.set(x, y, h / 2 + 0.5);
           m.name = name;
           group.add(m);
         };
-        makeMarker(0, 4000, 0x00ff00, 'TOP_MARKER');
-        makeMarker(0, -2000, 0xff0000, 'BOTTOM_MARKER');
-        makeMarker(-3000, 1000, 0x00ffff, 'LEFT_MARKER');
-        makeMarker(3000, 1000, 0xffff00, 'RIGHT_MARKER');
 
+        // Solid edge boundary markers:
+        // BOTTOM boundary (Red): at frustum bottom edge (y=-220) and extra lower bound (y=-400)
+        makeBar(6000, 40, 35, 0, -220, 0xff0044, 'BOTTOM_MARKER_NEAR');
+        makeBar(6000, 50, 45, 0, -420, 0xff0000, 'BOTTOM_MARKER_FAR');
+
+        // TOP boundary (Green): at frustum top edge (y=+1400)
+        makeBar(6000, 60, 45, 0, 1400, 0x00ff44, 'TOP_MARKER');
+
+        // LEFT boundary (Magenta) & RIGHT boundary (Yellow)
+        makeBar(40, 3000, 35, -650, 500, 0xff00cc, 'LEFT_MARKER');
+        makeBar(40, 3000, 35, 650, 500, 0xffea00, 'RIGHT_MARKER');
+
+        // Forward Centerline (White)
+        makeBar(14, 3000, 8, 0, 500, 0xffffff, 'CENTERLINE');
+
+        // Cross-stripes every 200 units from -200 to +1200
+        for (let y = -200; y <= 1200; y += 200) {
+          makeBar(1200, 6, 2, 0, y, 0xffffff, `DEPTH_${y}`);
+        }
+
+        group.frustumCulled = false;
         this.debugPlaneMesh = group;
         this.scene.add(group);
       } catch { /* ignore */ }
@@ -82,17 +115,26 @@ export class LaneManager {
     this.scene.add(lane.mesh);
   }
 
+  prepend(lane: Lane): void {
+    this.lanes.unshift(lane);
+    this.scene.add(lane.mesh);
+  }
+
   topIndex(): number {
     return this.lanes.length ? this.lanes[this.lanes.length - 1].index : -1;
   }
 
-  /** Generate lanes ahead of the player; prune safely behind. */
+  updatePosition(y: number): void {
+    if (this.underlayMesh) this.underlayMesh.position.y = y;
+    if (this.debugPlaneMesh) this.debugPlaneMesh.position.y = y;
+  }
+
+  /** Generate lanes ahead of the player; maintain buffer behind; prune safely. */
   maintain(playerLane: number, makeLane: (index: number) => Lane): void {
-    if (this.underlayMesh) {
-      this.underlayMesh.position.y = playerLane * GAME_CONFIG.positionWidth * GAME_CONFIG.zoom;
-    }
-    if (this.debugPlaneMesh) {
-      this.debugPlaneMesh.position.y = playerLane * GAME_CONFIG.positionWidth * GAME_CONFIG.zoom;
+    this.updatePosition(playerLane * GAME_CONFIG.positionWidth * GAME_CONFIG.zoom);
+    const minBehind = playerLane - 30;
+    while (this.lanes.length && this.lanes[0].index > minBehind && this.lanes.length < MAX_LANES) {
+      this.prepend(makeLane(this.lanes[0].index - 1));
     }
     const want = playerLane + AHEAD;
     while (this.topIndex() < want && this.lanes.length < MAX_LANES) {
