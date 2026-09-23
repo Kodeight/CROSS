@@ -22,7 +22,7 @@ export interface ViewportDimensions {
   height: number;
   pixelRatio: number;
   isStandalone: boolean;
-  source: 'windowInner' | 'documentElement' | 'fallback';
+  source: 'windowInner' | 'documentElement' | 'standaloneScreen' | 'fallback';
 }
 
 export function getActualViewportSize(): ViewportDimensions {
@@ -34,7 +34,8 @@ export function getActualViewportSize(): ViewportDimensions {
 
   const isStandalone = typeof window !== 'undefined' ? (
     Boolean((window.navigator as unknown as { standalone?: boolean }).standalone) ||
-    Boolean(window.matchMedia?.('(display-mode: standalone)').matches)
+    Boolean(window.matchMedia?.('(display-mode: standalone)').matches) ||
+    Boolean(window.matchMedia?.('(display-mode: fullscreen)').matches)
   ) : false;
 
   // Visual viewport measurement (if available)
@@ -42,15 +43,35 @@ export function getActualViewportSize(): ViewportDimensions {
   const vvW = vv ? Math.round(vv.width) : 0;
   const vvH = vv ? Math.round(vv.height) : 0;
 
+  // Screen hardware dimensions
+  let screenW = 0;
+  let screenH = 0;
+  if (typeof window !== 'undefined' && window.screen) {
+    const sW = Math.round(window.screen.width || 0);
+    const sH = Math.round(window.screen.height || 0);
+    const isLandscape = winW > winH || (window.screen.orientation && window.screen.orientation.type?.includes('landscape'));
+    screenW = isLandscape ? Math.max(sW, sH) : Math.min(sW, sH);
+    screenH = isLandscape ? Math.min(sW, sH) : Math.max(sW, sH);
+  }
+
   // The true viewport height for the game is the full available application surface.
-  // We use Math.max to ensure we never get clamped by safe-area-shortened visualViewport on iOS PWA.
-  // We do not clamp by #game's previous height, ensuring rapid adaptation on device rotation.
-  const finalW = Math.max(winW, docW, vvW, 1);
-  const finalH = Math.max(winH, docH, vvH, 1);
+  // On iOS standalone PWA (where WebKit window.innerHeight truncates at safe-area-inset-bottom),
+  // the true physical render surface is the full hardware screen dimensions, guaranteeing
+  // genuine edge-to-edge rendering behind the home indicator and status bar.
+  let finalW = Math.max(winW, docW, vvW, 1);
+  let finalH = Math.max(winH, docH, vvH, 1);
 
   let source: ViewportDimensions['source'] = 'fallback';
-  if (finalH === winH && winH > 0) source = 'windowInner';
-  else if (finalH === docH && docH > 0) source = 'documentElement';
+
+  if (isStandalone && screenH > 0 && screenW > 0) {
+    finalW = Math.max(finalW, screenW);
+    finalH = Math.max(finalH, screenH);
+    source = 'standaloneScreen';
+  } else if (finalH === winH && winH > 0) {
+    source = 'windowInner';
+  } else if (finalH === docH && docH > 0) {
+    source = 'documentElement';
+  }
 
   const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
 

@@ -3,6 +3,8 @@
  * Shows live dimensions so physical iOS PWA tests can pinpoint exactly
  * which layer loses pixels and verify edge-to-edge layout.
  */
+import { getActualViewportSize } from './Viewport';
+
 export interface RendererViewportInfo {
   bufW: number;
   bufH: number;
@@ -104,8 +106,9 @@ export function installViewportDebug(getRenderer: () => RendererViewportInfo): v
       const isStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone;
 
       // Authoritative target viewport
-      const targetW = Math.max(window.innerWidth, html.clientWidth);
-      const targetH = Math.max(window.innerHeight, html.clientHeight);
+      const authoritativeDims = getActualViewportSize();
+      const targetW = authoritativeDims.width;
+      const targetH = authoritativeDims.height;
 
       // Gap calculations
       const gameBottom = gameRect ? gameRect.bottom : 0;
@@ -143,11 +146,16 @@ export function installViewportDebug(getRenderer: () => RendererViewportInfo): v
         `NO TOP GAP:               ${flag(passNoTopGap)} (gap: ${num(topGap)}px)`,
         `NO LEFT GAP:              ${flag(passNoLeftGap)} (gap: ${num(leftGap)}px)`,
         `NO RIGHT GAP:             ${flag(passNoRightGap)} (gap: ${num(rightGap)}px)`,
+        `--- ENVIRONMENT & MODE ---`,
+        `standalone:      ${isStandalone ? 'YES (PWA)' : 'NO (Browser)'} (nav: ${Boolean((navigator as unknown as { standalone?: boolean }).standalone)})`,
+        `screen:          ${num(window.screen?.width)}x${num(window.screen?.height)} (avail: ${num(window.screen?.availWidth)}x${num(window.screen?.availHeight)})`,
+        `safeInsets:      top=${insets.top}, bottom=${insets.bottom}, left=${insets.left}, right=${insets.right}`,
         `--- WINDOW & CLIENT SIZES ---`,
         `window.inner:    ${num(window.innerWidth)}x${num(window.innerHeight)}`,
         `visualViewport:  ${num(vv?.width ?? NaN)}x${num(vv?.height ?? NaN)}`,
         `docElement.client: ${num(html.clientWidth)}x${num(html.clientHeight)}`,
         `body.client:     ${num(body.clientWidth)}x${num(body.clientHeight)}`,
+        `targetSize:      ${targetW}x${targetH}`,
         `--- ELEMENT RECTANGLES ---`,
         `HTML:   ${rectStr(htmlRect)}`,
         `BODY:   ${rectStr(bodyRect)}`,

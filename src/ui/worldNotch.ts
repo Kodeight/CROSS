@@ -92,6 +92,7 @@ export function applyWorldNotch(
     }
   } catch { /* animation must never break the notch */ }
   lastNotchWorld = world.id;
+  set('world-badge-name', world.name);
   set('wh-num', `WORLD ${world.num}`);
   set('wh-name', world.name);
   const fill = document.getElementById('wh-fill');

@@ -161,6 +161,24 @@ export class WorldGenerator {
     const orr = this.slab(edgeColor);
     orr.position.set(BOARD * 2, 0, 1.5 * ZOOM);
     g.add(orr);
+
+    if (world.id === 'neon') {
+      // Neon cyber plaza: distinctive glowing cyber-island lines and pedestrian medians
+      const gridTile = new THREE.Mesh(
+        new THREE.PlaneGeometry(BOARD * 1.5, 2 * ZOOM),
+        this.assets.basic('gen-neon-accent', 0x38e1ff),
+      );
+      gridTile.position.set(0, 0, 1.6 * ZOOM);
+      g.add(gridTile);
+      for (const s of [-1, 1]) {
+        const strip = new THREE.Mesh(
+          new THREE.PlaneGeometry(BOARD * 2.2, 1.2 * ZOOM),
+          this.assets.basic(`gen-neon-strip:${s}`, s < 0 ? 0xff3fb4 : 0x38e1ff),
+        );
+        strip.position.set(0, s * (PW / 2 - 2) * ZOOM, 1.6 * ZOOM);
+        g.add(strip);
+      }
+    }
   }
 
   private buildRoad(g: THREE.Group, world: WorldConfig, variant: string | null): void {
@@ -504,7 +522,68 @@ export class WorldGenerator {
         lane.coins.push({ mesh, col, taken: false });
       }
     }
+
+    // Procedural fairness validation: if lane fails safety/fairness, sanitize to safe field
+    if (!this.validateLane(lane, world, index)) {
+      this.sanitizeToSafeField(lane, world, index);
+    }
+
     return lane;
+  }
+
+  /**
+   * Procedural fairness validator: guarantees every lane is humanly playable,
+   * never creates an impassable wall, and enforces recovery pacing beats.
+   */
+  private validateLane(lane: Lane, world: WorldConfig, index: number): boolean {
+    // 1. Safe spawn: lanes around start must always be calm fields
+    if (index <= 4 && lane.type !== 'field') return false;
+
+    // 2. Maximum consecutive road cap: never exceed 2 in Neon or 3 in any world
+    const maxConsecutive = world.id === 'neon' ? 2 : 3;
+    if ((lane.type === 'car' || lane.type === 'truck') && this.consecutiveRoads > maxConsecutive) {
+      return false;
+    }
+
+    // 3. Obstacle lanes: must always have at least 3 unblocked/traversable columns
+    if (lane.type === 'forest') {
+      const blockedCount = Object.keys(lane.occupied).length;
+      if (blockedCount > COLS - 3) return false;
+      let openCount = 0;
+      for (let c = 0; c < COLS; c++) {
+        if (!lane.occupied[c]) openCount++;
+      }
+      if (openCount < 2) return false;
+    }
+
+    // 4. Vehicle lanes: ensure vehicle spacing is readable and safe
+    if (lane.type === 'car' || lane.type === 'truck') {
+      const minGap = world.id === 'neon' ? 55 : TRAFFIC_CONFIG.minGap;
+      const sorted = lane.vehicles.slice().sort((a, b) => a.position.x - b.position.x);
+      for (let i = 1; i < sorted.length; i++) {
+        const dist = Math.abs(sorted[i].position.x - sorted[i - 1].position.x);
+        const required = this.half(sorted[i]) + this.half(sorted[i - 1]) + minGap * 0.7;
+        if (dist < required) return false;
+      }
+    }
+
+    return true;
+  }
+
+  /** Converts an invalid/unfair lane into a calm, themed safe recovery area. */
+  private sanitizeToSafeField(lane: Lane, world: WorldConfig, index: number): void {
+    while (lane.mesh.children.length > 0) {
+      lane.mesh.remove(lane.mesh.children[0]);
+    }
+    lane.type = 'field';
+    lane.vehicles = [];
+    lane.occupied = {};
+    lane.jumpable = {};
+    lane.coins = [];
+    this.consecutiveRoads = 0;
+    const g = new THREE.Group();
+    this.buildTerrain(g, world, null, index);
+    lane.mesh.add(g);
   }
 
   /** Generation-time de-overlap: sort front-first, push followers back. */

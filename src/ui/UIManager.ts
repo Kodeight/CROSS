@@ -287,7 +287,10 @@ export class UIManager {
       || this.state === GameState.PAUSED;
     el('hud').hidden = !hudVisible;
     try {
-      el('world-header').hidden = !hudVisible;
+      const badge = document.getElementById('world-badge');
+      if (badge) badge.hidden = !hudVisible;
+      const header = document.getElementById('world-header');
+      if (header) header.hidden = true;
     } catch { /* ignore */ }
     liquidUI.refresh();
   }
