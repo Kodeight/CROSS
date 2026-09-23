@@ -1,8 +1,7 @@
 /**
- * ?viewportdebug — temporary on-device viewport diagnostic (task.md §2).
- * Shows live dimensions so a physical test can pinpoint exactly which layer
- * loses the bottom pixels. Query-gated (?viewportdebug), pointer-events
- * none, zero gameplay impact. Remove when the viewport case is closed.
+ * ?viewportdebug — temporary on-device viewport diagnostic.
+ * Shows live dimensions so physical iOS PWA tests can pinpoint exactly
+ * which layer loses pixels and verify edge-to-edge layout.
  */
 export interface RendererViewportInfo {
   bufW: number;
@@ -15,17 +14,22 @@ function num(n: number): string {
   return Number.isFinite(n) ? String(Math.round(n)) : '?';
 }
 
+function rectStr(r: DOMRect | null | undefined): string {
+  if (!r) return 'missing';
+  return `top:${num(r.top)} btm:${num(r.bottom)} h:${num(r.height)} w:${num(r.width)}`;
+}
+
 function rectOf(el: Element | null | undefined): string {
   if (!(el instanceof HTMLElement)) return 'missing';
   const r = el.getBoundingClientRect();
-  return `${num(r.width)}x${num(r.height)}@${num(r.left)},${num(r.top)}b${num(r.bottom)}`;
+  return `${num(r.width)}x${num(r.height)}@${num(r.left)},${num(r.top)} btm:${num(r.bottom)}`;
 }
 
-function cssHeight(sel: string): string {
+function cssComputed(sel: string, prop: string): string {
   try {
     const el = document.querySelector(sel);
     if (!(el instanceof HTMLElement)) return 'missing';
-    return getComputedStyle(el).height;
+    return (getComputedStyle(el) as unknown as Record<string, string>)[prop] || '?';
   } catch {
     return '?';
   }
@@ -62,10 +66,10 @@ export function installViewportDebug(getRenderer: () => RendererViewportInfo): v
     box.id = 'viewport-debug';
     box.setAttribute('aria-hidden', 'true');
     box.style.cssText = [
-      'position:fixed', 'left:8px', 'bottom:8px', 'z-index:90',
-      'max-width:94vw', 'max-height:62vh', 'overflow:auto',
-      'background:rgba(0,0,0,.85)', 'color:#7CFC00',
-      'font:10px/1.45 monospace', 'white-space:pre',
+      'position:fixed', 'left:6px', 'bottom:6px', 'z-index:90',
+      'max-width:96vw', 'max-height:75vh', 'overflow:auto',
+      'background:rgba(0,0,0,.88)', 'color:#7CFC00',
+      'font:10px/1.4 monospace', 'white-space:pre',
       'padding:8px 10px', 'border-radius:8px', 'pointer-events:none',
     ].join(';');
     document.body.appendChild(box);
@@ -82,35 +86,59 @@ export function installViewportDebug(getRenderer: () => RendererViewportInfo): v
     if (!box) return;
     try {
       const vv = window.visualViewport;
+      const html = document.documentElement;
+      const body = document.body;
       const game = document.getElementById('game');
       const canvas = game?.querySelector('canvas');
+      const htmlRect = html.getBoundingClientRect();
+      const bodyRect = body.getBoundingClientRect();
       const gameRect = game?.getBoundingClientRect();
       const canvasRect = canvas?.getBoundingClientRect();
       const r = getRenderer();
       const vvH = vv?.height ?? window.innerHeight;
       const gap = gameRect ? num(vvH - gameRect.bottom) : '?';
+      const isStandalone = (window.navigator as unknown as { standalone?: boolean }).standalone;
+
       const lines = [
-        `CROSS! viewportdebug · build ${build} · ${displayModes()}`,
-        `inner ${num(window.innerWidth)}x${num(window.innerHeight)} vv ${num(vv?.width ?? NaN)}x${num(vvH)}`,
-        `docEl ${num(document.documentElement.clientWidth)}x${num(document.documentElement.clientHeight)} body ${num(document.body.clientWidth)}x${num(document.body.clientHeight)}`,
-        `#game ${rectOf(game)} canvas ${rectOf(canvas)}`,
-        `canvas.attr ${canvas ? `${canvas.width}x${canvas.height}` : '?'} buffer ${num(r.bufW)}x${num(r.bufH)}`,
-        `GAP vv.bottom-game.bottom = ${gap} (0 = full)`,
-        `safe-bottom ${safeBottom()}`,
-        `css html ${cssHeight('html')} body ${cssHeight('body')} #game ${cssHeight('#game')} canvas ${cssHeight('#game canvas')}`,
+        `=== CROSS! VIEWPORT DIAGNOSTIC ===`,
+        `Build: ${build} | DPR: ${window.devicePixelRatio || 1}`,
+        `Modes: ${displayModes()} | nav.standalone: ${isStandalone}`,
+        `matchMedia(standalone): ${window.matchMedia?.('(display-mode: standalone)').matches}`,
+        `matchMedia(fullscreen): ${window.matchMedia?.('(display-mode: fullscreen)').matches}`,
+        `matchMedia(minimal-ui): ${window.matchMedia?.('(display-mode: minimal-ui)').matches}`,
+        `--- WINDOW & VIEWPORT ---`,
+        `window.inner: ${num(window.innerWidth)}x${num(window.innerHeight)}`,
+        `visualViewport: ${num(vv?.width ?? NaN)}x${num(vvH)} (top:${num(vv?.offsetTop ?? 0)}, left:${num(vv?.offsetLeft ?? 0)})`,
+        `docElement.client: ${num(html.clientWidth)}x${num(html.clientHeight)}`,
+        `body.client: ${num(body.clientWidth)}x${num(body.clientHeight)}`,
+        `--- LAYER MEASUREMENTS (top, btm, h) ---`,
+        `HTML:   ${rectStr(htmlRect)}`,
+        `BODY:   ${rectStr(bodyRect)}`,
+        `#GAME:  ${rectStr(gameRect)}`,
+        `CANVAS: ${rectStr(canvasRect)}`,
+        `--- CANVAS & THREE.JS RENDERER ---`,
+        `canvas.attr: ${canvas ? `${canvas.width}x${canvas.height}` : '?'}`,
+        `Three.js Buffer: ${num(r.bufW)}x${num(r.bufH)}`,
+        `--- BOTTOM GAP STATUS ---`,
+        `vv.bottom - game.bottom: ${gap}px ${gap === '0' ? '✅ (EDGE-TO-EDGE FULLSCREEN)' : '❌ (GAP DETECTED)'}`,
+        `env(safe-area-inset-bottom): ${safeBottom()}`,
+        `--- COMPUTED CSS HEIGHTS ---`,
+        `html: ${cssComputed('html', 'height')} | body: ${cssComputed('body', 'height')}`,
+        `#game: ${cssComputed('#game', 'height')} | canvas: ${cssComputed('#game canvas', 'height')}`,
       ];
       box.textContent = lines.join('\n');
     } catch { /* probes never break the game */ }
   };
 
   render();
-  const iv = window.setInterval(render, 750);
+  const iv = window.setInterval(render, 500);
   void iv;
   const vv = window.visualViewport;
   try {
     window.addEventListener('resize', render);
-    window.addEventListener('orientationchange', () => window.setTimeout(render, 300));
+    window.addEventListener('orientationchange', () => window.setTimeout(render, 150));
     vv?.addEventListener('resize', render);
     vv?.addEventListener('scroll', render);
   } catch { /* interval still updates */ }
 }
+

@@ -60,8 +60,8 @@ export class Game implements LoopDelegate {
   private readonly ui = new UIManager();
   private readonly loop = new GameLoop(this);
 
-  private renderer!: GameRenderer;
-  private camera!: FollowCamera;
+  renderer!: GameRenderer;
+  camera!: FollowCamera;
   private lighting!: Lighting;
   private factory!: CharacterFactory;
   private player!: Player;
@@ -282,7 +282,11 @@ export class Game implements LoopDelegate {
     this.camera.snapToPlayer(this.player.position);
 
     window.addEventListener('resize', () => this.onViewportChange());
-    window.addEventListener('orientationchange', () => window.setTimeout(() => this.onViewportChange(), 120));
+    window.addEventListener('orientationchange', () => {
+      this.onViewportChange();
+      window.setTimeout(() => this.onViewportChange(), 80);
+      window.setTimeout(() => this.onViewportChange(), 250);
+    });
     // ResizeObserver on the game container: catches toolbar collapse,
     // split-screen, PWA settle and rotation on every platform — cases
     // window resize alone can miss.
@@ -295,15 +299,25 @@ export class Game implements LoopDelegate {
     } catch { /* listeners above already cover the basics */ }
     try {
       window.addEventListener('cross:resize', () => this.onViewportChange());
-      if (window.visualViewport) window.visualViewport.addEventListener('resize', () => this.onViewportChange());
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => this.onViewportChange());
+        window.visualViewport.addEventListener('scroll', () => this.onViewportChange());
+      }
     } catch { /* ignore */ }
+    window.addEventListener('pageshow', () => this.onViewportChange());
+    window.addEventListener('focus', () => this.onViewportChange());
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden && this.ui.state === GameState.PLAYING && !this.manager.dying) this.pause();
+      if (document.hidden) {
+        if (this.ui.state === GameState.PLAYING && !this.manager.dying) this.pause();
+      } else {
+        this.onViewportChange();
+        window.setTimeout(() => this.onViewportChange(), 100);
+      }
     });
   }
 
   /** Single viewport-change funnel: renderer, camera, HUD — one place. */
-  private onViewportChange(): void {
+  public onViewportChange(): void {
     try {
       this.renderer.onResize();
       this.camera.onResize(this.renderer.cssWidth, this.renderer.cssHeight);

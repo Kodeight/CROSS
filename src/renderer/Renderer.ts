@@ -89,27 +89,30 @@ export class GameRenderer {
    * numbers so no page-background strip can ever show through.
    */
   onResize(): void {
-    let w = 0;
-    let h = 0;
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    let w = vv ? Math.round(vv.width) : window.innerWidth;
+    let h = vv ? Math.round(vv.height) : window.innerHeight;
     try {
       const rect = this.container.getBoundingClientRect();
-      w = Math.round(rect.width);
-      h = Math.round(rect.height);
+      if (rect.width > 0 && rect.height > 0) {
+        w = Math.max(w, Math.round(rect.width));
+        h = Math.max(h, Math.round(rect.height));
+      }
     } catch { /* fall through to viewport */ }
-    if (!(w > 0 && h > 0)) {
-      const vv = window.visualViewport;
-      w = Math.max(1, Math.round(vv?.width ?? window.innerWidth));
-      h = Math.max(1, Math.round(vv?.height ?? window.innerHeight));
-    }
+
+    const winW = typeof window !== 'undefined' ? window.innerWidth : w;
+    const winH = typeof window !== 'undefined' ? window.innerHeight : h;
+    if (winW > w) w = winW;
+    if (winH > h) h = winH;
+
+    w = Math.max(1, Math.round(w));
+    h = Math.max(1, Math.round(h));
     this.renderer.setSize(w, h, false);
     this.cssWidth = w;
     this.cssHeight = h;
-    // Pixel-exact element box from the same measurement — no CSS-unit
-    // interpretation risk on quirky mobile browsers (stylesheet stays
-    // as the fallback for anything that ignores inline styles).
     try {
-      this.renderer.domElement.style.width = `${w}px`;
-      this.renderer.domElement.style.height = `${h}px`;
+      this.renderer.domElement.style.width = '100%';
+      this.renderer.domElement.style.height = '100%';
     } catch { /* stylesheet fallback covers */ }
   }
 

@@ -16,6 +16,14 @@ function buildId(): string {
 export default defineConfig({
   // Domain-root deployment (https://crosss-road.vercel.app/): root-relative URLs.
   base: '/',
+  server: {
+    host: '0.0.0.0',
+    port: 3000,
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 3000,
+  },
   define: {
     __CROSS_BUILD__: JSON.stringify(buildId()),
   },

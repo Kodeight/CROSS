@@ -1,0 +1,8 @@
+{
+  "name": "CROSS!",
+  "description": "Cross as far as you can. Dodge traffic. Collect coins. Beat your best score.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

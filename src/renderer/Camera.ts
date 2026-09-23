@@ -57,7 +57,10 @@ export class FollowCamera {
   private readonly introLookAhead = 140;
 
   constructor() {
-    const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    const w = vv ? vv.width : (typeof window !== 'undefined' ? window.innerWidth : 800);
+    const h = vv ? vv.height : (typeof window !== 'undefined' ? window.innerHeight : 600);
+    const aspect = w / Math.max(1, h);
     this.camera = new THREE.PerspectiveCamera(this.desktopFov, aspect, 0.5, 9000);
   }
 
@@ -67,12 +70,15 @@ export class FollowCamera {
 
   /**
    * Follows the authoritative renderer size (container → renderer →
-   * camera: one measurement chain). Falls back to window dims when called
+   * camera: one measurement chain). Falls back to visualViewport/window dims when called
    * before the renderer measured (identical for a fullscreen shell).
    */
   onResize(width?: number, height?: number): void {
-    const w = width && width > 0 ? width : window.innerWidth;
-    const h = height && height > 0 ? height : window.innerHeight;
+    const vv = typeof window !== 'undefined' ? window.visualViewport : null;
+    const fallbackW = vv ? vv.width : window.innerWidth;
+    const fallbackH = vv ? vv.height : window.innerHeight;
+    const w = width && width > 0 ? width : fallbackW;
+    const h = height && height > 0 ? height : fallbackH;
     this.camera.aspect = w / Math.max(1, h);
     this.camera.fov = h > w ? this.mobileFov : this.desktopFov;
     this.camera.updateProjectionMatrix();
