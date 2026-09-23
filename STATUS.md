@@ -16,22 +16,23 @@ Last update: 2026-09-23 · branch `main` · typecheck PASS · production build P
   intact; overlay layers are pointer-events:none (verified in engine source).
 - LOW = gameplay baseline; quality changes rendering only.
 
-## Changed this round (liquid lens + viewport)- SKILL source read: engine mount/filter/update paths, package README, demo
-  App GLASS_BASE, OPTIMIZATION cost model. Key mechanism: the lens layer's
-  `backdrop-filter: url()` samples everything painted below it — INCLUDING
-  the host's own CSS background. Our cream paint (.68–.84) was the white
-  veil: it got sampled into the refraction. Cut host paint hard
-  (menu-card .30, panels .35, buttons .35, primary .50, HUD .45, cards .50,
-  rows .45; notch keeps strong red) so the lens samples the live world.
-- Panel preset is now a real lens: blur 12→7, refraction 18→26, bezel 30,
-  thickness 22, edge .9, specular .45, dispersion .32. Utility 18→22,
-  secondary 16→20. Text stays crisp (content lives above filter layers).
-- Full height-rule audit (index.html + style.css): every shell rule is
-  fixed/inset-0 with viewport units; no safe-area on #game/canvas; renderer
-  measured from container rect + ResizeObserver. No geometric gap source
-  remains in code.
+## Changed this round (notch follows feet)
+- Active world now follows `player.lane`, not the `maxLane` frontier:
+  stepping back into a previous stretch switches notch, environment,
+  lighting and missions back to that world (`GameManager`).
+- `worldBest` records furthest lane reached *while in* that world
+  (frontier on forward cross, feet on step-back; `recordRun` takes the
+  in-world lane) — another stretch's lanes can never leak in.
+- Checkpoints store the actual stop position (`player.lane`); resume math
+  unchanged and now consistent with it.
+- Progress reference uses in-stretch feet when standing in the active
+  world, frontier otherwise (HUD + `worldNotch` wiring).
 
 ## Earlier (kept)
+- Frosted lens: heavy engine blur + paper tint + restored surface cover
+  (user wants blurry bg, not clear lens); displacement/rim/press underneath.
+- Full height-rule audit: shell chain airtight; renderer measured from
+  container rect + ResizeObserver.
 - Progress: single formula `(ref - max(S, runStart)) / (S+40 - max(...))`.
 - Modal: containment guard in `InputManager`; X on all modals; backdrop needs
   press+release on backdrop; Esc backs out; `?debug` scroll metrics.

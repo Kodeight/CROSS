@@ -35,7 +35,7 @@ function stretchStartFor(worldId: string, lane: number, selectedId: string): num
 
 /**
  * Authoritative world progress: distance through the world's own stretch,
- * measured from the run's spawn. Live maxLane while active, best otherwise.
+ * measured from the run's spawn. Live position while active, best otherwise.
  * Always 0 at spawn, exactly 100 at the transition boundary, linear in
  * between — never diluted, never stuck, never from another world's state.
  */
@@ -44,12 +44,18 @@ export function worldCompletionPct(
   world: WorldConfig,
   runMaxLane: number,
   runStartLane: number,
+  playerLane: number,
   activeWorldId: string | null,
 ): number {
   try {
     const active = activeWorldId === world.id;
     const best = save.worldBest[world.id] ?? 0;
-    const ref = active ? Math.max(best, runMaxLane) : best;
+    // Standing inside the active stretch: measure from the feet (covers
+    // stepping back from a further frontier). Otherwise use the frontier.
+    const inStretch = active && worldIdForLane(playerLane, save.selectedWorld) === world.id;
+    const ref = inStretch
+      ? Math.max(best, playerLane)
+      : active ? Math.max(best, runMaxLane) : best;
     const S = stretchStartFor(world.id, ref, save.selectedWorld);
     const lo = Math.max(S, active ? runStartLane : S);
     const end = S + WORLD_LENGTH;

@@ -11,6 +11,7 @@ export class HUD {
     private readonly getActiveWorld: () => WorldConfig | null = () => null,
     private readonly getRunMaxLane: () => number = () => 0,
     private readonly getRunStartLane: () => number = () => 0,
+    private readonly getPlayerLane: () => number = () => 0,
   ) {}
 
   update(): void {
@@ -33,6 +34,7 @@ export class HUD {
         w,
         this.getRunMaxLane(),
         this.getRunStartLane(),
+        this.getPlayerLane(),
         w.id,
       );
       applyWorldNotch(w, pct);

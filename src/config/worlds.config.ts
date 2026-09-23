@@ -72,8 +72,8 @@ export const WORLDS: WorldConfig[] = [
   {
     id: 'neon', name: 'NEON CITY', num: '05', price: 5000,
     safe: 0x343a4d, safeDark: 0x272c3a, road: 0x1e2331, marking: 0x38e1ff, walk: 0x272c3a,
-    sky: 0x141a35, fog: 0x1a2140, fogNear: 1400, fogFar: 4000,
-    hemiSky: 0x6a7fb8, hemiGround: 0x1c2133, hemiI: 0.62, dirColor: 0xaac4ff, dirI: 0.5,
+    sky: 0x1c2444, fog: 0x232c52, fogNear: 1400, fogFar: 4000,
+    hemiSky: 0x8ba0d8, hemiGround: 0x2a3352, hemiI: 0.78, dirColor: 0xc4d6ff, dirI: 0.68,
     laneMix: { road: 0.48, obst: 0.28 }, carSplit: 0.62, speedMul: 1.15,
     carKinds: ['hover', 'neocar', 'moto'], truckKinds: ['hover', 'neocar'],
     variants: ['crosswalk'], weather: 'embers',

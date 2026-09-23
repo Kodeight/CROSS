@@ -5,7 +5,11 @@ import type { EventBus } from '../core/EventBus';
 export class ProgressionSystem {
   constructor(private readonly save: SaveManager, private readonly bus: EventBus) {}
 
-  recordRun(score: number, worldId: string, maxLane: number): boolean {
+  /**
+   * Record a finished run. `laneInWorld` must be a lane inside `worldId`
+   * (feet, not frontier) so per-world bests never store another stretch.
+   */
+  recordRun(score: number, worldId: string, laneInWorld: number): boolean {
     const s = this.save.data;
     let newBest = false;
     if (score > s.bestScore) {
@@ -13,7 +17,7 @@ export class ProgressionSystem {
       newBest = true;
     }
     const wb = s.worldBest[worldId] ?? 0;
-    if (maxLane > wb) s.worldBest[worldId] = maxLane;
+    if (laneInWorld > wb) s.worldBest[worldId] = laneInWorld;
     this.save.save();
     return newBest;
   }

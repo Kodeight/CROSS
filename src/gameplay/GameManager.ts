@@ -269,10 +269,11 @@ export class GameManager {
     this.dying = false;
     this.player.dying = false;
     const worldId = this.worlds.current.config.id;
-    // Death checkpoint: PLAY AGAIN returns to THIS world, not CITY.
+    // Death checkpoint: PLAY AGAIN returns to THIS world, near the death
+    // spot (newRun backs off + re-validates safety).
     this.save.data.lastWorldId = worldId;
-    this.save.data.lastLane = this.score.maxLane;
-    const newBest = this.progression.recordRun(this.score.score, worldId, this.score.maxLane);
+    this.save.data.lastLane = this.player.lane;
+    const newBest = this.progression.recordRun(this.score.score, worldId, this.player.lane);
     this.save.data.coins += this.coins.runCoins;
     this.save.data.totalCoins += this.coins.runCoins;
     this.save.save();
@@ -282,11 +283,14 @@ export class GameManager {
   }
 
   checkWorldTransition(): void {
-    const w = this.worlds.worldForLane(this.score.maxLane, this.save.data.selectedWorld);
+    // Active world follows the player's FEET, not the frontier: stepping
+    // back into a previous stretch switches environment, HUD and lighting
+    // back to that world. Score/progress (maxLane) is untouched.
+    const w = this.worlds.worldForLane(this.player.lane, this.save.data.selectedWorld);
     // Journey checkpoint: quitting mid-run and pressing PLAY resumes near
     // here (newRun backs off + re-validates safety — never the exact spot).
     this.save.data.lastWorldId = w.id;
-    this.save.data.lastLane = this.score.maxLane;
+    this.save.data.lastLane = this.player.lane;
     if (w.id !== this.worlds.current.config.id) {
       const prevId = this.worlds.current.config.id;
       this.worlds.setCurrent(this.worlds.byId(w.id));
@@ -295,9 +299,13 @@ export class GameManager {
       // §15 — reactive world change: HUD notch updates from the same state.
       this.bus.emit('worldLoaded', { previousWorldId: prevId, currentWorldId: w.id });
       this.cb.onHud();
+      // World best = furthest lane reached WHILE IN this world. Crossing
+      // forward, that is the frontier; stepping back, it is the feet —
+      // never a lane from another world's stretch.
+      const pos = this.player.lane < this.score.maxLane ? this.player.lane : this.score.maxLane;
       const best = this.save.data.worldBest[w.id] ?? 0;
-      if (this.score.maxLane > best) {
-        this.save.data.worldBest[w.id] = this.score.maxLane;
+      if (pos > best) {
+        this.save.data.worldBest[w.id] = pos;
       }
       this.save.save();
     } else {
