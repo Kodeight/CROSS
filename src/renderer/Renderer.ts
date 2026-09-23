@@ -16,14 +16,18 @@ export class GameRenderer {
   readonly hemi: THREE.HemisphereLight;
   readonly dirLight: THREE.DirectionalLight;
   readonly backLight: THREE.DirectionalLight;
+  /** The fullscreen game container the canvas must exactly fill. */
+  readonly container: HTMLElement;
 
   private constructor(
+    container: HTMLElement,
     scene: THREE.Scene,
     renderer: THREE.WebGLRenderer,
     hemi: THREE.HemisphereLight,
     dirLight: THREE.DirectionalLight,
     backLight: THREE.DirectionalLight,
   ) {
+    this.container = container;
     this.scene = scene;
     this.renderer = renderer;
     this.hemi = hemi;
@@ -68,20 +72,32 @@ export class GameRenderer {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
-    const inst = new GameRenderer(scene, renderer, hemi, dirLight, backLight);
+    const inst = new GameRenderer(container, scene, renderer, hemi, dirLight, backLight);
     inst.onResize();
     console.log('CROSS! WebGL renderer initialized successfully');
     return inst;
   }
 
-  /** Full-viewport sizing: the visual viewport is the truth on iOS
-   * (toolbar collapse, home indicator, standalone PWA). CSS owns the
-   * element box (100dvw/100dvh); the backing store follows the same
-   * numbers so no page-background strip can ever show through. */
+  /**
+   * Full-viewport sizing measured from the ACTUAL game container — never a
+   * blind window.innerHeight. Covers toolbar collapse, PWA settle-in,
+   * split-screen, rotation and desktop resize on every platform. CSS owns
+   * the element box (100dvw/100dvh); the backing store follows the same
+   * numbers so no page-background strip can ever show through.
+   */
   onResize(): void {
-    const vv = window.visualViewport;
-    const w = Math.max(1, Math.round(vv?.width ?? window.innerWidth));
-    const h = Math.max(1, Math.round(vv?.height ?? window.innerHeight));
+    let w = 0;
+    let h = 0;
+    try {
+      const rect = this.container.getBoundingClientRect();
+      w = Math.round(rect.width);
+      h = Math.round(rect.height);
+    } catch { /* fall through to viewport */ }
+    if (!(w > 0 && h > 0)) {
+      const vv = window.visualViewport;
+      w = Math.max(1, Math.round(vv?.width ?? window.innerWidth));
+      h = Math.max(1, Math.round(vv?.height ?? window.innerHeight));
+    }
     this.renderer.setSize(w, h, false);
     try {
       this.renderer.domElement.style.width = '100dvw';

@@ -270,6 +270,16 @@ export class Game implements LoopDelegate {
 
     window.addEventListener('resize', () => this.onViewportChange());
     window.addEventListener('orientationchange', () => window.setTimeout(() => this.onViewportChange(), 120));
+    // ResizeObserver on the game container: catches toolbar collapse,
+    // split-screen, PWA settle and rotation on every platform — cases
+    // window resize alone can miss.
+    try {
+      const shell = document.getElementById('game');
+      if (shell && typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(() => this.onViewportChange());
+        ro.observe(shell);
+      }
+    } catch { /* listeners above already cover the basics */ }
     try {
       window.addEventListener('cross:resize', () => this.onViewportChange());
       if (window.visualViewport) window.visualViewport.addEventListener('resize', () => this.onViewportChange());

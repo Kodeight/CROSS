@@ -49,7 +49,7 @@ const GLASS_BASE: Partial<LiquidGlassConfig> = {
   fresnelPower: 2.2,
   noiseOpacity: 0,
   refractionMode: 'svg',
-  hoverLighting: false,
+  hoverLighting: true,
   cursorTracking: false,
   parallax: false,
 };
@@ -58,11 +58,11 @@ const PRESETS = {
   /** Floating utility capsules: strong readability, minimal noise. */
   utility: { ...GLASS_BASE, material: 'clear', blur: 2, refractionStrength: 18, edgeHighlight: 0.7, specularStrength: 0.3, elevation: 0.8 },
   /** Primary PLAY: stronger depth + rim + interaction response. */
-  primary: { ...GLASS_BASE, material: 'regular', blur: 8, refractionStrength: 26, bezelWidth: 30, thickness: 26, edgeHighlight: 1, specularStrength: 0.5, elevation: 1.2 },
+  primary: { ...GLASS_BASE, material: 'regular', blur: 8, refractionStrength: 30, bezelWidth: 30, thickness: 26, edgeHighlight: 1, specularStrength: 0.5, elevation: 1.2 },
   /** Secondary buttons: same family, lighter emphasis. */
   secondary: { ...GLASS_BASE, material: 'thin', blur: 5, refractionStrength: 16, bezelWidth: 24, thickness: 18, edgeHighlight: 0.6, specularStrength: 0.3, elevation: 0.7 },
   /** Large panels/sheets: frosted enough to read over the 3D world. */
-  panel: { ...GLASS_BASE, material: 'regular', blur: 14, refractionStrength: 14, bezelWidth: 28, thickness: 20, edgeHighlight: 0.8, specularStrength: 0.35, elevation: 1 },
+  panel: { ...GLASS_BASE, material: 'regular', blur: 12, refractionStrength: 18, bezelWidth: 28, thickness: 20, edgeHighlight: 0.8, specularStrength: 0.35, elevation: 1 },
   /** Small cards (character/world): cheap, readable. */
   card: { ...GLASS_BASE, material: 'thin', blur: 6, refractionStrength: 14, bezelWidth: 22, thickness: 16, edgeHighlight: 0.55, specularStrength: 0.28, elevation: 0.7 },
 } satisfies Record<string, Partial<LiquidGlassConfig>>;
@@ -90,6 +90,12 @@ interface AttachOpts {
    * sideways; their motion is owned by translate-safe CSS keyframes.
    */
   waapi?: boolean;
+  /**
+   * Game color identity, integrated INTO the liquid material (engine tint,
+   * not a flat CSS rectangle): subtle RGB + low opacity so refraction,
+   * rim light and backdrop visibility survive.
+   */
+  tint?: { rgb: string; opacity: number };
 }
 
 class LiquidUIManager {
@@ -119,6 +125,7 @@ class LiquidUIManager {
         ...base,
         ...this.liquidCfg(),
         borderRadius: opts.borderRadius,
+        ...(opts.tint ? { tint: opts.tint.rgb, tintOpacity: opts.tint.opacity, adaptiveTint: false } : {}),
       };
       const engine = new LiquidGlassEngine(el, cfg);
       this.engines.set(el, engine);
@@ -165,9 +172,18 @@ class LiquidUIManager {
     const menu = q('#menu .menu-card');
     if (menu) this.attachOne(menu, { preset: 'panel', borderRadius: 24, allowScroll: true });
     const play = q('#btn-play');
-    if (play) this.attachOne(play, { preset: 'primary', borderRadius: 14, press: { scale: 0.94, squish: 0.025 } });
+    if (play) this.attachOne(play, { preset: 'primary', borderRadius: 14, press: { scale: 0.94, squish: 0.025 }, tint: { rgb: '122,199,79', opacity: 0.14 } });
+    // Game color identity per button (coherent CROSS! palette, always
+    // subtle so the refraction underneath stays visible). PLAY stays green
+    // and strongest; settings/install remain neutral/system.
+    const menuTints: Record<string, { rgb: string; opacity: number }> = {
+      '#btn-chars': { rgb: '255,150,50', opacity: 0.10 },
+      '#btn-worlds': { rgb: '60,200,255', opacity: 0.10 },
+      '#btn-missions': { rgb: '255,205,70', opacity: 0.12 },
+    };
     for (const b of qa('#menu .menu-row .btn, #btn-settings, #menu .btn.wide, #btn-install')) {
-      this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true });
+      const key = b.id ? `#${b.id}` : '';
+      this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true, tint: menuTints[key] });
     }
     for (const p of qa('#chars-screen .panel, #worlds-screen .panel, #missions-screen .panel, #pause-screen .panel')) {
       this.attachOne(p, { preset: 'panel', borderRadius: 22 });
@@ -178,8 +194,15 @@ class LiquidUIManager {
     if (settings) this.attachOne(settings, { preset: 'panel', borderRadius: 22, allowScroll: true });
     const over = q('#gameover .over-card');
     if (over) this.attachOne(over, { preset: 'panel', borderRadius: 24 });
+    // Primary continues (resume / play again) stay green; secondary actions
+    // remain neutral.
+    const actionTints: Record<string, { rgb: string; opacity: number }> = {
+      '#btn-resume': { rgb: '122,199,79', opacity: 0.12 },
+      '#btn-again': { rgb: '122,199,79', opacity: 0.12 },
+    };
     for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, .panel .modal-x, #app-error .btn')) {
-      this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true });
+      const key = b.id ? `#${b.id}` : '';
+      this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true, tint: actionTints[key] });
     }
     for (const c of qa('.char-card')) {
       this.attachOne(c, { preset: 'card', borderRadius: 16, press: true });
