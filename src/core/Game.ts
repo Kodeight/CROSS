@@ -256,8 +256,9 @@ export class Game implements LoopDelegate {
     // Chunked with progress so the loader reflects the actual generation work.
     // Generate a generous buffer ahead of the player so the camera never
     // sees ungenerated world (blue areas) during the transition to gameplay.
+    // Starts below zero: retreating toward lane 0 must still show ground.
     const initialBuffer = GAME_CONFIG.startLane + 200;
-    for (let i = 0; i <= initialBuffer; i++) {
+    for (let i = -8; i <= initialBuffer; i++) {
       this.makeLane(i);
       if (onProgress && (i % 20 === 0 || i === initialBuffer)) {
         onProgress(40 + Math.round((i / initialBuffer) * 35), `PREPARING ${worldName}... ${i + 1}/${initialBuffer + 1}`);

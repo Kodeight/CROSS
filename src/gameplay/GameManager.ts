@@ -109,8 +109,10 @@ export class GameManager {
     this.player.reset(startLane, center);
     // Generate a generous initial buffer so the camera (elevated,
     // top-down) never sees ungenerated world/blue areas on launch.
+    // Lanes below zero are safe field: the camera sees ~4 lanes behind
+    // the player, so retreating to lane 0 must still show ground.
     const initialBuffer = startLane + 200;
-    for (let i = 0; i <= initialBuffer; i++) makeLane(i);
+    for (let i = -8; i <= initialBuffer; i++) makeLane(i);
     // Prefer a calm field lane at/just behind the start point with a free
     // center cell — safe spawn for fresh runs and resumed journeys alike.
     let spawn = startLane;

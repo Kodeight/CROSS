@@ -99,10 +99,13 @@ export class GameRenderer {
       h = Math.max(1, Math.round(vv?.height ?? window.innerHeight));
     }
     this.renderer.setSize(w, h, false);
+    // Pixel-exact element box from the same measurement — no CSS-unit
+    // interpretation risk on quirky mobile browsers (stylesheet stays
+    // as the fallback for anything that ignores inline styles).
     try {
-      this.renderer.domElement.style.width = '100dvw';
-      this.renderer.domElement.style.height = '100dvh';
-    } catch { /* older browsers keep the stylesheet 100% fallback */ }
+      this.renderer.domElement.style.width = `${w}px`;
+      this.renderer.domElement.style.height = `${h}px`;
+    } catch { /* stylesheet fallback covers */ }
   }
 
   /** §28 — never render above the DPR cap; touch devices get a lower cap. */
