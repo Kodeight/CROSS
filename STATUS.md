@@ -16,7 +16,16 @@ Last update: 2026-09-23 · branch `main` · typecheck PASS · production build P
   intact; overlay layers are pointer-events:none (verified in engine source).
 - LOW = gameplay baseline; quality changes rendering only.
 
-## Changed this round (Streamy viewport mechanism)
+## Changed this round (task.md menu/viewport)
+- Resize chain unified: container → renderer (`cssWidth/cssHeight`) →
+  camera aspect; one funnel, no competing paths.
+- §4 audit: no rule shrinks #game/canvas/body/html; safe-area is UI-only;
+  no svh/lvh, no global touch blockers, no pointer capture, no
+  backdrop-filter glass. Body blue kept as diagnostic (§7).
+- Menu tints now vivid per spec (chars violet, worlds cyan, missions
+  amber, settings coral, PLAY green strongest) inside the liquid material;
+  secondary edge .7. Layout: PLAY full, CHARACTERS+WORLDS pair,
+  MISSIONS/SETTINGS full width.
 - Reference: `C:\Users\WinTen\Documents\web dev projects\streamy`
   (`src/index.css` `.ios-full-height` + `App.tsx` root). Mechanism:
   `min-height:100vh → 100dvh`, then `@supports (-webkit-touch-callout:none)`
