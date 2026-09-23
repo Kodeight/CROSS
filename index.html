@@ -95,7 +95,22 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 @keyframes coinPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
 .coin-plus{position:absolute;top:-6px;right:6px;font-family:'Bungee';font-size:14px;color:#8a6d00;animation:coinRise .7s ease-out forwards;pointer-events:none}
 @keyframes coinRise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}
-#bottom-fade{position:fixed;left:0;right:0;bottom:0;height:max(22px,calc(env(safe-area-inset-bottom,0px) + 6px));pointer-events:none;z-index:12;background:linear-gradient(to bottom,rgba(var(--ground-r,132),var(--ground-g,136),var(--ground-b,134),0) 0%,rgba(var(--ground-r,132),var(--ground-g,136),var(--ground-b,134),0.35) 45%,rgba(var(--ground-r,132),var(--ground-g,136),var(--ground-b,134),0.92) 85%,rgba(var(--ground-r,132),var(--ground-g,136),var(--ground-b,134),1.0) 100%);transition:background .6s ease}
+#pwa-nav{display:none;position:fixed;left:0;right:0;bottom:0;z-index:25;pointer-events:auto;touch-action:manipulation;justify-content:center;align-items:flex-end;padding:0 12px max(8px,env(safe-area-inset-bottom,0px)) 12px}
+.is-pwa-standalone #pwa-nav{display:flex}
+@media all and (display-mode: standalone), all and (display-mode: fullscreen){#pwa-nav{display:flex}}
+@media (min-width:1024px) and (hover:hover){#pwa-nav{display:none!important}}
+.pwa-nav-pill{display:flex;align-items:center;justify-content:space-around;width:100%;max-width:380px;height:58px;background:rgba(30,36,48,.78);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1.5px solid rgba(255,255,255,.16);border-radius:26px;box-shadow:0 8px 32px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.3),inset 0 1px 1px rgba(255,255,255,.25);padding:4px 6px;box-sizing:border-box}
+.pwa-nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-width:48px;min-height:48px;background:transparent;border:none;padding:2px 4px;margin:0 2px;border-radius:18px;color:rgba(255,255,255,.62);cursor:pointer;transition:all .2s cubic-bezier(.2,.9,.3,1);-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.pwa-nav-item:active{transform:scale(.92)}
+.pwa-nav-icon{display:block;width:20px;height:20px;margin-bottom:2px;transition:transform .2s ease,color .2s ease}
+.pwa-nav-label{font-family:'Bungee',cursive;font-size:9.5px;letter-spacing:.5px;line-height:1;transition:color .2s ease}
+.pwa-nav-item#pwa-nav-home.active{color:#7AC74F;background:rgba(122,199,79,.16)}
+.pwa-nav-item#pwa-nav-worlds.active{color:#38E1FF;background:rgba(56,225,255,.16)}
+.pwa-nav-item#pwa-nav-missions.active{color:#FFC93C;background:rgba(255,201,60,.16)}
+.pwa-nav-item#pwa-nav-chars.active{color:#B57EDC;background:rgba(181,126,220,.16)}
+.pwa-nav-item.active .pwa-nav-icon{transform:translateY(-1px) scale(1.08)}
+#pwa-nav.pwa-nav-hidden{opacity:0;pointer-events:none;transform:translateY(18px);transition:opacity .25s ease,transform .25s ease}
+@media (orientation:landscape) and (max-height:520px){#pwa-nav{padding:0 12px max(4px,env(safe-area-inset-bottom,0px)) 12px}.pwa-nav-pill{height:44px;max-width:340px;border-radius:20px}.pwa-nav-item{min-height:38px;flex-direction:row;gap:4px}.pwa-nav-icon{width:16px;height:16px;margin-bottom:0}.pwa-nav-label{font-size:8.5px}}
 #world-title{position:fixed;left:50%;transform:translateX(-50%);top:calc(16px + env(safe-area-inset-top));z-index:22;pointer-events:none;white-space:nowrap;display:flex;align-items:center;justify-content:center;background:none;border:none;box-shadow:none;opacity:0;visibility:hidden}
 #world-title-text{display:inline-block;font-family:'Bungee',cursive;font-size:clamp(22px,5.5vw,32px);color:#FFFFFF;letter-spacing:2.5px;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,.75),0 0 22px rgba(0,0,0,.45);will-change:transform,opacity,filter}
 #world-title.wt-animating{visibility:visible}
@@ -150,8 +165,41 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
 <div id="game"></div>
 
-<!-- Subtle world-color-aware bottom edge blend for seamless home-indicator integration -->
-<div id="bottom-fade" aria-hidden="true"></div>
+<!-- Mobile PWA-Only Bottom Navigation Dock (translucent QuickLiquid overlay) -->
+<nav id="pwa-nav" class="pwa-nav-dock" aria-label="Quick Navigation" hidden>
+  <div class="pwa-nav-pill">
+    <button id="pwa-nav-home" class="pwa-nav-item active" aria-label="Home">
+      <svg class="pwa-nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5L12 3l9 6.5v11a1.5 1.5 0 0 1-1.5 1.5H4.5A1.5 1.5 0 0 1 3 20.5z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="pwa-nav-label">HOME</span>
+    </button>
+    <button id="pwa-nav-worlds" class="pwa-nav-item" aria-label="Worlds">
+      <svg class="pwa-nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      <span class="pwa-nav-label">WORLDS</span>
+    </button>
+    <button id="pwa-nav-missions" class="pwa-nav-item" aria-label="Missions">
+      <svg class="pwa-nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <circle cx="12" cy="12" r="6"/>
+        <circle cx="12" cy="12" r="2"/>
+      </svg>
+      <span class="pwa-nav-label">MISSIONS</span>
+    </button>
+    <button id="pwa-nav-chars" class="pwa-nav-item" aria-label="Characters">
+      <svg class="pwa-nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
+      <span class="pwa-nav-label">CHARS</span>
+    </button>
+  </div>
+</nav>
 
 <!-- Independent cinematic world transition title (text-only, white, blurred entry/exit) -->
 <div id="world-title" aria-live="polite" aria-label="Current World">

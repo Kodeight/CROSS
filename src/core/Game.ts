@@ -48,6 +48,7 @@ import { installViewportDebug } from '../utils/ViewportDebug';
 import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
 import { showWorldTransition, updateWorldEnvironmentTheme } from '../ui/worldNotch';
+import { PWABottomNav } from '../ui/PWABottomNav';
 import { registerPWA } from '../pwa';
 
 const DEBUG = /[?&](debug|worlddebug)/i.test(location.search);
@@ -87,6 +88,7 @@ export class Game implements LoopDelegate {
   private settingsScreen!: SettingsScreen;
   private charPreviews!: CharacterPreviewManager;
   private worldPreviews!: WorldPreviewManager;
+  private pwaBottomNav!: PWABottomNav;
 
   private reducedMotion = false;
   private readonly isTouch = isTouchDevice();
@@ -421,6 +423,7 @@ export class Game implements LoopDelegate {
     else this.charPreviews.close();
     if (s === GameState.WORLD_SELECT) this.worldSelect.render();
     else this.worldPreviews.close();
+    this.pwaBottomNav?.syncState(s);
     liquidUI.refresh();
   }
 
@@ -617,6 +620,24 @@ export class Game implements LoopDelegate {
     on('btn-chars2', () => openScreen(GameState.CHARACTER_SELECT));
     on('btn-missions', () => openScreen(GameState.MISSIONS));
     on('btn-settings', () => openScreen(GameState.SETTINGS));
+
+    this.pwaBottomNav = new PWABottomNav((tab) => {
+      if (tab === 'home') {
+        this.audio.click();
+        if (this.ui.state === GameState.PLAYING) this.pause();
+        this.toMenu();
+      } else if (tab === 'worlds') {
+        if (this.ui.state === GameState.PLAYING) this.pause();
+        openScreen(GameState.WORLD_SELECT);
+      } else if (tab === 'missions') {
+        if (this.ui.state === GameState.PLAYING) this.pause();
+        openScreen(GameState.MISSIONS);
+      } else if (tab === 'characters') {
+        if (this.ui.state === GameState.PLAYING) this.pause();
+        openScreen(GameState.CHARACTER_SELECT);
+      }
+    });
+
     for (const b of document.querySelectorAll('[data-back]')) {
       b.addEventListener('click', () => this.goBack());
     }
