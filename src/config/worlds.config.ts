@@ -104,24 +104,24 @@ export function worldIndex(id: string): number {
   return 0;
 }
 
-/** World-color-aware bottom fade palettes for seamless cinematic edge integration. */
+/** World-color-aware bottom edge palette matching the actual rendered 3D ground surface. */
 export const WORLD_FADE_COLORS: Record<string, [number, number, number]> = {
-  city: [20, 25, 34],          // dark charcoal / asphalt / city-night neutral
-  suburbs: [22, 40, 26],       // muted green / earth tone
-  highway: [18, 22, 28],       // dark asphalt gray
-  industrial: [22, 26, 32],    // dark industrial gray
-  construction: [38, 28, 18],  // warm dusty brown / orange-neutral
-  beach: [12, 34, 48],         // deep ocean blue-green
-  desert: [42, 28, 16],        // warm sand / earth brown
-  forest: [16, 38, 22],        // deep forest green
-  jungle: [16, 38, 22],        // deep jungle green
-  snow: [22, 32, 48],          // cool blue-gray
-  neon: [16, 14, 38],          // dark cyber night indigo / purple-toned
-  port: [14, 28, 38],          // deep blue-gray
-  airport: [20, 28, 42],       // cool gray-blue
-  metro: [22, 26, 32],         // dark concrete / steel tone
-  oldtown: [34, 26, 20],       // warm stone / brown
-  megacity: [15, 18, 26],      // dark urban tone
+  city: [132, 136, 134],       // exact warm stone/olive-gray of City ground & pavement
+  suburbs: [110, 138, 92],     // warm grass green
+  highway: [70, 75, 84],       // highway asphalt
+  industrial: [100, 105, 114], // industrial concrete
+  construction: [175, 140, 95],// construction sand/dirt
+  beach: [232, 210, 145],      // warm coastal sand
+  desert: [218, 182, 100],     // warm golden desert sand
+  forest: [80, 112, 60],       // deep forest ground
+  jungle: [122, 98, 54],       // warm earth/jungle soil
+  snow: [215, 226, 242],       // cool snow ground
+  neon: [44, 50, 68],          // deep cyber neon asphalt
+  port: [95, 108, 120],        // dock stone
+  airport: [120, 126, 134],    // runway tarmac
+  metro: [90, 96, 108],        // metro concrete
+  oldtown: [148, 122, 94],     // warm cobblestone
+  megacity: [60, 68, 78],      // urban tone
 };
 
 export function getFadeColorForWorld(id: string): [number, number, number] {

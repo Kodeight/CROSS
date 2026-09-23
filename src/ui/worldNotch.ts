@@ -71,12 +71,16 @@ let lastNotchWorld: string | null = null;
 /** Sets the world environment color on document root as compositor fallback. */
 export function updateWorldEnvironmentTheme(worldId: string): void {
   try {
-    const config = worldById(worldId);
-    if (!config) return;
-    const colorHex = '#' + config.safeDark.toString(16).padStart(6, '0');
+    const [r, g, b] = getFadeColorForWorld(worldId);
+    const colorHex = '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
     document.body.style.backgroundColor = colorHex;
     const game = document.getElementById('game');
     if (game) game.style.backgroundColor = colorHex;
+
+    const root = document.documentElement;
+    root.style.setProperty('--ground-r', String(r));
+    root.style.setProperty('--ground-g', String(g));
+    root.style.setProperty('--ground-b', String(b));
   } catch { /* ignore */ }
 }
 
