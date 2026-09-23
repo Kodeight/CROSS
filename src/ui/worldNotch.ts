@@ -13,7 +13,7 @@
  */
 import type { SaveData } from '../save/SaveData';
 import type { WorldConfig } from '../config/worlds.config';
-import { WORLD_LENGTH, WORLDS, worldIndex } from '../config/worlds.config';
+import { WORLD_LENGTH, WORLDS, worldById, worldIndex, getFadeColorForWorld } from '../config/worlds.config';
 
 /** Same rotation rule as WorldManager.worldForLane (the authority). */
 function worldIdForLane(lane: number, selectedId: string): string {
@@ -37,7 +37,7 @@ function stretchStartFor(worldId: string, lane: number, selectedId: string): num
  * Authoritative world progress: distance through the world's own stretch,
  * measured from the run's spawn. Live position while active, best otherwise.
  * Always 0 at spawn, exactly 100 at the transition boundary, linear in
- * between — never diluted, never stuck, never from another world's state.
+ * between — preserved for internal stats, missions and progression data.
  */
 export function worldCompletionPct(
   save: SaveData,
@@ -50,8 +50,6 @@ export function worldCompletionPct(
   try {
     const active = activeWorldId === world.id;
     const best = save.worldBest[world.id] ?? 0;
-    // Standing inside the active stretch: measure from the feet (covers
-    // stepping back from a further frontier). Otherwise use the frontier.
     const inStretch = active && worldIdForLane(playerLane, save.selectedWorld) === world.id;
     const ref = inStretch
       ? Math.max(best, playerLane)
@@ -67,45 +65,69 @@ export function worldCompletionPct(
   }
 }
 
-/** Write notch DOM from the authoritative active world. */
+let transitionTimer: number | null = null;
+let lastNotchWorld: string | null = null;
+
+/** Sets the dynamic world-color-aware bottom fade palette. */
+export function updateBottomFade(worldId: string): void {
+  try {
+    const [r, g, b] = getFadeColorForWorld(worldId);
+    const root = document.documentElement;
+    root.style.setProperty('--fade-r', String(r));
+    root.style.setProperty('--fade-g', String(g));
+    root.style.setProperty('--fade-b', String(b));
+  } catch { /* ignore */ }
+}
+
+/**
+ * Triggers the cinematic text-only world transition:
+ * Phase 1: enter (blurred -> sharp)
+ * Phase 2: hold (sharp white)
+ * Phase 3: exit (sharp -> blurred -> fade out)
+ * No containers, no backgrounds, no red, no progress bar.
+ */
+export function showWorldTransition(target: WorldConfig | string): void {
+  const worldConfig = typeof target === 'string' ? worldById(target) : target;
+  if (!worldConfig) return;
+
+  updateBottomFade(worldConfig.id);
+
+  try {
+    const titleEl = document.getElementById('world-title');
+    const textEl = document.getElementById('world-title-text');
+    if (!titleEl || !textEl) return;
+
+    textEl.textContent = worldConfig.name;
+
+    // Reset ongoing animation to restart cleanly
+    titleEl.classList.remove('wt-animating');
+    void titleEl.offsetWidth; // force browser style recalculation
+
+    if (transitionTimer !== null) {
+      window.clearTimeout(transitionTimer);
+      transitionTimer = null;
+    }
+
+    titleEl.classList.add('wt-animating');
+
+    // Hold and exit over ~1.8s
+    transitionTimer = window.setTimeout(() => {
+      titleEl.classList.remove('wt-animating');
+      transitionTimer = null;
+    }, 1850);
+  } catch { /* ignore */ }
+}
+
+/** Update HUD world state without rendering any progress bar or red capsule. */
 export function applyWorldNotch(
   world: WorldConfig,
   pct: number,
 ): void {
-  const set = (id: string, v: string) => {
-    const e = document.getElementById(id);
-    if (e) e.textContent = v;
-  };
-  // Liquid content swap: the panel stays physically present (never moves
-  // from 50vw) while its content settles with a transform-only spring.
-  // Opacity/filter are never touched on the glass host itself.
-  try {
-    const header = document.getElementById('world-header');
-    if (header && lastNotchWorld !== null && lastNotchWorld !== world.id) {
-      const reduce = prefersReducedMotion();
-      if (!reduce) {
-        header.classList.remove('wh-swap');
-        void header.offsetWidth;
-        header.classList.add('wh-swap');
-        window.setTimeout(() => header.classList.remove('wh-swap'), 420);
-      }
-    }
-  } catch { /* animation must never break the notch */ }
-  lastNotchWorld = world.id;
-  set('world-badge-name', world.name);
-  set('wh-num', `WORLD ${world.num}`);
-  set('wh-name', world.name);
-  const fill = document.getElementById('wh-fill');
-  if (fill) fill.style.width = `${pct}%`;
-  set('wh-pct', `${pct}%`);
-}
+  void pct; // Progress percentage is preserved in data systems, visual bar removed
+  updateBottomFade(world.id);
 
-function prefersReducedMotion(): boolean {
-  try {
-    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  } catch {
-    return false;
+  if (lastNotchWorld !== null && lastNotchWorld !== world.id) {
+    showWorldTransition(world);
   }
+  lastNotchWorld = world.id;
 }
-
-let lastNotchWorld: string | null = null;

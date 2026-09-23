@@ -103,3 +103,27 @@ export function worldIndex(id: string): number {
   for (let i = 0; i < WORLDS.length; i++) if (WORLDS[i].id === id) return i;
   return 0;
 }
+
+/** World-color-aware bottom fade palettes for seamless cinematic edge integration. */
+export const WORLD_FADE_COLORS: Record<string, [number, number, number]> = {
+  city: [20, 25, 34],          // dark charcoal / asphalt / city-night neutral
+  suburbs: [22, 40, 26],       // muted green / earth tone
+  highway: [18, 22, 28],       // dark asphalt gray
+  industrial: [22, 26, 32],    // dark industrial gray
+  construction: [38, 28, 18],  // warm dusty brown / orange-neutral
+  beach: [12, 34, 48],         // deep ocean blue-green
+  desert: [42, 28, 16],        // warm sand / earth brown
+  forest: [16, 38, 22],        // deep forest green
+  jungle: [16, 38, 22],        // deep jungle green
+  snow: [22, 32, 48],          // cool blue-gray
+  neon: [16, 14, 38],          // dark cyber night indigo / purple-toned
+  port: [14, 28, 38],          // deep blue-gray
+  airport: [20, 28, 42],       // cool gray-blue
+  metro: [22, 26, 32],         // dark concrete / steel tone
+  oldtown: [34, 26, 20],       // warm stone / brown
+  megacity: [15, 18, 26],      // dark urban tone
+};
+
+export function getFadeColorForWorld(id: string): [number, number, number] {
+  return WORLD_FADE_COLORS[id.toLowerCase()] || WORLD_FADE_COLORS.city;
+}

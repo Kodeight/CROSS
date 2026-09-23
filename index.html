@@ -95,9 +95,13 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 @keyframes coinPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
 .coin-plus{position:absolute;top:-6px;right:6px;font-family:'Bungee';font-size:14px;color:#8a6d00;animation:coinRise .7s ease-out forwards;pointer-events:none}
 @keyframes coinRise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}
-#world-badge{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));background:#d63a3a;color:#1E2430;border-radius:99px;padding:7px 18px;font-family:'Bungee',cursive;font-size:14px;line-height:1;letter-spacing:1px;box-shadow:0 4px 0 rgba(30,36,48,.85);z-index:22;pointer-events:none;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center}
-#world-badge-name{font-family:'Bungee',cursive;font-size:14px;color:#1E2430;letter-spacing:1px}
-#world-header{display:none!important}
+#bottom-fade{position:fixed;left:0;right:0;bottom:0;height:clamp(80px,18vh,160px);pointer-events:none;z-index:12;background:linear-gradient(to bottom,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),0) 0%,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),0.15) 28%,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),0.55) 58%,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),0.88) 82%,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),1.0) 100%);transition:background .7s cubic-bezier(.2,.8,.2,1)}
+#world-title{position:fixed;left:50%;transform:translateX(-50%);top:calc(16px + env(safe-area-inset-top));z-index:22;pointer-events:none;white-space:nowrap;display:flex;align-items:center;justify-content:center;background:none;border:none;box-shadow:none;opacity:0;visibility:hidden}
+#world-title-text{display:inline-block;font-family:'Bungee',cursive;font-size:clamp(22px,5.5vw,32px);color:#FFFFFF;letter-spacing:2.5px;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,.75),0 0 22px rgba(0,0,0,.45);will-change:transform,opacity,filter}
+#world-title.wt-animating{visibility:visible}
+#world-title.wt-animating #world-title-text{animation:worldCinematic 1.85s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes worldCinematic{0%{opacity:0;filter:blur(14px);transform:scale(1.04)}24%{opacity:1;filter:blur(0px);transform:scale(1.0)}68%{opacity:1;filter:blur(0px);transform:scale(1.0)}100%{opacity:0;filter:blur(12px);transform:scale(1.03)}}
+@media (prefers-reduced-motion:reduce){#world-title.wt-animating #world-title-text{animation:worldCinematicReduced 1.5s ease forwards}@keyframes worldCinematicReduced{0%{opacity:0}25%{opacity:1}70%{opacity:1}100%{opacity:0}}}
 #btn-pause{position:fixed;top:calc(10px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));width:44px;height:44px;border-radius:14px;border:none;background:rgba(255,253,245,.65);color:#1E2430;font-weight:900;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer;display:flex;align-items:center;justify-content:center}
 #btn-pause:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
 /* HUD coin icon — the same coin as the world collectible (COIN_SPEC):
@@ -146,19 +150,19 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
 <div id="game"></div>
 
-<!-- HUD — three independent zones: LEFT coins, CENTER world, RIGHT settings -->
+<!-- Cinematic world-color-aware bottom fade for seamless device/system edge blending -->
+<div id="bottom-fade" aria-hidden="true"></div>
+
+<!-- Independent cinematic world transition title (text-only, white, blurred entry/exit) -->
+<div id="world-title" aria-live="polite" aria-label="Current World">
+  <span id="world-title-text">CITY</span>
+</div>
+
+<!-- HUD — independent zones: LEFT coins, RIGHT settings/pause -->
 <header id="hud" hidden>
   <div id="hud-coins" class="hud-zone hud-left" aria-label="Coins">
     <span class="coin-ico" aria-hidden="true"><span class="coin-ico-face"><span class="coin-ico-core"></span></span></span>
     <span id="hud-coins-val">0</span>
-  </div>
-  <div id="world-badge" class="hud-zone hud-center" aria-label="Current World">
-    <span id="world-badge-name">CITY</span>
-  </div>
-  <div id="world-header" class="hud-zone hud-center" hidden aria-hidden="true">
-    <div class="wh-top"><svg class="wh-ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 21V8l5-4v17H4zm6 0V3l6 4v14h-6zm7 0v-9l3 2v7h-3z"/></svg><span id="wh-num">WORLD 1</span><svg class="wh-ico" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 21V8l5-4v17H4zm6 0V3l6 4v14h-6zm7 0v-9l3 2v7h-3z"/></svg></div>
-    <div class="wh-name" id="wh-name">CITY</div>
-    <div class="wh-bar"><div id="wh-fill"></div><span id="wh-pct">0%</span></div>
   </div>
   <button id="btn-pause" class="hud-zone hud-right icon-btn" aria-label="Pause game">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 5h4v14H7V5zm6 0h4v14h-4V5z"/></svg>

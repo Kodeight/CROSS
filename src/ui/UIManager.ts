@@ -172,30 +172,11 @@ export class UIManager {
     try {
       const hud = el('hud');
       const coins = el('hud-coins');
-      const notch = el('world-header');
       coins.style.fontSize = '';
       coins.style.padding = '';
       const val = el('hud-coins-val');
       val.style.maxWidth = '';
-      if (hud.hidden || notch.hidden) return;
-      const gap = 8;
-      let size = 16;
-      for (let i = 0; i < 7; i++) {
-        const c = coins.getBoundingClientRect();
-        const n = notch.getBoundingClientRect();
-        if (c.right + gap <= n.left) break;
-        if (size > 11) {
-          size -= 1;
-          coins.style.fontSize = `${size}px`;
-          coins.style.padding = '8px 10px';
-        } else {
-          // Last resort: cap the number itself; the notch never moves.
-          const iconW = 20 + 8;
-          const avail = Math.max(28, n.left - gap - c.left - iconW - 20);
-          val.style.maxWidth = `${avail}px`;
-          break;
-        }
-      }
+      if (hud.hidden) return;
     } catch { /* ignore */ }
   }
 
@@ -286,12 +267,6 @@ export class UIManager {
       || this.state === GameState.PLAYING
       || this.state === GameState.PAUSED;
     el('hud').hidden = !hudVisible;
-    try {
-      const badge = document.getElementById('world-badge');
-      if (badge) badge.hidden = !hudVisible;
-      const header = document.getElementById('world-header');
-      if (header) header.hidden = true;
-    } catch { /* ignore */ }
     liquidUI.refresh();
   }
 

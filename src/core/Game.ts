@@ -47,6 +47,7 @@ import { modalScrollInfo, installPointerProbe, lastPointerDown } from '../utils/
 import { installViewportDebug } from '../utils/ViewportDebug';
 import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
+import { showWorldTransition, updateBottomFade } from '../ui/worldNotch';
 import { registerPWA } from '../pwa';
 
 const DEBUG = /[?&]debug/i.test(location.search);
@@ -274,7 +275,15 @@ export class Game implements LoopDelegate {
     );
     this.worldSelect = new WorldSelect(
       this.save, this.audio, this.progression, this.worldPreviews, this.ui,
-      this.allWorlds(), () => this.menu.render(),
+      this.allWorlds(), () => {
+        this.menu.render();
+        const w = this.worlds.byId(this.save.data.selectedWorld);
+        this.worlds.setCurrent(w);
+        this.lighting.setWorld(w.config, true);
+        this.lanes.setWorldTheme(w.config.safeDark);
+        this.hud.update();
+        showWorldTransition(w.config);
+      },
     );
     this.missionsScreen = new MissionsScreen(this.save);
     this.settingsScreen = new SettingsScreen(this.save, this.audio, (what) => this.onSettingsChanged(what));
@@ -300,6 +309,8 @@ export class Game implements LoopDelegate {
     this.lighting.setWorld(w, true);
     this.lanes.setWorldTheme(w.safeDark);
     this.camera.snapToPlayer(this.player.position);
+    updateBottomFade(w.id);
+    showWorldTransition(w);
 
     window.addEventListener('resize', () => this.onViewportChange());
     window.addEventListener('orientationchange', () => {
