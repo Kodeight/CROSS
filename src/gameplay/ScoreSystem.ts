@@ -14,6 +14,11 @@ export class ScoreSystem {
     return this.maxLane - this.base + this.bonus;
   }
 
+  /** Run start lane (spawn): world progress is measured from here. */
+  get startLane(): number {
+    return this.base;
+  }
+
   reachLane(lane: number): boolean {
     if (lane > this.maxLane) {
       this.maxLane = lane;

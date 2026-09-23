@@ -233,6 +233,7 @@ export class Game implements LoopDelegate {
       () => this.coins.runCoins,
       () => this.worlds.current.config,
       () => this.score.maxLane,
+      () => this.score.startLane,
     );
     this.menu = new MainMenu(this.save);
     this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion);

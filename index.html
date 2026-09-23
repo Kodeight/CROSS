@@ -30,7 +30,7 @@
    CROSS! is visually present from the very first pixel.
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,touch-action:manipulation;-webkit-text-size-adjust:none}
+html{touch-action:manipulation;-webkit-text-size-adjust:none}
 html,body{width:100%;min-height:100%;margin:0;height:100%;overflow:hidden}
 html{height:100dvh;min-height:-webkit-fill-available}
 body{
@@ -85,7 +85,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 @keyframes coinPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
 .coin-plus{position:absolute;top:-6px;right:6px;font-family:'Bungee';font-size:14px;color:#8a6d00;animation:coinRise .7s ease-out forwards;pointer-events:none}
 @keyframes coinRise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}
-#world-header{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(260px,calc(100vw - 180px));background:rgba(214,58,58,.8);border-radius:18px;padding:8px 12px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(30,36,48,.9);z-index:21}
+#world-header{position:fixed;left:50%;transform:translateX(-50%);top:calc(10px + env(safe-area-inset-top));width:min(210px,calc(100vw - 180px));background:rgba(214,58,58,.8);border-radius:18px;padding:8px 12px;color:#fff;text-align:center;box-shadow:0 6px 0 rgba(30,36,48,.9);z-index:21}
 .wh-top{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:900;letter-spacing:3px}
 .wh-name{font-family:'Bungee';font-size:20px;line-height:1.2}
 .wh-bar{position:relative;margin-top:6px;height:12px;background:rgba(0,0,0,.45);border-radius:99px;overflow:hidden}

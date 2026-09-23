@@ -1,51 +1,61 @@
 /**
  * §13–§17 — single source of truth for the top-center world notch.
- * Content always derives from the active WorldConfig + real progress
- * (stretch distance + world mission completion). Never a stale copy.
+ * Progress is AUTHORITATIVE stretch distance, one formula, no blends:
+ *
+ *   (referenceLane - lo) / (stretchEnd - lo)
+ *
+ * referenceLane = live maxLane while the world is active, else its best.
+ * lo = max(stretchStart, runStartLane): runs spawn partway into a stretch,
+ * so progress starts ≈0% at spawn and hits exactly 100% at the stretch
+ * end (= the world transition boundary). Missions still complete, reward
+ * and display separately — they never dilute the distance bar, which is
+ * why a finished stretch can no longer read 70%.
  */
 import type { SaveData } from '../save/SaveData';
 import type { WorldConfig } from '../config/worlds.config';
-import { WORLD_LENGTH, worldIndex } from '../config/worlds.config';
-import { WORLD_MISSIONS } from '../config/missions.config';
+import { WORLD_LENGTH, WORLDS, worldIndex } from '../config/worlds.config';
 
-/** Distance progress through the WORLD_LENGTH stretch this world occupies. */
-function distancePct(
-  save: SaveData,
-  world: WorldConfig,
-  runMaxLane: number,
-  active: boolean,
-): number {
-  const best = save.worldBest[world.id] ?? 0;
-  const lane = active ? Math.max(best, runMaxLane) : best;
-  if (lane <= 0) return 0;
-  const within = lane % WORLD_LENGTH;
-  return Math.min(100, Math.round((within / WORLD_LENGTH) * 100));
+/** Same rotation rule as WorldManager.worldForLane (the authority). */
+function worldIdForLane(lane: number, selectedId: string): string {
+  const base = worldIndex(selectedId);
+  const k = Math.floor(Math.max(0, lane) / WORLD_LENGTH);
+  return WORLDS[(base + k) % WORLDS.length].id;
 }
 
-/** Mission completion for this specific world (world-aware mission ids). */
-function missionPct(save: SaveData, worldId: string): number {
-  const ids = WORLD_MISSIONS[worldId] ?? [];
-  if (!ids.length) return 0;
-  let done = 0;
-  for (const id of ids) if (save.missions[id]) done++;
-  return Math.round((done / ids.length) * 100);
+/** Stretch start of `worldId` containing `lane`, else its next upcoming one. */
+function stretchStartFor(worldId: string, lane: number, selectedId: string): number {
+  const s0 = Math.floor(Math.max(0, lane) / WORLD_LENGTH) * WORLD_LENGTH;
+  if (worldIdForLane(s0, selectedId) === worldId) return s0;
+  for (let k = 1; k <= WORLDS.length; k++) {
+    const s = s0 + k * WORLD_LENGTH;
+    if (worldIdForLane(s, selectedId) === worldId) return s;
+  }
+  return s0;
 }
 
 /**
- * Real world completion: 60% stretch distance + 40% world missions.
- * Clamp 0–100. Never derives from a different world's state.
+ * Authoritative world progress: distance through the world's own stretch,
+ * measured from the run's spawn. Live maxLane while active, best otherwise.
+ * Always 0 at spawn, exactly 100 at the transition boundary, linear in
+ * between — never diluted, never stuck, never from another world's state.
  */
 export function worldCompletionPct(
   save: SaveData,
   world: WorldConfig,
   runMaxLane: number,
+  runStartLane: number,
   activeWorldId: string | null,
 ): number {
   try {
     const active = activeWorldId === world.id;
-    const dist = distancePct(save, world, runMaxLane, active);
-    const mis = missionPct(save, world.id);
-    return Math.max(0, Math.min(100, Math.round(dist * 0.6 + mis * 0.4)));
+    const best = save.worldBest[world.id] ?? 0;
+    const ref = active ? Math.max(best, runMaxLane) : best;
+    const S = stretchStartFor(world.id, ref, save.selectedWorld);
+    const lo = Math.max(S, active ? runStartLane : S);
+    const end = S + WORLD_LENGTH;
+    if (ref <= lo) return 0;
+    if (ref >= end) return 100;
+    return Math.round(((ref - lo) / (end - lo)) * 100);
   } catch {
     return 0;
   }
@@ -92,5 +102,3 @@ function prefersReducedMotion(): boolean {
 }
 
 let lastNotchWorld: string | null = null;
-
-void worldIndex;

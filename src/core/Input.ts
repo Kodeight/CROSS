@@ -18,6 +18,9 @@ export class InputManager {
   private lastTapT = 0;
   private lastTapX = 0;
   private lastTapY = 0;
+  // Modal owns touches starting inside it: gameplay gesture tracking never
+  // starts, so modal swipes/scrolls can never move the player or camera.
+  private touchInModal = false;
   private static readonly TAP_MS = 300;
   private static readonly TAP_DIST = 24;
   private static readonly TAP_DELAY_MS = 280;
@@ -49,6 +52,19 @@ export class InputManager {
       } catch {
         /* ignore */
       }
+    }
+  }
+
+  /**
+   * DOM-containment modal boundary: a touch starting inside a modal overlay
+   * (.panel-screen) belongs to the modal — never to gameplay. Uses event
+   * target semantics, never coordinates.
+   */
+  private startsInModal(t: EventTarget | null): boolean {
+    try {
+      return t instanceof Element && !!t.closest('.panel-screen');
+    } catch {
+      return false;
     }
   }
 
@@ -88,6 +104,12 @@ export class InputManager {
       game.addEventListener(
         'touchstart',
         (e) => {
+          if (this.startsInModal(e.target)) {
+            // Modal owns this touch: do not start gameplay swipe detection.
+            this.touchInModal = true;
+            return;
+          }
+          this.touchInModal = false;
           const t = e.changedTouches[0];
           this.touchStartX = t.clientX;
           this.touchStartY = t.clientY;
@@ -96,6 +118,10 @@ export class InputManager {
         { passive: true },
       );
       game.addEventListener('touchend', (e) => {
+        if (this.touchInModal || this.startsInModal(e.target)) {
+          this.touchInModal = false;
+          return;
+        }
         const t = e.changedTouches[0];
         const dx = t.clientX - this.touchStartX;
         const dy = t.clientY - this.touchStartY;
