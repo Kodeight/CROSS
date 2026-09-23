@@ -56,13 +56,15 @@ const GLASS_BASE: Partial<LiquidGlassConfig> = {
 
 const PRESETS = {
   /** Floating utility capsules: strong readability, minimal noise. */
-  utility: { ...GLASS_BASE, material: 'clear', blur: 2, refractionStrength: 18, edgeHighlight: 0.7, specularStrength: 0.3, elevation: 0.8 },
+  utility: { ...GLASS_BASE, material: 'clear', blur: 2, refractionStrength: 22, edgeHighlight: 0.7, specularStrength: 0.3, elevation: 0.8 },
   /** Primary PLAY: stronger depth + rim + interaction response. */
   primary: { ...GLASS_BASE, material: 'regular', blur: 8, refractionStrength: 30, bezelWidth: 30, thickness: 26, edgeHighlight: 1, specularStrength: 0.5, elevation: 1.2 },
   /** Secondary buttons: same family, lighter emphasis. */
-  secondary: { ...GLASS_BASE, material: 'thin', blur: 5, refractionStrength: 16, bezelWidth: 24, thickness: 18, edgeHighlight: 0.6, specularStrength: 0.3, elevation: 0.7 },
-  /** Large panels/sheets: frosted enough to read over the 3D world. */
-  panel: { ...GLASS_BASE, material: 'regular', blur: 12, refractionStrength: 18, bezelWidth: 28, thickness: 20, edgeHighlight: 0.8, specularStrength: 0.35, elevation: 1 },
+  secondary: { ...GLASS_BASE, material: 'thin', blur: 5, refractionStrength: 20, bezelWidth: 24, thickness: 18, edgeHighlight: 0.6, specularStrength: 0.3, elevation: 0.7 },
+  /** Large panels/sheets: a true lens — low frost, strong refraction, so
+   * the live world visibly bends through the surface. Text stays crisp
+   * because content lives above the filter layers, unfiltered. */
+  panel: { ...GLASS_BASE, material: 'regular', blur: 7, refractionStrength: 26, bezelWidth: 30, thickness: 22, edgeHighlight: 0.9, specularStrength: 0.45, chromaticAberration: 0.32, elevation: 1 },
   /** Small cards (character/world): cheap, readable. */
   card: { ...GLASS_BASE, material: 'thin', blur: 6, refractionStrength: 14, bezelWidth: 22, thickness: 16, edgeHighlight: 0.55, specularStrength: 0.28, elevation: 0.7 },
 } satisfies Record<string, Partial<LiquidGlassConfig>>;

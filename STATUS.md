@@ -16,25 +16,27 @@ Last update: 2026-09-23 · branch `main` · typecheck PASS · production build P
   intact; overlay layers are pointer-events:none (verified in engine source).
 - LOW = gameplay baseline; quality changes rendering only.
 
-## Changed this round (TODO.md critical repair)
-- index.html malformed `html,` CSS rule fixed (valid `html{...}`).
-- Modal input isolation: `InputManager` drops any touch starting inside
-  `.panel-screen` via DOM containment (target semantics, no coordinates);
-  gameplay gestures structurally can't start there either (#game listeners).
-- Progress rewrite (was stuck ~60-75%: the old 60/40 blend capped pure
-  distance at 58.5%): single authoritative formula
-  `(ref - max(S, runStart)) / (S+40 - max(S, runStart))` — 0% at spawn,
-  exactly 100% at the transition boundary, linear between; missions still
-  complete/reward/display separately. Wired via `ScoreSystem.startLane` +
-  extended `HUD`. One calculation, no duplicates.
-- Notch ~20% narrower (210px cap), center anchor untouched.
-- SKILL repo inspected (README, package README, config source, demo App,
-  OPTIMIZATION): our engine use matches; `dynamicLighting` is an alias for
-  cursor-tracking (kept off: pointermove cost during touch scroll);
-  per-frame cost scales with glass area (our limited surfaces + tiers comply).
-- §49 pattern audit: no global touch/pointer blockers, no pointer capture,
-  no backdrop-filter glass, no competing resize/progress/modal systems,
-  100vh only as pre-dvh fallback.
+## Changed this round (liquid lens + viewport)- SKILL source read: engine mount/filter/update paths, package README, demo
+  App GLASS_BASE, OPTIMIZATION cost model. Key mechanism: the lens layer's
+  `backdrop-filter: url()` samples everything painted below it — INCLUDING
+  the host's own CSS background. Our cream paint (.68–.84) was the white
+  veil: it got sampled into the refraction. Cut host paint hard
+  (menu-card .30, panels .35, buttons .35, primary .50, HUD .45, cards .50,
+  rows .45; notch keeps strong red) so the lens samples the live world.
+- Panel preset is now a real lens: blur 12→7, refraction 18→26, bezel 30,
+  thickness 22, edge .9, specular .45, dispersion .32. Utility 18→22,
+  secondary 16→20. Text stays crisp (content lives above filter layers).
+- Full height-rule audit (index.html + style.css): every shell rule is
+  fixed/inset-0 with viewport units; no safe-area on #game/canvas; renderer
+  measured from container rect + ResizeObserver. No geometric gap source
+  remains in code.
+
+## Earlier (kept)
+- Progress: single formula `(ref - max(S, runStart)) / (S+40 - max(...))`.
+- Modal: containment guard in `InputManager`; X on all modals; backdrop needs
+  press+release on backdrop; Esc backs out; `?debug` scroll metrics.
+- Collision/jump/journey/missions/economy as previously reported; notch
+  translate-safe (`whIn`/`whSwap`, no WAAPI on it).
 
 ## Verification labels
 - VERIFIED: typecheck, production build, targeted audits/traces, engine
