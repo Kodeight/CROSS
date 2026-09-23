@@ -47,7 +47,7 @@ import { modalScrollInfo, installPointerProbe, lastPointerDown } from '../utils/
 import { installViewportDebug } from '../utils/ViewportDebug';
 import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
-import { showWorldTransition, updateBottomFade } from '../ui/worldNotch';
+import { showWorldTransition, updateWorldEnvironmentTheme } from '../ui/worldNotch';
 import { registerPWA } from '../pwa';
 
 const DEBUG = /[?&]debug/i.test(location.search);
@@ -294,12 +294,12 @@ export class Game implements LoopDelegate {
     // Chunked with progress so the loader reflects the actual generation work.
     // Generate a generous buffer ahead of the player so the camera never
     // sees ungenerated world (blue areas) during the transition to gameplay.
-    // Starts below zero: retreating toward lane 0 must still show ground.
+    // Starts well below zero (-45): camera view behind player is fully populated with geometry.
     const initialBuffer = GAME_CONFIG.startLane + 200;
-    for (let i = -25; i <= initialBuffer; i++) {
+    for (let i = -45; i <= initialBuffer; i++) {
       this.makeLane(i);
       if (onProgress && (i % 20 === 0 || i === initialBuffer)) {
-        onProgress(40 + Math.round(((i + 25) / (initialBuffer + 25)) * 35), `PREPARING ${worldName}... ${i + 26}/${initialBuffer + 26}`);
+        onProgress(40 + Math.round(((i + 45) / (initialBuffer + 45)) * 35), `PREPARING ${worldName}... ${i + 46}/${initialBuffer + 46}`);
         await new Promise((r) => requestAnimationFrame(r));
       }
     }
@@ -309,7 +309,7 @@ export class Game implements LoopDelegate {
     this.lighting.setWorld(w, true);
     this.lanes.setWorldTheme(w.safeDark);
     this.camera.snapToPlayer(this.player.position);
-    updateBottomFade(w.id);
+    updateWorldEnvironmentTheme(w.id);
     showWorldTransition(w);
 
     window.addEventListener('resize', () => this.onViewportChange());

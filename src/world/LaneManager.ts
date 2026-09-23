@@ -7,7 +7,7 @@ import { GAME_CONFIG } from '../config/game.config';
 import type { Lane } from './World';
 
 const AHEAD = 200;
-const BEHIND = 50;
+const BEHIND = 65;
 const MAX_LANES = 500;
 
 export class LaneManager {
@@ -132,7 +132,7 @@ export class LaneManager {
   /** Generate lanes ahead of the player; maintain buffer behind; prune safely. */
   maintain(playerLane: number, makeLane: (index: number) => Lane): void {
     this.updatePosition(playerLane * GAME_CONFIG.positionWidth * GAME_CONFIG.zoom);
-    const minBehind = playerLane - 30;
+    const minBehind = playerLane - 45;
     while (this.lanes.length && this.lanes[0].index > minBehind && this.lanes.length < MAX_LANES) {
       this.prepend(makeLane(this.lanes[0].index - 1));
     }

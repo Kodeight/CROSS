@@ -31,31 +31,23 @@ export class FollowCamera {
   private reducedMotion = false;
 
   // Elevated diorama camera parameters.
-  // distBehind: distance behind the player along -Y (slightly behind
-  //   the movement direction). elevation: height above the world (+Z).
-  // lookAhead: how far ahead of the player the camera looks toward (+Y).
-  // The camera looks from (px, py - distBehind, elevation) toward
-  // (px, py + lookAhead, 0) producing a steep downward angle.
-  //
-  // Downward angle from horizontal:
-  //   elevation / (distBehind + lookAhead) ≈ tan(angle)
-  //   520 / (260 + 180) ≈ 1.18 → ≈ 50°
-  // The look point ahead of the player pushes the player to the
-  // lower-middle of the viewport with the upcoming world above.
-  private readonly distBehind = 260;
-  private readonly elevation = 520;
-  private readonly lookAhead = 180;
+  // Balanced so the player sits comfortably in the lower-middle (~58-60% of viewport),
+  // with rich, vibrant world geometry filling the entire screen both above and below.
+  // The bottom of the screen displays the actual detailed world (lanes, sidewalks, props)
+  // rather than an empty dark foreground.
+  private readonly distBehind = 300;
+  private readonly elevation = 480;
+  private readonly lookAhead = 70;
   private readonly lookAtZ = 0;
 
-  // FOV: perspective (never orthographic) so farther objects read smaller.
-  // Mobile portrait gets a wider FOV for forward visibility.
-  private readonly desktopFov = 55;
-  private readonly mobileFov = 62;
+  // FOV: perspective so depth reads clearly across devices.
+  private readonly desktopFov = 52;
+  private readonly mobileFov = 56;
 
-  // Intro camera start position: higher and more behind for cinematic entry.
+  // Intro camera start position: cinematic sweep into gameplay position.
   private readonly introDistBehind = 420;
-  private readonly introElevation = 640;
-  private readonly introLookAhead = 140;
+  private readonly introElevation = 580;
+  private readonly introLookAhead = 90;
 
   constructor() {
     const { width, height } = getActualViewportSize();

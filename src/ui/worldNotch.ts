@@ -68,14 +68,15 @@ export function worldCompletionPct(
 let transitionTimer: number | null = null;
 let lastNotchWorld: string | null = null;
 
-/** Sets the dynamic world-color-aware bottom fade palette. */
-export function updateBottomFade(worldId: string): void {
+/** Sets the world environment color on document root as compositor fallback. */
+export function updateWorldEnvironmentTheme(worldId: string): void {
   try {
-    const [r, g, b] = getFadeColorForWorld(worldId);
-    const root = document.documentElement;
-    root.style.setProperty('--fade-r', String(r));
-    root.style.setProperty('--fade-g', String(g));
-    root.style.setProperty('--fade-b', String(b));
+    const config = worldById(worldId);
+    if (!config) return;
+    const colorHex = '#' + config.safeDark.toString(16).padStart(6, '0');
+    document.body.style.backgroundColor = colorHex;
+    const game = document.getElementById('game');
+    if (game) game.style.backgroundColor = colorHex;
   } catch { /* ignore */ }
 }
 
@@ -90,7 +91,7 @@ export function showWorldTransition(target: WorldConfig | string): void {
   const worldConfig = typeof target === 'string' ? worldById(target) : target;
   if (!worldConfig) return;
 
-  updateBottomFade(worldConfig.id);
+  updateWorldEnvironmentTheme(worldConfig.id);
 
   try {
     const titleEl = document.getElementById('world-title');
@@ -124,7 +125,7 @@ export function applyWorldNotch(
   pct: number,
 ): void {
   void pct; // Progress percentage is preserved in data systems, visual bar removed
-  updateBottomFade(world.id);
+  updateWorldEnvironmentTheme(world.id);
 
   if (lastNotchWorld !== null && lastNotchWorld !== world.id) {
     showWorldTransition(world);

@@ -95,7 +95,6 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 @keyframes coinPulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
 .coin-plus{position:absolute;top:-6px;right:6px;font-family:'Bungee';font-size:14px;color:#8a6d00;animation:coinRise .7s ease-out forwards;pointer-events:none}
 @keyframes coinRise{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-18px)}}
-#bottom-fade{position:fixed;left:0;right:0;bottom:0;height:clamp(80px,18vh,160px);pointer-events:none;z-index:12;background:linear-gradient(to bottom,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),0) 0%,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),0.15) 28%,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),0.55) 58%,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),0.88) 82%,rgba(var(--fade-r,20),var(--fade-g,25),var(--fade-b,34),1.0) 100%);transition:background .7s cubic-bezier(.2,.8,.2,1)}
 #world-title{position:fixed;left:50%;transform:translateX(-50%);top:calc(16px + env(safe-area-inset-top));z-index:22;pointer-events:none;white-space:nowrap;display:flex;align-items:center;justify-content:center;background:none;border:none;box-shadow:none;opacity:0;visibility:hidden}
 #world-title-text{display:inline-block;font-family:'Bungee',cursive;font-size:clamp(22px,5.5vw,32px);color:#FFFFFF;letter-spacing:2.5px;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,.75),0 0 22px rgba(0,0,0,.45);will-change:transform,opacity,filter}
 #world-title.wt-animating{visibility:visible}
@@ -149,9 +148,6 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 </div>
 
 <div id="game"></div>
-
-<!-- Cinematic world-color-aware bottom fade for seamless device/system edge blending -->
-<div id="bottom-fade" aria-hidden="true"></div>
 
 <!-- Independent cinematic world transition title (text-only, white, blurred entry/exit) -->
 <div id="world-title" aria-live="polite" aria-label="Current World">
