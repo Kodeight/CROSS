@@ -26,10 +26,10 @@ export class LaneManager {
       const geo = new THREE.PlaneGeometry(60000, 60000);
       this.underlayMaterial = new THREE.MeshPhongMaterial({ color: 0x7a808a, shininess: 10 });
       this.underlayMesh = new THREE.Mesh(geo, this.underlayMaterial);
-      this.underlayMesh.position.set(0, 0, -0.5);
+      this.underlayMesh.position.set(0, 0, -5.0);
       this.underlayMesh.receiveShadow = false;
       this.underlayMesh.frustumCulled = false;
-      this.underlayMesh.renderOrder = -1;
+      this.underlayMesh.renderOrder = -100;
       this.scene.add(this.underlayMesh);
     } catch { /* ignore */ }
   }
@@ -125,7 +125,9 @@ export class LaneManager {
   }
 
   updatePosition(y: number): void {
-    if (this.underlayMesh) this.underlayMesh.position.y = y;
+    if (this.underlayMesh && Math.abs(this.underlayMesh.position.y - y) > 4000) {
+      this.underlayMesh.position.y = y;
+    }
     if (this.debugPlaneMesh) this.debugPlaneMesh.position.y = y;
   }
 

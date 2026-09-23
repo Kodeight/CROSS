@@ -50,7 +50,7 @@ import { liquidUI } from '../ui/liquidUI';
 import { showWorldTransition, updateWorldEnvironmentTheme } from '../ui/worldNotch';
 import { registerPWA } from '../pwa';
 
-const DEBUG = /[?&]debug/i.test(location.search);
+const DEBUG = /[?&](debug|worlddebug)/i.test(location.search);
 
 export class Game implements LoopDelegate {
   private readonly bus = new EventBus();
@@ -568,8 +568,10 @@ export class Game implements LoopDelegate {
     this.camera.update(dtMs, this.player.position);
     const shake = this.manager.decayShake(dtMs);
     if (shake > 0) this.camera.shake(shake);
-    // Sun follows the player so shadows stay crisp.
+    // Sun follows the player so shadows stay crisp with stable light direction.
     this.renderer.dirLight.position.set(-100 + this.player.position.x, -100 + this.player.position.y, 400);
+    this.renderer.dirLight.target.position.set(this.player.position.x, this.player.position.y, 0);
+    this.renderer.dirLight.target.updateMatrixWorld();
     if (DEBUG) this.updateDebug(nowMs, dtMs);
   }
 
@@ -717,9 +719,10 @@ export class Game implements LoopDelegate {
     this.debugLast = nowMs;
     const fps = dtMs > 0 ? Math.round(1000 / dtMs) : 0;
     const audit = this.traffic.audit ?? { worst: 0, lane: -1, braking: 0 };
-    // Live modal-scroll classification (?debug overlay, visible on device):
-    // A) sh<=ch -> no overflow · B) el/tgt outside modal -> layering issue
-    // D) st frozen while swiping -> interaction issue.
+    const firstLane = this.lanes.lanes[0]?.index ?? 0;
+    const lastLane = this.lanes.topIndex();
+    const renderInfo = this.renderer.renderer.info;
+    const cam = this.camera.camera.position;
     let modalLine = '';
     try {
       const open = modalScrollInfo().find((m) => m.visible);
@@ -729,11 +732,12 @@ export class Game implements LoopDelegate {
       }
     } catch { /* probes must never break the overlay */ }
     this.ui.el.debug.textContent =
-      `FPS ${fps} STATE ${this.ui.state}\n lane ${this.player.lane} score ${this.score.score} ` +
-      `dif x${this.generator.difficultyFor(this.score.maxLane).speedMul.toFixed(2)}\n` +
-      ` world ${this.worlds.current.config.id} veh ${this.lanes.vehicleCount()}\n` +
-      ` player ${Math.round(this.player.position.x)},${Math.round(this.player.position.y)} moves ${this.player.moves.length}\n` +
-      ` traffic overlap worst ${Math.round(audit.worst)} (lane ${audit.lane}) braking ${audit.braking}${modalLine}`;
+      `FPS ${fps} STATE ${this.ui.state}\n` +
+      ` PLAYER LANE: ${this.player.lane} | ACTIVE LANES: ${this.lanes.lanes.length} | RANGE: [${firstLane}..${lastLane}]\n` +
+      ` CAM POS: ${Math.round(cam.x)},${Math.round(cam.y)},${Math.round(cam.z)} | CALLS: ${renderInfo.render.calls} | TRIS: ${renderInfo.render.triangles}\n` +
+      ` WORLD: ${this.worlds.current.config.id} | VEH: ${this.lanes.vehicleCount()} | COINS: ${this.coins.runCoins}\n` +
+      ` PLAYER XY: ${Math.round(this.player.position.x)},${Math.round(this.player.position.y)} | MOVES QUEUE: ${this.player.moves.length}\n` +
+      ` TRAFFIC OVERLAP: ${Math.round(audit.worst)} (lane ${audit.lane}) BRAKING: ${audit.braking}${modalLine}`;
   }
 }
 

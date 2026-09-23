@@ -112,7 +112,7 @@ export class GameManager {
     // Lanes below zero are safe field: the camera sees behind
     // the player, so retreating or intro cameras still show ample ground.
     const initialBuffer = startLane + 200;
-    for (let i = -25; i <= initialBuffer; i++) makeLane(i);
+    for (let i = startLane - 45; i <= initialBuffer; i++) makeLane(i);
     // Prefer a calm field lane at/just behind the start point with a free
     // center cell — safe spawn for fresh runs and resumed journeys alike.
     let spawn = startLane;

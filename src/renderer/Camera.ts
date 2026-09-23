@@ -52,7 +52,7 @@ export class FollowCamera {
   constructor() {
     const { width, height } = getActualViewportSize();
     const aspect = width / Math.max(1, height);
-    this.camera = new THREE.PerspectiveCamera(this.desktopFov, aspect, 0.5, 9000);
+    this.camera = new THREE.PerspectiveCamera(this.desktopFov, aspect, 10, 4500);
   }
 
   setReducedMotion(v: boolean): void {
