@@ -3,7 +3,7 @@
  * into game actions — gameplay layers never touch raw DOM events.
  */
 
-export type GameAction = 'MOVE_LEFT' | 'MOVE_RIGHT' | 'MOVE_FORWARD' | 'MOVE_BACK' | 'PAUSE';
+export type GameAction = 'MOVE_LEFT' | 'MOVE_RIGHT' | 'MOVE_FORWARD' | 'MOVE_BACK' | 'JUMP' | 'PAUSE';
 
 export class InputManager {
   private actionHandlers: Array<(a: GameAction) => void> = [];
@@ -12,6 +12,15 @@ export class InputManager {
   private touchStartY = 0;
   private touchStartT = 0;
   private bound = false;
+  // Double-tap jump: a lone tap still steps forward, but deferred briefly
+  // so a second tap can upgrade the gesture to a jump instead.
+  private tapTimer = 0;
+  private lastTapT = 0;
+  private lastTapX = 0;
+  private lastTapY = 0;
+  private static readonly TAP_MS = 300;
+  private static readonly TAP_DIST = 24;
+  private static readonly TAP_DELAY_MS = 280;
 
   onAction(handler: (a: GameAction) => void): void {
     this.actionHandlers.push(handler);
@@ -64,6 +73,10 @@ export class InputManager {
       } else if (k === 'ArrowDown' || k === 's' || k === 'S') {
         e.preventDefault();
         this.emit('MOVE_BACK');
+      } else if (k === ' ' || k === 'Spacebar') {
+        // SPACE = jump. preventDefault so focused buttons don't also click.
+        e.preventDefault();
+        this.emit('JUMP');
       } else if (k === 'Escape' || k === 'p' || k === 'P') {
         this.emit('PAUSE');
       }
@@ -89,12 +102,38 @@ export class InputManager {
         const adx = Math.abs(dx);
         const ady = Math.abs(dy);
         const dt = performance.now() - this.touchStartT;
-        if (Math.max(adx, ady) < 24 || dt > 900) {
-          if (Math.max(adx, ady) < 12) this.emit('MOVE_FORWARD');
+        if (dt > 900) return; // slow drag: never a swipe nor a tap
+        if (Math.max(adx, ady) >= 24) {
+          // Swipe: immediate directional move, never a tap.
+          this.lastTapT = 0;
+          if (adx > ady) this.emit(dx > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT');
+          else this.emit(dy < 0 ? 'MOVE_FORWARD' : 'MOVE_BACK');
           return;
         }
-        if (adx > ady) this.emit(dx > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT');
-        else this.emit(dy < 0 ? 'MOVE_FORWARD' : 'MOVE_BACK');
+        if (Math.max(adx, ady) >= 12) {
+          // Deliberate dead zone: not a tap, must not arm double-tap.
+          this.lastTapT = 0;
+          return;
+        }
+        // Tap: single = step forward (deferred); second tap in window = jump.
+        const now = performance.now();
+        const quick = now - this.lastTapT < InputManager.TAP_MS;
+        const near = Math.hypot(t.clientX - this.lastTapX, t.clientY - this.lastTapY) < InputManager.TAP_DIST;
+        if (quick && near) {
+          if (this.tapTimer) clearTimeout(this.tapTimer);
+          this.tapTimer = 0;
+          this.lastTapT = 0;
+          this.emit('JUMP');
+        } else {
+          this.lastTapT = now;
+          this.lastTapX = t.clientX;
+          this.lastTapY = t.clientY;
+          if (this.tapTimer) clearTimeout(this.tapTimer);
+          this.tapTimer = window.setTimeout(() => {
+            this.tapTimer = 0;
+            this.emit('MOVE_FORWARD');
+          }, InputManager.TAP_DELAY_MS);
+        }
       });
     }
   }

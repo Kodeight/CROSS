@@ -128,6 +128,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .char-card .btn{width:100%;padding:10px}
 .mission,.ach{display:flex;justify-content:space-between;gap:10px;background:rgba(244,241,229,.72);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:14px;font-weight:700}
 .mission.done,.ach.done{outline:2px solid var(--green)}
+.mission.locked{opacity:.55}
 .ach-h{margin-top:16px}
 
 /* QuickLiquid wraps every glass host's children in a single `.ql-content`
@@ -239,8 +240,13 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 /* Screen entrances: transform-only on liquid hosts (opacity on a glass
    host or its ancestors creates a backdrop root and silently kills
    Chromium refraction — fades happen inside .ql-content only). */
-.menu-card,.panel,.over-card,#world-header{animation:cross-in .28s ease}
+.menu-card,.panel,.over-card{animation:cross-in .28s ease}
 @keyframes cross-in{from{transform:translateY(10px) scale(.98)}to{transform:none}}
+/* Notch entrance: translateX(-50%) must survive every keyframe — a plain
+   cross-in would drop the centering shift and fling the notch in from the
+   right whenever the animation (re)starts. */
+#world-header{animation:whIn .28s ease}
+@keyframes whIn{from{transform:translateX(-50%) translateY(10px) scale(.98)}to{transform:translateX(-50%)}}
 /* World-notch content swap: liquid settle, transform-only (never moves center). */
 #world-header.wh-swap{animation:whSwap .38s ease}
 @keyframes whSwap{0%{transform:translateX(-50%) scale(1)}35%{transform:translateX(-50%) scale(.94,1.04)}70%{transform:translateX(-50%) scale(1.015,.99)}100%{transform:translateX(-50%) scale(1)}}

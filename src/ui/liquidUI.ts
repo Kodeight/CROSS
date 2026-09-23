@@ -83,6 +83,13 @@ interface AttachOpts {
   press?: boolean | { scale?: number; squish?: number };
   /** Restore vertical scroll after mount (engine forces overflow hidden). */
   allowScroll?: boolean;
+  /**
+   * WAAPI scale animations (animateIn/jiggle) REPLACE the CSS `transform`
+   * for their duration. Hosts positioned via transform (the world notch:
+   * left:50% + translateX(-50%)) must opt out or they visibly jump
+   * sideways; their motion is owned by translate-safe CSS keyframes.
+   */
+  waapi?: boolean;
 }
 
 class LiquidUIManager {
@@ -129,7 +136,7 @@ class LiquidUIManager {
           this.presses.set(el, btn);
         } catch { /* press is decorative */ }
       }
-      engine.animateIn(0);
+      if (opts.waapi !== false) engine.animateIn(0);
     } catch { /* glass must never break the game — CSS stays readable */ }
   }
 
@@ -152,7 +159,7 @@ class LiquidUIManager {
     const coins = q('#hud-coins');
     if (coins) this.attachOne(coins, { preset: 'utility', borderRadius: 999 });
     const notch = q('#world-header');
-    if (notch) this.attachOne(notch, { preset: 'utility', borderRadius: 18 });
+    if (notch) this.attachOne(notch, { preset: 'utility', borderRadius: 18, waapi: false });
     const pause = q('#btn-pause');
     if (pause) this.attachOne(pause, { preset: 'utility', borderRadius: 14, press: true });
     const menu = q('#menu .menu-card');
@@ -206,14 +213,15 @@ class LiquidUIManager {
     } catch { /* ignore */ }
   }
 
-  /** World changed → the liquid surface reacts (transform-only jiggle). */
+  /**
+   * World changed → the liquid surface reacts. The notch is positioned via
+   * CSS translateX(-50%), so WAAPI jiggle (scale-only keyframes that would
+   * drop the centering shift and fling the notch sideways) is deliberately
+   * NOT used — the translate-safe wh-swap CSS animation in worldNotch.ts
+   * owns the transition, triggered via hud.update().
+   */
   notifyWorldChange(): void {
-    if (this.reduceMotion) return;
-    const notch = document.getElementById('world-header');
-    if (!notch) return;
-    try {
-      this.engines.get(notch)?.jiggle(1);
-    } catch { /* ignore */ }
+    // Intentionally animation-free: see above.
   }
 
   /** Content layer for floating feedback (engine wraps children in .ql-content). */

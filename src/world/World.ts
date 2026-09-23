@@ -20,7 +20,14 @@ export interface Lane {
   mesh: THREE.Group;
   vehicles: THREE.Group[];
   coins: CoinItem[];
+  /**
+   * Authoritative gameplay occupancy, registered at chunk generation and
+   * visualized by the same pass — the single source movement queries.
+   * `jumpable` marks low obstacles (bushes, rocks, small props) a jump
+   * may clear mid-leap; anything blocked and not jumpable stops jumps too.
+   */
   occupied: Record<number, boolean>;
+  jumpable: Record<number, boolean>;
   direction: boolean;
   speed: number;
 }

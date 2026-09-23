@@ -218,11 +218,13 @@ export class Game implements LoopDelegate {
 
     // Authoritative occupancy: the target cell's lane reports what chunk
     // generation registered (Lane.occupied). Unknown/pruned lanes are free.
+    // Lane.jumpable marks low obstacles a jump may clear mid-leap.
     this.controller = new PlayerController(
       this.player,
       this.input,
       () => this.togglePause(),
       (lane, col) => this.lanes.laneAt(lane)?.occupied[col] === true,
+      (lane, col) => this.lanes.laneAt(lane)?.jumpable[col] === true,
     );
     this.input.bind();
 
@@ -510,6 +512,7 @@ export class Game implements LoopDelegate {
     on('btn-play', () => this.newRun());
     on('btn-again', () => this.newRun());
     on('btn-resume', () => this.resume());
+    on('btn-x-pause', () => this.resume());
     on('btn-restart-pause', () => this.newRun());
     on('btn-home-pause', () => { this.audio.click(); this.toMenu(); });
     on('btn-home', () => { this.audio.click(); this.toMenu(); });

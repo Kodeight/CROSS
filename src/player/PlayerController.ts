@@ -13,6 +13,7 @@ export class PlayerController {
     private readonly input: InputManager,
     private readonly onPause: () => void,
     private readonly isBlocked?: (lane: number, col: number) => boolean,
+    private readonly isJumpable?: (lane: number, col: number) => boolean,
   ) {
     this.input.onAction((a: GameAction) => this.handle(a));
   }
@@ -27,12 +28,17 @@ export class PlayerController {
       return;
     }
     if (!this.enabled) return;
+    if (action === 'JUMP') {
+      this.player.queueJump(this.isBlocked, this.isJumpable);
+      return;
+    }
     const map: Record<GameAction, MoveDir | null> = {
       MOVE_FORWARD: 'forward',
       MOVE_BACK: 'backward',
       MOVE_LEFT: 'left',
       MOVE_RIGHT: 'right',
       PAUSE: null,
+      JUMP: null,
     };
     const dir = map[action];
     if (dir) this.player.queueMove(dir, 3, this.isBlocked);

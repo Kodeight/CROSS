@@ -38,6 +38,9 @@ export class ProgressionSystem {
     s.coins -= price;
     s.unlockedWorlds.push(id);
     s.selectedWorld = id;
+    // New journey in the unlocked world.
+    s.lastWorldId = id;
+    s.lastLane = 0;
     this.save.save();
     this.bus.emit('worldSelected', id);
     return true;

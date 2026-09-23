@@ -263,6 +263,9 @@ export class WorldGenerator {
   }
 
   private pickLaneType(index: number, world: WorldConfig, district: number): LaneType {
+    // Safe spawn: the lanes around the run start are always calm grass —
+    // never a road, so PLAY/restart can never drop the player into traffic.
+    if (Math.abs(index - GAME_CONFIG.startLane) <= 1) return 'field';
     if (index <= 4) return 'field';
     if (this.consecutiveRoads >= 4) return Math.random() < 0.5 ? 'field' : 'forest';
     const r = Math.random();
@@ -341,7 +344,7 @@ export class WorldGenerator {
     const type = this.pickLaneType(index, world, district);
     const lane: Lane = {
       index, type, worldId: world.id, variant: null, district,
-      mesh: new THREE.Group(), vehicles: [], coins: [], occupied: {},
+      mesh: new THREE.Group(), vehicles: [], coins: [], occupied: {}, jumpable: {},
       direction: Math.random() >= 0.5, speed: 2.4,
     };
     lane.mesh.position.y = index * PW * ZOOM;
@@ -366,6 +369,11 @@ export class WorldGenerator {
             ? def.beachObstacles[Math.max(0, Math.min(4, district))]
             : def.obstacles;
         const occ: Record<number, boolean> = {};
+        const jmp: Record<number, boolean> = {};
+        const center = Math.floor(COLS / 2);
+        // Safe-spawn clearing: lanes right after the start keep the middle
+        // columns free so a fresh/restarted run always has immediate options.
+        const spawnClear = index >= GAME_CONFIG.startLane && index <= GAME_CONFIG.startLane + 3;
         const count = 4 + (Math.random() < 0.4 ? 1 : 0);
         for (let k = 0; k < count; k++) {
           let pos = -1;
@@ -375,14 +383,29 @@ export class WorldGenerator {
             guard++;
           } while (occ[pos] && guard < 40);
           if (occ[pos]) continue;
-          if (index < 8 && pos === Math.floor(COLS / 2)) continue;
+          if (index < 8 && pos === center) continue;
+          if (spawnClear && Math.abs(pos - center) <= 1) continue;
           occ[pos] = true;
+          // Forest-lane obstacles are low/clearable by design: jumping over
+          // them is a core mechanic, so they register as jumpable.
+          jmp[pos] = true;
           const holder = new THREE.Group();
           pick(builders)(holder);
           holder.position.x = (pos * PW + PW / 2) * ZOOM - BOARD / 2;
           lane.mesh.add(holder);
         }
+        // Density guard: never wall off a lane — always leave at least
+        // three free columns so no chunk is impassable by construction.
+        const keys = Object.keys(occ).map(Number);
+        if (keys.length > COLS - 3) {
+          for (let i = 0; i < keys.length - (COLS - 3); i++) {
+            const drop = keys[Math.floor(Math.random() * keys.length)];
+            delete occ[drop];
+            delete jmp[drop];
+          }
+        }
         lane.occupied = occ;
+        lane.jumpable = jmp;
       }
       this.laneDecor(lane, def, opts.playerX);
     } else {
@@ -395,6 +418,12 @@ export class WorldGenerator {
       this.consecutiveRoads++;
       const dif = this.difficultyFor(index);
       const kinds = type === 'car' ? world.carKinds : world.truckKinds;
+      // Progressive discovery: exotic traffic (hover/neon/snow machines,
+      // motos, buses) only joins beyond the early lanes; the opening
+      // stretches stay readable with familiar vehicles.
+      const exotic = /^(hover|neocar|snowmobile|moto|bus)$/;
+      const pool = index < 40 ? kinds.filter((k) => !exotic.test(k)) : kinds;
+      const spawnKinds = pool.length ? pool : kinds;
       const n = (type === 'car' ? 3 : 2) + (dif.density && Math.random() < 0.5 ? 1 : 0);
       const used = new Set<number>();
       const list: THREE.Group[] = [];
@@ -403,7 +432,7 @@ export class WorldGenerator {
       let attempts = 0;
       while (list.length < n && attempts < 80) {
         attempts++;
-        const kind = pick(kinds);
+        const kind = pick(spawnKinds);
         const slot = Math.floor(Math.random() * slots);
         if (used.has(slot)) continue;
         const probe = this.vehicles.create(kind);

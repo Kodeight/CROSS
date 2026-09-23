@@ -72,9 +72,28 @@ export class GameManager {
     return this.score.score;
   }
 
-  /** Start a fresh run: reset state, rebuild lanes around the player. */
+  /**
+   * Start a run: fresh start at the selected world, or continue the journey
+   * near the saved checkpoint (same world, a few lanes back, re-validated
+   * to a calm field lane — never the exact death spot, never traffic).
+   */
   newRun(makeLane: (index: number) => void, rebuildPlayerMesh: () => void): void {
-    this.score.reset(GAME_CONFIG.startLane);
+    const base = this.save.data.selectedWorld;
+    const center = Math.floor(GAME_CONFIG.columns / 2);
+    let startLane: number = GAME_CONFIG.startLane;
+    const lastLane = this.save.data.lastLane ?? 0;
+    const lastWorldId = this.save.data.lastWorldId;
+    if (lastLane > GAME_CONFIG.startLane && lastWorldId) {
+      const wNow = this.worlds.worldForLane(lastLane, base);
+      if (wNow.id === lastWorldId) {
+        // Clamp the back-off to the checkpoint world's own stretch.
+        let stretchStart = lastLane;
+        let guard = 0;
+        while (stretchStart > 0 && guard++ < 60 &&
+          this.worlds.worldForLane(stretchStart - 1, base).id === wNow.id) stretchStart--;
+        startLane = Math.max(stretchStart, lastLane - 6);
+      }
+    }
     this.coins.reset();
     this.runNear = 0;
     this.runSteps = 0;
@@ -86,12 +105,22 @@ export class GameManager {
     // the player inside it (never at the world edge), so the first frame
     // is already a complete composed world.
     this.lanes.clear();
+    // Pre-place the player so generation-time fairness uses a live position.
+    this.player.reset(startLane, center);
     // Generate a generous initial buffer so the camera (elevated,
     // top-down) never sees ungenerated world/blue areas on launch.
-    const initialBuffer = GAME_CONFIG.startLane + 200;
+    const initialBuffer = startLane + 200;
     for (let i = 0; i <= initialBuffer; i++) makeLane(i);
-    this.player.reset(GAME_CONFIG.startLane, Math.floor(GAME_CONFIG.columns / 2));
-    const w = this.worlds.worldForLane(GAME_CONFIG.startLane, this.save.data.selectedWorld);
+    // Prefer a calm field lane at/just behind the start point with a free
+    // center cell — safe spawn for fresh runs and resumed journeys alike.
+    let spawn = startLane;
+    for (let l = startLane; l >= Math.max(0, startLane - 12); l--) {
+      const ln = this.lanes.laneAt(l);
+      if (ln && ln.type === 'field' && !ln.occupied[center]) { spawn = l; break; }
+    }
+    this.score.reset(spawn);
+    this.player.reset(spawn, center);
+    const w = this.worlds.worldForLane(spawn, base);
     this.worlds.setCurrent(this.worlds.byId(w.id));
     this.lighting.setWorld(w, true);
     this.save.data.stats.gamesPlayed++;
@@ -120,7 +149,7 @@ export class GameManager {
         this.cb.onToast(`Mission complete: ${m}`);
         this.audio.unlock();
       }
-      if (done.dir === 'forward') {
+      if (done.dir === 'forward' || done.dir === 'jump') {
         if (this.score.reachLane(this.player.lane)) {
           this.checkWorldTransition();
           this.cb.onHud();
@@ -240,6 +269,9 @@ export class GameManager {
     this.dying = false;
     this.player.dying = false;
     const worldId = this.worlds.current.config.id;
+    // Death checkpoint: PLAY AGAIN returns to THIS world, not CITY.
+    this.save.data.lastWorldId = worldId;
+    this.save.data.lastLane = this.score.maxLane;
     const newBest = this.progression.recordRun(this.score.score, worldId, this.score.maxLane);
     this.save.data.coins += this.coins.runCoins;
     this.save.data.totalCoins += this.coins.runCoins;
@@ -251,6 +283,10 @@ export class GameManager {
 
   checkWorldTransition(): void {
     const w = this.worlds.worldForLane(this.score.maxLane, this.save.data.selectedWorld);
+    // Journey checkpoint: quitting mid-run and pressing PLAY resumes near
+    // here (newRun backs off + re-validates safety — never the exact spot).
+    this.save.data.lastWorldId = w.id;
+    this.save.data.lastLane = this.score.maxLane;
     if (w.id !== this.worlds.current.config.id) {
       const prevId = this.worlds.current.config.id;
       this.worlds.setCurrent(this.worlds.byId(w.id));
@@ -262,8 +298,8 @@ export class GameManager {
       const best = this.save.data.worldBest[w.id] ?? 0;
       if (this.score.maxLane > best) {
         this.save.data.worldBest[w.id] = this.score.maxLane;
-        this.save.save();
       }
+      this.save.save();
     } else {
       const best = this.save.data.worldBest[w.id] ?? 0;
       if (this.score.maxLane > best) {

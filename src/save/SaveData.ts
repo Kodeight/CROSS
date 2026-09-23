@@ -23,6 +23,13 @@ export interface SaveData {
   selectedWorld: string;
   unlockedWorlds: string[];
   worldBest: Record<string, number>;
+  /**
+   * Journey checkpoint: the world + lane to resume near on the next run.
+   * Updated on world transitions and death — never an exact dangerous
+   * position (newRun backs off and re-validates safety).
+   */
+  lastWorldId: string;
+  lastLane: number;
   missions: Record<string, boolean>;
   achievements: Record<string, boolean>;
   settings: GameSettings;
@@ -41,6 +48,8 @@ export function defaultSave(): SaveData {
     selectedWorld: 'city',
     unlockedWorlds: ['city'],
     worldBest: {},
+    lastWorldId: 'city',
+    lastLane: 0,
     missions: {},
     achievements: {},
     settings: { music: true, sfx: true, reducedMotion: false, quality: 'AUTO' },

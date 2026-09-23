@@ -82,4 +82,6 @@ function disposeLane(lane: Lane): void {
   });
   lane.vehicles = [];
   lane.coins = [];
+  lane.occupied = {};
+  lane.jumpable = {};
 }

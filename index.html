@@ -213,7 +213,10 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 <!-- Missions -->
 <section id="missions-screen" class="panel-screen" hidden>
   <div class="panel panel-masked">
-    <h2>MISSIONS</h2>
+    <div class="modal-head">
+      <h2>MISSIONS</h2>
+      <button class="modal-x" data-back aria-label="Close missions"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+    </div>
     <p class="panel-sub">Complete missions to earn coins.</p>
     <div class="panel-scroll">
       <div id="missions-list"></div>
@@ -227,7 +230,10 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 <!-- Settings -->
 <section id="settings-screen" class="panel-screen" hidden>
   <div class="panel">
-    <h2>SETTINGS</h2>
+    <div class="modal-head">
+      <h2>SETTINGS</h2>
+      <button class="modal-x" data-back aria-label="Close settings"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+    </div>
     <label class="row"><span>Music</span><button id="set-music" class="toggle" aria-pressed="true">ON</button></label>
     <label class="row"><span>Sound FX</span><button id="set-sfx" class="toggle" aria-pressed="true">ON</button></label>
     <label class="row"><span>Reduced motion</span><button id="set-motion" class="toggle" aria-pressed="false">OFF</button></label>
@@ -241,7 +247,10 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 <!-- Pause -->
 <section id="pause-screen" class="panel-screen" hidden>
   <div class="panel narrow">
-    <h2>PAUSED</h2>
+    <div class="modal-head">
+      <h2>PAUSED</h2>
+      <button class="modal-x" id="btn-x-pause" aria-label="Resume game"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button>
+    </div>
     <button id="btn-resume" class="btn primary big">RESUME</button>
     <div class="pause-row">
       <button id="btn-restart-pause" class="btn">RESTART</button>

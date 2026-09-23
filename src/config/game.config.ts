@@ -1,6 +1,7 @@
 /** Global game tuning. Single source of truth — no magic numbers in systems. */
 
-export const TESTING_MODE = true;
+/** Production coin economy: characters/worlds cost coins (see characters/worlds configs). */
+export const TESTING_MODE = false;
 
 export const GAME_CONFIG = {
   positionWidth: 42,

@@ -16,6 +16,8 @@ export class MissionSystem {
       if (scoped && m.worldId && !scoped.has(m.id)) continue;
       if (!scoped && m.worldId) continue;
       if (s.missions[m.id]) continue;
+      // Progressive pools: locked until prerequisites complete.
+      if (m.requires?.some((id) => !s.missions[id])) continue;
       let ok = false;
       try {
         ok = m.check(run, s.totalCoins);

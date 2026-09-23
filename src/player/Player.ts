@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { GAME_CONFIG } from '../config/game.config';
 import type { CharacterFactory } from './CharacterFactory';
 
-export type MoveDir = 'forward' | 'backward' | 'left' | 'right';
+export type MoveDir = 'forward' | 'backward' | 'left' | 'right' | 'jump';
 
 export interface PlayerEvents {
   onHopStart?: () => void;
@@ -91,7 +91,8 @@ export class Player {
       if (m === 'forward') lane++;
       else if (m === 'backward') lane--;
       else if (m === 'left') col--;
-      else col++;
+      else if (m === 'right') col++;
+      else lane += 2; // queued jump
     }
     if (dir === 'forward') lane++;
     else if (dir === 'backward') { if (lane <= 0) return false; lane--; }
@@ -105,6 +106,43 @@ export class Player {
     return true;
   }
 
+  /**
+   * Queue a two-lane forward leap over a jumpable obstacle. The intermediate
+   * cell may be occupied only when explicitly jumpable; the landing cell
+   * must always be free. Rejected jumps behave exactly like blocked moves
+   * (no commit, no animation, onBlocked feedback only).
+   */
+  queueJump(
+    isBlocked?: (lane: number, col: number) => boolean,
+    isJumpable?: (lane: number, col: number) => boolean,
+    maxQueue = 3,
+  ): boolean {
+    if (this.dying) return false;
+    if (this.moves.length >= maxQueue) return false;
+    let lane = this.lane;
+    let col = this.column;
+    for (const m of this.moves) {
+      if (m === 'forward') lane++;
+      else if (m === 'backward') lane--;
+      else if (m === 'left') col--;
+      else if (m === 'right') col++;
+      else lane += 2;
+    }
+    const mid = lane + 1;
+    const landing = lane + 2;
+    if (col < 0 || col >= GAME_CONFIG.columns) return false;
+    if (isBlocked?.(landing, col)) {
+      this.events.onBlocked?.();
+      return false;
+    }
+    if (isBlocked?.(mid, col) && !isJumpable?.(mid, col)) {
+      this.events.onBlocked?.();
+      return false;
+    }
+    this.moves.push('jump');
+    return true;
+  }
+
   /** Advances the hop animation. Returns completed step info or null. */
   step(nowMs: number, reducedMotion: boolean, externalTarget?: { x: number; y: number }): { dir: MoveDir } | null {
     if (this.moves.length && this.stepStart === null) {
@@ -113,11 +151,15 @@ export class Player {
       this.events.onHopStart?.();
     }
     if (this.stepStart === null || !this.moves.length) return null;
-    const prog = Math.min((nowMs - this.stepStart) / GAME_CONFIG.stepTimeMs, 1);
-    const dist = prog * GAME_CONFIG.positionWidth * GAME_CONFIG.zoom;
-    const jump = Math.sin(prog * Math.PI) * (reducedMotion ? 3 : 8) * GAME_CONFIG.zoom;
     const dir = this.moves[0];
-    if (dir === 'forward') {
+    const isJump = dir === 'jump';
+    // A jump covers two lanes in one arc and peaks above the traffic
+    // collision plane, so leaping over vehicles works naturally.
+    const dur = isJump ? GAME_CONFIG.stepTimeMs * 1.4 : GAME_CONFIG.stepTimeMs;
+    const prog = Math.min((nowMs - this.stepStart) / dur, 1);
+    const dist = prog * GAME_CONFIG.positionWidth * GAME_CONFIG.zoom * (isJump ? 2 : 1);
+    const jump = Math.sin(prog * Math.PI) * (reducedMotion ? 3 : isJump ? 16 : 8) * GAME_CONFIG.zoom;
+    if (dir === 'forward' || isJump) {
       this.group.position.y = this.laneToY(this.lane) + dist;
       this.group.position.z = jump;
       if (externalTarget) externalTarget.y = this.group.position.y;
@@ -138,6 +180,7 @@ export class Player {
     if (body && !reducedMotion) body.scale.y = 1 + Math.sin(prog * Math.PI) * 0.08;
     if (prog >= 1) {
       if (dir === 'forward') this.lane++;
+      else if (isJump) this.lane += 2;
       else if (dir === 'backward') this.lane--;
       else if (dir === 'left') this.column--;
       else this.column++;

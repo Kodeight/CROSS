@@ -54,7 +54,7 @@ export class SaveManager {
   }
 
   isTestingMode(): boolean {
-    return TESTING_MODE === true;
+    return TESTING_MODE;
   }
 
   price(cost: number): number {

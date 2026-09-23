@@ -66,6 +66,10 @@ export class WorldSelect {
         b.textContent = 'SELECT';
         b.onclick = () => {
           this.save.data.selectedWorld = w.id;
+          // New journey in this world: restart progression here, not at an
+          // old checkpoint from another world.
+          this.save.data.lastWorldId = w.id;
+          this.save.data.lastLane = 0;
           this.save.save();
           this.audio.click();
           this.onSelectionChanged();

@@ -18,14 +18,15 @@ export class MissionsScreen {
       for (const m of MISSIONS) {
         if (m.worldId && m.worldId !== worldId) continue;
         const done = !!this.save.data.missions[m.id];
+        const locked = !done && (m.requires?.some((id) => !this.save.data.missions[id]) ?? false);
         const div = document.createElement('div');
-        div.className = 'mission' + (done ? ' done' : '');
+        div.className = 'mission' + (done ? ' done' : '') + (locked ? ' locked' : '');
         if (m.tier) div.classList.add(`tier-${m.tier}`);
         const l = document.createElement('span');
         l.textContent = (m.worldId ? `[${m.worldId.toUpperCase()}] ` : '') + m.name;
         div.appendChild(l);
         const r = document.createElement('strong');
-        r.textContent = done ? `DONE +${m.reward}` : m.progress(run, this.save.data.totalCoins);
+        r.textContent = done ? `DONE +${m.reward}` : locked ? 'LOCKED' : m.progress(run, this.save.data.totalCoins);
         div.appendChild(r);
         ml.appendChild(div);
       }
