@@ -1,7 +1,7 @@
 /**
- * Mobile PWA Bottom Gameplay Instruction Panel
+ * Mobile PWA Bottom Gameplay Instruction & Status Panel
  *
- * Implements a solid, world-integrated concave bottom gameplay instruction
+ * Implements a solid, world-integrated concave bottom instruction & status
  * panel for the installed mobile PWA (iOS & Android) ONLY.
  *
  * Requirements:
@@ -10,14 +10,19 @@
  * - Zero transparency, zero blur, zero glassmorphism, zero inner shadows
  * - Shallow organic curve with a subtly flattened center
  * - Extends edge-to-edge behind the iOS/Android system gesture bar / home indicator
- * - Standalone white control icons: ◀  ❚❚  ▶
- * - Hierarchical text: "SWIPE TO MOVE" (primary) + "AVOID TRAFFIC" (secondary)
- * - Compact height respecting env(safe-area-inset-bottom)
- * - Permanent panel shape & background across gameplay, menu, and gameover
+ * - Context-aware tips and controls:
+ *     * Playing / World Intro: ◀  ❚❚  ▶ | SWIPE TO MOVE | AVOID TRAFFIC | ◁━━▷ SWIPE
+ *     * Paused: ❚❚ | GAME PAUSED | TAKE A BREATHER · WATCH THE ROAD | TAP RESUME TO CONTINUE
+ *     * Main Menu: ★ | READY TO HOP? | TIMING IS EVERYTHING | DODGE TRAFFIC & BEAT HIGH SCORE
+ *     * Game Over: 🏆 | NICE TRY! | COLLECT COINS & MISSIONS | READY FOR ANOTHER RUN?
+ *     * Other sub-screens: Custom informative guidance
+ * - All content vertically centered within the compact panel
+ * - Permanent panel shape & background across all states
  * - Strict single-background architecture during loading vs post-loading
  */
 
 import { getFadeColorForWorld } from '../config/worlds.config';
+import { GameState } from '../core/GameState';
 import { isStandalonePWA, isTouchDevice } from '../utils/DeviceUtils';
 
 export class PWABottomPanel {
@@ -25,8 +30,8 @@ export class PWABottomPanel {
   private pathEl: SVGPathElement | null = null;
   private contentEl: HTMLElement | null = null;
   private currentWorldId: string = 'city';
+  private currentState: GameState = GameState.MAIN_MENU;
   private loaderFinished: boolean = false;
-  private isGameplay: boolean = false;
   private isStandaloneMobile: boolean = false;
 
   constructor() {
@@ -52,34 +57,19 @@ export class PWABottomPanel {
     if (!el) {
       el = document.createElement('section');
       el.id = 'pwa-bottom-panel';
-      el.setAttribute('aria-label', 'Gameplay instructions');
+      el.setAttribute('aria-label', 'Gameplay instructions and tips');
       el.setAttribute('role', 'region');
       el.hidden = true;
 
-      // Shallow organic curve with subtly flattened center across 380-620
+      // Shallow organic curve with subtly flattened center across 400-600
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
           <svg class="pwa-panel-svg" viewBox="0 0 1000 50" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,0 C 140,2 260,26 380,30 C 450,31.5 550,31.5 620,30 C 740,26 860,2 1000,0 L 1000,50 L 0,50 Z" fill="#848886" />
+            <path id="pwa-panel-curve-path" d="M 0,0 C 160,2 280,24 400,28 C 460,29 540,29 600,28 C 720,24 840,2 1000,0 L 1000,50 L 0,50 Z" fill="#848886" />
           </svg>
         </div>
         <div class="pwa-panel-body">
-          <div id="pwa-panel-content" class="pwa-panel-content">
-            <div class="pwa-panel-controls" aria-hidden="true">
-              <svg class="pwa-ctrl-icon pwa-ctrl-left" width="14" height="14" viewBox="0 0 20 20" fill="none">
-                <polygon points="15,3 4,10 15,17" fill="#FFFFFF"/>
-              </svg>
-              <svg class="pwa-ctrl-icon pwa-ctrl-pause" width="14" height="14" viewBox="0 0 20 20" fill="none">
-                <rect x="4.5" y="2.5" width="3.5" height="15" rx="1.75" fill="#FFFFFF"/>
-                <rect x="12" y="2.5" width="3.5" height="15" rx="1.75" fill="#FFFFFF"/>
-              </svg>
-              <svg class="pwa-ctrl-icon pwa-ctrl-right" width="14" height="14" viewBox="0 0 20 20" fill="none">
-                <polygon points="5,3 16,10 5,17" fill="#FFFFFF"/>
-              </svg>
-            </div>
-            <div class="pwa-panel-primary">SWIPE TO MOVE</div>
-            <div class="pwa-panel-secondary">AVOID TRAFFIC</div>
-          </div>
+          <div id="pwa-panel-content" class="pwa-panel-content"></div>
         </div>
       `;
 
@@ -89,7 +79,128 @@ export class PWABottomPanel {
     this.container = el;
     this.pathEl = el.querySelector('#pwa-panel-curve-path');
     this.contentEl = el.querySelector('#pwa-panel-content');
+    this.renderContent();
     this.applyWorldColor(this.currentWorldId);
+  }
+
+  private renderContent(): void {
+    if (!this.contentEl) return;
+
+    switch (this.currentState) {
+      case GameState.PAUSED:
+        this.contentEl.innerHTML = `
+          <div class="pwa-panel-controls" aria-hidden="true">
+            <svg class="pwa-ctrl-icon pwa-ctrl-pause" width="14" height="14" viewBox="0 0 20 20" fill="none">
+              <rect x="4" y="2.5" width="4" height="15" rx="2" fill="#FFFFFF"/>
+              <rect x="12" y="2.5" width="4" height="15" rx="2" fill="#FFFFFF"/>
+            </svg>
+          </div>
+          <div class="pwa-panel-primary">GAME PAUSED</div>
+          <div class="pwa-panel-secondary">TAKE A BREATHER · WATCH THE ROAD AHEAD</div>
+          <div class="pwa-panel-indicator" aria-hidden="true">
+            <span>TAP RESUME TO HOP BACK IN</span>
+          </div>
+        `;
+        break;
+
+      case GameState.MAIN_MENU:
+        this.contentEl.innerHTML = `
+          <div class="pwa-panel-controls" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFFFF">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+          <div class="pwa-panel-primary">READY TO HOP?</div>
+          <div class="pwa-panel-secondary">TIMING IS EVERYTHING · TAP PLAY TO START</div>
+          <div class="pwa-panel-indicator" aria-hidden="true">
+            <span>DODGE TRAFFIC &amp; BEAT YOUR HIGH SCORE</span>
+          </div>
+        `;
+        break;
+
+      case GameState.GAME_OVER:
+      case GameState.RESULTS:
+        this.contentEl.innerHTML = `
+          <div class="pwa-panel-controls" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF">
+              <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1c1.8-.4 3.23-1.82 3.61-3.06C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/>
+            </svg>
+          </div>
+          <div class="pwa-panel-primary">NICE RUN!</div>
+          <div class="pwa-panel-secondary">COLLECT COINS &amp; COMPLETE MISSIONS</div>
+          <div class="pwa-panel-indicator" aria-hidden="true">
+            <span>READY FOR ANOTHER ROUND?</span>
+          </div>
+        `;
+        break;
+
+      case GameState.CHARACTER_SELECT:
+        this.contentEl.innerHTML = `
+          <div class="pwa-panel-primary">CHOOSE YOUR HERO</div>
+          <div class="pwa-panel-secondary">EACH CHARACTER BRINGS UNIQUE STYLE</div>
+          <div class="pwa-panel-indicator" aria-hidden="true">
+            <span>SWIPE TO BROWSE SKINS</span>
+          </div>
+        `;
+        break;
+
+      case GameState.WORLD_SELECT:
+        this.contentEl.innerHTML = `
+          <div class="pwa-panel-primary">SELECT YOUR WORLD</div>
+          <div class="pwa-panel-secondary">DISCOVER NEW HAZARDS &amp; LIVING BIOMES</div>
+          <div class="pwa-panel-indicator" aria-hidden="true">
+            <span>SWIPE TO TOUR WORLDS</span>
+          </div>
+        `;
+        break;
+
+      case GameState.MISSIONS:
+        this.contentEl.innerHTML = `
+          <div class="pwa-panel-primary">DAILY CHALLENGES</div>
+          <div class="pwa-panel-secondary">COMPLETE OBJECTIVES TO EARN GOLD COINS</div>
+          <div class="pwa-panel-indicator" aria-hidden="true">
+            <span>NEW MISSIONS RESET DAILY</span>
+          </div>
+        `;
+        break;
+
+      case GameState.SETTINGS:
+        this.contentEl.innerHTML = `
+          <div class="pwa-panel-primary">SETTINGS</div>
+          <div class="pwa-panel-secondary">TWEAK AUDIO, GRAPHICS &amp; CONTROLS</div>
+          <div class="pwa-panel-indicator" aria-hidden="true">
+            <span>CUSTOMIZE YOUR EXPERIENCE</span>
+          </div>
+        `;
+        break;
+
+      case GameState.PLAYING:
+      case GameState.WORLD_INTRO:
+      default:
+        this.contentEl.innerHTML = `
+          <div class="pwa-panel-controls" aria-hidden="true">
+            <svg class="pwa-ctrl-icon pwa-ctrl-left" width="13" height="13" viewBox="0 0 20 20" fill="none">
+              <polygon points="15,3 4,10 15,17" fill="#FFFFFF"/>
+            </svg>
+            <svg class="pwa-ctrl-icon pwa-ctrl-pause" width="13" height="13" viewBox="0 0 20 20" fill="none">
+              <rect x="4.5" y="2.5" width="3.5" height="15" rx="1.75" fill="#FFFFFF"/>
+              <rect x="12" y="2.5" width="3.5" height="15" rx="1.75" fill="#FFFFFF"/>
+            </svg>
+            <svg class="pwa-ctrl-icon pwa-ctrl-right" width="13" height="13" viewBox="0 0 20 20" fill="none">
+              <polygon points="5,3 16,10 5,17" fill="#FFFFFF"/>
+            </svg>
+          </div>
+          <div class="pwa-panel-primary">SWIPE TO MOVE</div>
+          <div class="pwa-panel-secondary">AVOID TRAFFIC</div>
+          <div class="pwa-panel-indicator" aria-hidden="true">
+            <svg class="pwa-swipe-arrows" width="36" height="8" viewBox="0 0 36 8" fill="none">
+              <path d="M 5,4 L 1,1 L 1,7 Z M 5,3.5 L 31,3.5 L 31,4.5 L 5,4.5 Z M 31,4 L 35,1 L 35,7 Z" fill="#FFFFFF" fill-opacity="0.65"/>
+            </svg>
+            <span>SWIPE</span>
+          </div>
+        `;
+        break;
+    }
   }
 
   private handleResize(): void {
@@ -100,6 +211,12 @@ export class PWABottomPanel {
   public setWorld(worldId: string): void {
     this.currentWorldId = worldId;
     this.applyWorldColor(worldId);
+  }
+
+  public setState(state: GameState): void {
+    this.currentState = state;
+    this.renderContent();
+    this.updateVisibility();
   }
 
   private applyWorldColor(worldId: string): void {
@@ -125,15 +242,7 @@ export class PWABottomPanel {
     this.updateVisibility();
   }
 
-  public setGameplayMode(isGameplay: boolean): void {
-    this.isGameplay = isGameplay;
-    if (this.contentEl) {
-      if (isGameplay) {
-        this.contentEl.classList.remove('suppressed');
-      } else {
-        this.contentEl.classList.add('suppressed');
-      }
-    }
+  public setGameplayMode(_isGameplay: boolean): void {
     this.updateVisibility();
   }
 
@@ -149,7 +258,6 @@ export class PWABottomPanel {
     this.checkMode();
 
     // STRICT SCOPE: Only display in installed standalone mobile PWA after loader finishes.
-    // Once loader finishes, the panel ALWAYS remains present to guarantee solid bottom architecture.
     const shouldDisplay = this.isStandaloneMobile && this.loaderFinished;
     if (shouldDisplay) {
       this.container.hidden = false;

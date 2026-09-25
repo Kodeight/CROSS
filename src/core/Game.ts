@@ -187,9 +187,8 @@ export class Game implements LoopDelegate {
         requestAnimationFrame(() => {
           this.setState(GameState.MAIN_MENU);
           this.ui.setTouchControlsVisible(false, this.isTouch);
-          this.ui.hideLoading(() => {
-            this.pwaBottomPanel?.onLoaderFinished();
-          });
+          this.pwaBottomPanel?.onLoaderFinished();
+          this.ui.hideLoading();
         });
       });
       console.log('CROSS! Game initialized');
@@ -421,7 +420,7 @@ export class Game implements LoopDelegate {
     this.ui.fitHud();
     this.controller.setEnabled(s === GameState.PLAYING);
     this.ui.setTouchControlsVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO, this.isTouch);
-    this.pwaBottomPanel?.setGameplayMode(s === GameState.PLAYING || s === GameState.WORLD_INTRO);
+    this.pwaBottomPanel?.setState(s);
     if (this.worlds?.current?.config) {
       this.pwaBottomPanel?.setWorld(this.worlds.current.config.id);
     }

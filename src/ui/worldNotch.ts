@@ -73,11 +73,18 @@ export function updateWorldEnvironmentTheme(worldId: string): void {
   try {
     const [r, g, b] = getFadeColorForWorld(worldId);
     const colorHex = '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
-    document.body.style.backgroundColor = colorHex;
+    
+    const loading = document.getElementById('loading');
+    const isLoading = loading && loading.style.display !== 'none';
+    if (!isLoading) {
+      document.body.style.backgroundColor = colorHex;
+      document.documentElement.style.backgroundColor = colorHex;
+    }
     const game = document.getElementById('game');
     if (game) game.style.backgroundColor = colorHex;
 
     const root = document.documentElement;
+    root.style.setProperty('--panel-ground-color', colorHex);
     root.style.setProperty('--ground-r', String(r));
     root.style.setProperty('--ground-g', String(g));
     root.style.setProperty('--ground-b', String(b));
