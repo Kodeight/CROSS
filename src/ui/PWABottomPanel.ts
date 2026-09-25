@@ -8,13 +8,13 @@
  * - Installed mobile PWA only (display-mode: standalone / fullscreen or iOS standalone)
  * - Solid color matching the active world's authoritative ground/environment tone
  * - Zero transparency, zero blur, zero glassmorphism, zero inner shadows
- * - Smooth symmetrical concave-down curved top edge (wide shallow Bézier scoop)
+ * - Shallow organic curve with a subtly flattened center
  * - Extends edge-to-edge behind the iOS/Android system gesture bar / home indicator
  * - Standalone white control icons: ◀  ❚❚  ▶
  * - Hierarchical text: "SWIPE TO MOVE" (primary) + "AVOID TRAFFIC" (secondary)
  * - Compact height respecting env(safe-area-inset-bottom)
- * - Stable geometry across game states (text gracefully suppressed on menus)
- * - Clean loader transition without premature display
+ * - Permanent panel shape & background across gameplay, menu, and gameover
+ * - Strict single-background architecture during loading vs post-loading
  */
 
 import { getFadeColorForWorld } from '../config/worlds.config';
@@ -56,10 +56,11 @@ export class PWABottomPanel {
       el.setAttribute('role', 'region');
       el.hidden = true;
 
+      // Shallow organic curve with subtly flattened center across 380-620
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
-          <svg class="pwa-panel-svg" viewBox="0 0 1000 60" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,0 C 240,6 360,48 500,48 C 640,48 760,6 1000,0 L 1000,60 L 0,60 Z" fill="#848886" />
+          <svg class="pwa-panel-svg" viewBox="0 0 1000 50" preserveAspectRatio="none">
+            <path id="pwa-panel-curve-path" d="M 0,0 C 140,2 260,26 380,30 C 450,31.5 550,31.5 620,30 C 740,26 860,2 1000,0 L 1000,50 L 0,50 Z" fill="#848886" />
           </svg>
         </div>
         <div class="pwa-panel-body">
@@ -111,17 +112,16 @@ export class PWABottomPanel {
     if (this.pathEl) {
       this.pathEl.setAttribute('fill', colorHex);
     }
-    if (typeof document !== 'undefined') {
+    if (typeof document !== 'undefined' && this.loaderFinished) {
       document.documentElement.style.setProperty('--panel-ground-color', colorHex);
-      const loading = document.getElementById('loading');
-      if (!loading || loading.style.display === 'none') {
-        document.body.style.backgroundColor = colorHex;
-      }
+      document.body.style.backgroundColor = colorHex;
+      document.documentElement.style.backgroundColor = colorHex;
     }
   }
 
   public onLoaderFinished(): void {
     this.loaderFinished = true;
+    this.applyWorldColor(this.currentWorldId);
     this.updateVisibility();
   }
 
@@ -148,7 +148,8 @@ export class PWABottomPanel {
     if (!this.container) return;
     this.checkMode();
 
-    // STRICT SCOPE: Only display in installed standalone mobile PWA after loader finishes
+    // STRICT SCOPE: Only display in installed standalone mobile PWA after loader finishes.
+    // Once loader finishes, the panel ALWAYS remains present to guarantee solid bottom architecture.
     const shouldDisplay = this.isStandaloneMobile && this.loaderFinished;
     if (shouldDisplay) {
       this.container.hidden = false;

@@ -287,10 +287,11 @@ body.is-touch .mobile-hint{display:inline !important}
 .pwa-panel-curve-wrap{
   position:relative;
   width:100%;
-  height:clamp(20px, 3vh, 32px);
+  height:clamp(16px, 2.4vh, 26px);
   margin-bottom:-1px;
-  overflow:hidden;
+  overflow:visible;
   pointer-events:none;
+  filter:drop-shadow(0 -3px 6px rgba(0,0,0,.12));
 }
 .pwa-panel-svg{
   display:block;
@@ -301,12 +302,12 @@ body.is-touch .mobile-hint{display:inline !important}
   position:relative;
   background:var(--panel-ground-color);
   width:100%;
-  padding:2px 16px calc(6px + env(safe-area-inset-bottom, 14px));
+  padding:2px 16px calc(4px + env(safe-area-inset-bottom, 10px));
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  box-shadow:0 -4px 14px rgba(0,0,0,.14);
+  box-shadow:none;
 }
 .pwa-panel-body::after{
   content:'';
@@ -361,9 +362,9 @@ body.is-touch .mobile-hint{display:inline !important}
   margin-top:2px;
   line-height:1.2;
 }
-/* When PWA bottom panel is active, hide touch-controls gesture hint text so they don't collide */
+/* In PWA standalone mode, completely suppress touch-controls to avoid duplicate hints */
 @media (display-mode: standalone){
-  #pwa-bottom-panel.visible ~ #touch-controls #t-gesture-hint{
+  #touch-controls{
     display:none!important;
   }
 }
