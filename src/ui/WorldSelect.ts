@@ -55,7 +55,11 @@ export class WorldSelect {
       card.appendChild(h);
       const best = this.save.data.worldBest[w.id] ?? 0;
       const p = document.createElement('p');
-      p.textContent = selected ? `PLAYING · BEST ${best}` : unlocked ? `BEST ${best}` : `${price} COINS`;
+      p.textContent = selected
+        ? (best > 0 ? `PLAYING · BEST ${best}` : 'PLAYING')
+        : unlocked
+        ? (best > 0 ? `BEST ${best}` : 'UNLOCKED')
+        : `${price} COINS`;
       card.appendChild(p);
       const b = document.createElement('button');
       b.className = 'btn' + (selected ? '' : ' primary');

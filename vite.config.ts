@@ -43,7 +43,7 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         theme_color: '#7AC74F',
-        background_color: '#FFFDF5',
+        background_color: '#7AC74F',
         icons: [
           {
             src: 'favicon/web-app-manifest-192x192.png',

@@ -64,10 +64,9 @@ const PRESETS = {
   primary: { ...GLASS_BASE, material: 'regular', blur: 10, refractionStrength: 24, bezelWidth: 30, thickness: 26, edgeHighlight: 1, specularStrength: 0.5, elevation: 1.2 },
   /** Secondary buttons: same family, lighter emphasis. */
   secondary: { ...GLASS_BASE, material: 'thin', blur: 8, refractionStrength: 16, bezelWidth: 24, thickness: 18, edgeHighlight: 0.7, specularStrength: 0.3, elevation: 0.7 },
-  /** Large panels/sheets: heavy frost so the backdrop reads as creamy
-   * blur, with real displacement + rim light underneath for the liquid
-   * identity. Text stays crisp above the filter layers. */
-  panel: { ...GLASS_BASE, material: 'regular', blur: 18, refractionStrength: 20, bezelWidth: 28, thickness: 20, edgeHighlight: 0.8, specularStrength: 0.35, tint: '255,253,245', tintOpacity: 0.12, elevation: 1 },
+  /** Large panels/sheets: solid opaque card with subtle bevel and rim depth,
+   * zero transparency / blur-through. Text and cards stay 100% crisp. */
+  panel: { ...GLASS_BASE, material: 'regular', blur: 0, refractionStrength: 0, bezelWidth: 20, thickness: 16, edgeHighlight: 0.6, specularStrength: 0.25, tint: '255,253,245', tintOpacity: 1.0, elevation: 1 },
   /** Small cards (character/world): cheap, readable. */
   card: { ...GLASS_BASE, material: 'thin', blur: 6, refractionStrength: 14, bezelWidth: 22, thickness: 16, edgeHighlight: 0.55, specularStrength: 0.28, elevation: 0.7 },
 } satisfies Record<string, Partial<LiquidGlassConfig>>;
@@ -205,13 +204,12 @@ class LiquidUIManager {
       '#btn-resume': { rgb: '122,199,79', opacity: 0.28 },
       '#btn-again': { rgb: '122,199,79', opacity: 0.28 },
     };
-    for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, .panel .modal-x, #app-error .btn')) {
+    for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn:not(.char-card .btn), .panel .modal-x, #app-error .btn')) {
       const key = b.id ? `#${b.id}` : '';
       this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true, tint: actionTints[key] });
     }
-    for (const c of qa('.char-card')) {
-      this.attachOne(c, { preset: 'card', borderRadius: 16, press: true });
-    }
+    // Cards in the store (.char-card) stay native DOM without LiquidButton spring
+    // physics or pointer capture so touch swiping scrolls the roster smoothly.
     for (const m of qa('.mission, .ach')) {
       this.attachOne(m, { preset: 'card', borderRadius: 12 });
     }

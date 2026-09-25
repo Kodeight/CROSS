@@ -123,6 +123,7 @@ export class GameManager {
     this.score.reset(spawn);
     this.player.reset(spawn, center);
     const w = this.worlds.worldForLane(spawn, base);
+    this.progression.unlockWorldByProgression(w.id);
     this.worlds.setCurrent(this.worlds.byId(w.id));
     this.lighting.setWorld(w, true);
     this.lanes.setWorldTheme(w.safeDark);
@@ -277,6 +278,9 @@ export class GameManager {
     this.save.data.lastWorldId = worldId;
     this.save.data.lastLane = this.player.lane;
     const newBest = this.progression.recordRun(this.score.score, worldId, this.player.lane);
+    this.progression.unlockWorldByProgression(worldId);
+    const frontierWorld = this.worlds.worldForLane(this.score.maxLane, this.save.data.selectedWorld);
+    this.progression.unlockWorldByProgression(frontierWorld.id);
     this.save.data.coins += this.coins.runCoins;
     this.save.data.totalCoins += this.coins.runCoins;
     this.save.save();
@@ -290,10 +294,22 @@ export class GameManager {
     // back into a previous stretch switches environment, HUD and lighting
     // back to that world. Score/progress (maxLane) is untouched.
     const w = this.worlds.worldForLane(this.player.lane, this.save.data.selectedWorld);
+    const wFrontier = this.worlds.worldForLane(this.score.maxLane, this.save.data.selectedWorld);
     // Journey checkpoint: quitting mid-run and pressing PLAY resumes near
     // here (newRun backs off + re-validates safety — never the exact spot).
     this.save.data.lastWorldId = w.id;
     this.save.data.lastLane = this.player.lane;
+
+    // Automatically unlock any new map reached through progression
+    if (this.progression.unlockWorldByProgression(w.id)) {
+      this.cb.onToast(`${w.name} map unlocked in store!`);
+      this.audio.unlock();
+    }
+    if (wFrontier.id !== w.id && this.progression.unlockWorldByProgression(wFrontier.id)) {
+      this.cb.onToast(`${wFrontier.name} map unlocked in store!`);
+      this.audio.unlock();
+    }
+
     if (w.id !== this.worlds.current.config.id) {
       const prevId = this.worlds.current.config.id;
       this.worlds.setCurrent(this.worlds.byId(w.id));

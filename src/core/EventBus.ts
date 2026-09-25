@@ -15,6 +15,7 @@ export type GameEventName =
   | 'gameOver'
   | 'characterSelected'
   | 'worldSelected'
+  | 'worldUnlocked'
   | 'settingsChanged'
   | 'nearMiss';
 

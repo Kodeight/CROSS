@@ -46,7 +46,16 @@ export class ProgressionSystem {
     s.lastWorldId = id;
     s.lastLane = 0;
     this.save.save();
+    this.bus.emit('worldUnlocked', id);
     this.bus.emit('worldSelected', id);
     return true;
+  }
+
+  unlockWorldByProgression(id: string): boolean {
+    if (this.save.unlockWorld(id)) {
+      this.bus.emit('worldUnlocked', id);
+      return true;
+    }
+    return false;
   }
 }

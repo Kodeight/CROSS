@@ -203,6 +203,10 @@ export class UIManager {
       l.style.opacity = '0';
       window.setTimeout(() => {
         l.style.display = 'none';
+        try {
+          const worldGround = document.documentElement.style.getPropertyValue('--panel-ground-color') || '#848886';
+          document.body.style.backgroundColor = worldGround;
+        } catch { /* ignore */ }
       }, 320);
     } catch { /* ignore */ }
   }

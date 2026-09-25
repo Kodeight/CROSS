@@ -49,6 +49,7 @@ import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
 import { showWorldTransition, updateWorldEnvironmentTheme } from '../ui/worldNotch';
 import { registerPWA } from '../pwa';
+import { PWABottomPanel } from '../ui/PWABottomPanel';
 
 const DEBUG = /[?&](debug|worlddebug)/i.test(location.search);
 
@@ -61,6 +62,7 @@ export class Game implements LoopDelegate {
   private readonly audio: AudioManager;
   private readonly ui = new UIManager();
   private readonly loop = new GameLoop(this);
+  private pwaBottomPanel: PWABottomPanel | null = null;
 
   renderer!: GameRenderer;
   camera!: FollowCamera;
@@ -236,6 +238,7 @@ export class Game implements LoopDelegate {
         onToast: (m) => this.ui.toast(m),
         onNearMiss: () => this.ui.flashNearMiss(),
         onWorldIntro: (name, sub) => {
+          this.pwaBottomPanel?.setWorld(this.worlds.current.config.id);
           this.audio.fanfare();
           this.ui.showWorldIntro(name, sub, this.reducedMotion, () => this.bus.emit('worldIntroFinished'));
         },
@@ -281,12 +284,15 @@ export class Game implements LoopDelegate {
         this.worlds.setCurrent(w);
         this.lighting.setWorld(w.config, true);
         this.lanes.setWorldTheme(w.config.safeDark);
+        this.pwaBottomPanel?.setWorld(w.config.id);
         this.hud.update();
         showWorldTransition(w.config);
       },
     );
     this.missionsScreen = new MissionsScreen(this.save);
     this.settingsScreen = new SettingsScreen(this.save, this.audio, (what) => this.onSettingsChanged(what));
+    this.pwaBottomPanel = new PWABottomPanel();
+    this.pwaBottomPanel.setWorld(this.worlds.current.config.id);
 
     const worldName = this.worlds.current.config.name;
     // Initial showcase buffer behind the menu: full city section with the
@@ -410,6 +416,10 @@ export class Game implements LoopDelegate {
     this.ui.fitHud();
     this.controller.setEnabled(s === GameState.PLAYING);
     this.ui.setTouchControlsVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO, this.isTouch);
+    this.pwaBottomPanel?.setVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO);
+    if (this.worlds?.current?.config) {
+      this.pwaBottomPanel?.setWorld(this.worlds.current.config.id);
+    }
     if (s === GameState.MAIN_MENU) {
       this.menu.render();
       this.hud.update();
