@@ -139,6 +139,7 @@ export class GameManager {
     if (done) {
       this.runSteps++;
       this.save.data.stats.totalSteps++;
+      this.missions.onStep(this.worlds.current.config.id);
       this.audio.land();
       if (!this.reducedMotion) {
         this.particles.burst(
@@ -148,9 +149,9 @@ export class GameManager {
       }
       this.checkCollect();
       const wid = this.worlds.current.config.id;
-      const msgs = this.missions.check(this.score.maxLane, this.runNear, wid);
+      const msgs = this.missions.check(this.score.maxLane, this.runNear, wid, this.coins.runCoins);
       for (const m of msgs) {
-        this.cb.onToast(`Mission complete: ${m}`);
+        this.cb.onToast(m);
         this.audio.unlock();
       }
       if (done.dir === 'forward' || done.dir === 'jump') {
@@ -194,6 +195,7 @@ export class GameManager {
         c.taken = true;
         this.coins.beginCollect(c.mesh);
         this.coins.collect();
+        this.missions.onCoin();
         this.score.addBonus(1);
         this.audio.coin();
         vibrate(10);
@@ -201,8 +203,11 @@ export class GameManager {
         this.bus.emit('coinCollected');
         this.cb.onHud();
         this.cb.onCoin();
-        const msgs = this.missions.check(this.score.maxLane, this.runNear, this.worlds.current.config.id);
-        for (const m of msgs) this.cb.onToast(`Mission complete: ${m}`);
+        const msgs = this.missions.check(this.score.maxLane, this.runNear, this.worlds.current.config.id, this.coins.runCoins);
+        for (const m of msgs) {
+          this.cb.onToast(m);
+          this.audio.unlock();
+        }
       }
     }
   }
@@ -212,12 +217,16 @@ export class GameManager {
     if (now - this.lastNearAt < 700) return;
     this.lastNearAt = now;
     this.runNear++;
+    this.missions.onNearMiss();
     this.score.addBonus(2);
     this.save.data.stats.totalNearMiss++;
     this.missions.unlock('close');
     this.cb.onHud();
-    const msgs = this.missions.check(this.score.maxLane, this.runNear, this.worlds.current.config.id);
-    for (const m of msgs) this.cb.onToast(`Mission complete: ${m}`);
+    const msgs = this.missions.check(this.score.maxLane, this.runNear, this.worlds.current.config.id, this.coins.runCoins);
+    for (const m of msgs) {
+      this.cb.onToast(m);
+      this.audio.unlock();
+    }
     this.cb.onNearMiss();
     this.audio.near();
     vibrate(20);
@@ -284,6 +293,12 @@ export class GameManager {
     this.save.data.coins += this.coins.runCoins;
     this.save.data.totalCoins += this.coins.runCoins;
     this.save.save();
+    this.missions.onRunEnd(this.score.score, this.score.maxLane, this.runNear, this.coins.runCoins);
+    const msgs = this.missions.check(this.score.maxLane, this.runNear, worldId, this.coins.runCoins);
+    for (const m of msgs) {
+      this.cb.onToast(m);
+      this.audio.unlock();
+    }
     this.audio.gameOver();
     this.bus.emit('gameOver', this.score.score);
     return { score: this.score.score, newBest };

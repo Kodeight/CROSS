@@ -7,14 +7,14 @@
  * Requirements:
  * - Installed mobile PWA only (display-mode: standalone / fullscreen or iOS standalone)
  * - Solid color matching the active world's authoritative ground/environment tone
- * - Zero transparency, zero blur, zero glassmorphism
- * - Deep smooth concave curved top edge (higher on left/right, dips in center)
+ * - Zero transparency, zero blur, zero glassmorphism, zero inner shadows
+ * - Smooth symmetrical concave-down curved top edge (wide shallow Bézier scoop)
  * - Extends edge-to-edge behind the iOS/Android system gesture bar / home indicator
- * - Safe area padding for text content
- * - Minimal, elegant gameplay instructions:
- *     [subtle minimal swipe/move icon]
- *     SWIPE TO MOVE (bold uppercase white)
- *     AVOID TRAFFIC (warm off-white / slightly muted light uppercase)
+ * - Standalone white control icons: ◀  ❚❚  ▶
+ * - Hierarchical text: "SWIPE TO MOVE" (primary) + "AVOID TRAFFIC" (secondary)
+ * - Compact height respecting env(safe-area-inset-bottom)
+ * - Stable geometry across game states (text gracefully suppressed on menus)
+ * - Clean loader transition without premature display
  */
 
 import { getFadeColorForWorld } from '../config/worlds.config';
@@ -23,8 +23,10 @@ import { isStandalonePWA, isTouchDevice } from '../utils/DeviceUtils';
 export class PWABottomPanel {
   private container: HTMLElement | null = null;
   private pathEl: SVGPathElement | null = null;
+  private contentEl: HTMLElement | null = null;
   private currentWorldId: string = 'city';
-  private visible: boolean = false;
+  private loaderFinished: boolean = false;
+  private isGameplay: boolean = false;
   private isStandaloneMobile: boolean = false;
 
   constructor() {
@@ -39,7 +41,6 @@ export class PWABottomPanel {
     const isTouch = isTouchDevice();
     const isStandalone = isStandalonePWA();
     const forceDebug = typeof location !== 'undefined' && /[?&](pwapanel|pwadbg|forcepanel)/i.test(location.search);
-    // Standalone PWA on touch/mobile device (or explicit ?pwapanel debug flag)
     this.isStandaloneMobile = (isStandalone && isTouch) || forceDebug;
     return this.isStandaloneMobile;
   }
@@ -57,19 +58,22 @@ export class PWABottomPanel {
 
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
-          <svg class="pwa-panel-svg" viewBox="0 0 1000 120" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,0 Q 500,110 1000,0 L 1000,120 L 0,120 Z" fill="#848886" />
+          <svg class="pwa-panel-svg" viewBox="0 0 1000 60" preserveAspectRatio="none">
+            <path id="pwa-panel-curve-path" d="M 0,0 C 240,6 360,48 500,48 C 640,48 760,6 1000,0 L 1000,60 L 0,60 Z" fill="#848886" />
           </svg>
         </div>
         <div class="pwa-panel-body">
-          <div class="pwa-panel-content">
-            <div class="pwa-panel-icon" aria-hidden="true">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M12 4L7 9H17L12 4Z" fill="currentColor"/>
-                <path d="M12 20L17 15H7L12 20Z" fill="currentColor" opacity="0.6"/>
-                <path d="M4 12L9 17V7L4 12Z" fill="currentColor" opacity="0.6"/>
-                <path d="M20 12L15 7V17L20 12Z" fill="currentColor" opacity="0.6"/>
-                <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+          <div id="pwa-panel-content" class="pwa-panel-content">
+            <div class="pwa-panel-controls" aria-hidden="true">
+              <svg class="pwa-ctrl-icon pwa-ctrl-left" width="14" height="14" viewBox="0 0 20 20" fill="none">
+                <polygon points="15,3 4,10 15,17" fill="#FFFFFF"/>
+              </svg>
+              <svg class="pwa-ctrl-icon pwa-ctrl-pause" width="14" height="14" viewBox="0 0 20 20" fill="none">
+                <rect x="4.5" y="2.5" width="3.5" height="15" rx="1.75" fill="#FFFFFF"/>
+                <rect x="12" y="2.5" width="3.5" height="15" rx="1.75" fill="#FFFFFF"/>
+              </svg>
+              <svg class="pwa-ctrl-icon pwa-ctrl-right" width="14" height="14" viewBox="0 0 20 20" fill="none">
+                <polygon points="5,3 16,10 5,17" fill="#FFFFFF"/>
               </svg>
             </div>
             <div class="pwa-panel-primary">SWIPE TO MOVE</div>
@@ -83,6 +87,7 @@ export class PWABottomPanel {
 
     this.container = el;
     this.pathEl = el.querySelector('#pwa-panel-curve-path');
+    this.contentEl = el.querySelector('#pwa-panel-content');
     this.applyWorldColor(this.currentWorldId);
   }
 
@@ -109,15 +114,33 @@ export class PWABottomPanel {
     if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty('--panel-ground-color', colorHex);
       const loading = document.getElementById('loading');
-      // If loading is already gone, keep body matching the active world ground
       if (!loading || loading.style.display === 'none') {
         document.body.style.backgroundColor = colorHex;
       }
     }
   }
 
+  public onLoaderFinished(): void {
+    this.loaderFinished = true;
+    this.updateVisibility();
+  }
+
+  public setGameplayMode(isGameplay: boolean): void {
+    this.isGameplay = isGameplay;
+    if (this.contentEl) {
+      if (isGameplay) {
+        this.contentEl.classList.remove('suppressed');
+      } else {
+        this.contentEl.classList.add('suppressed');
+      }
+    }
+    this.updateVisibility();
+  }
+
   public setVisible(show: boolean): void {
-    this.visible = show;
+    if (show) {
+      this.loaderFinished = true;
+    }
     this.updateVisibility();
   }
 
@@ -125,8 +148,8 @@ export class PWABottomPanel {
     if (!this.container) return;
     this.checkMode();
 
-    // STRICT SCOPE: Only display in installed standalone mobile PWA during active gameplay/intro
-    const shouldDisplay = this.isStandaloneMobile && this.visible;
+    // STRICT SCOPE: Only display in installed standalone mobile PWA after loader finishes
+    const shouldDisplay = this.isStandaloneMobile && this.loaderFinished;
     if (shouldDisplay) {
       this.container.hidden = false;
       this.container.classList.add('visible');
@@ -144,5 +167,6 @@ export class PWABottomPanel {
     }
     this.container = null;
     this.pathEl = null;
+    this.contentEl = null;
   }
 }

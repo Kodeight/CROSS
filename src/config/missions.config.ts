@@ -104,14 +104,15 @@ export function missionById(id: string): MissionDef | undefined {
 export interface AchievementDef {
   id: string;
   name: string;
+  desc?: string;
 }
 
 export const ACHIEVEMENTS: AchievementDef[] = [
-  { id: 'first', name: 'First Cross — play a run' },
-  { id: 's100', name: '100 Steps (total)' },
-  { id: 's500', name: '500 Steps (total)' },
-  { id: 'rich', name: 'Coin Collector — 100 coins' },
-  { id: 'close', name: 'Close Call — first near miss' },
-  { id: 'untouch', name: 'Untouchable — reach 50 in one run' },
+  { id: 'first', name: 'First Cross', desc: 'Complete your very first run' },
+  { id: 's100', name: 'Century Club', desc: 'Accumulate 100 total hops' },
+  { id: 's500', name: 'Road Veteran', desc: 'Accumulate 500 total hops' },
+  { id: 'rich', name: 'Coin Collector', desc: 'Collect 100 total gold coins' },
+  { id: 'close', name: 'Close Call', desc: 'Execute your first near miss dodge' },
+  { id: 'untouch', name: 'Untouchable', desc: 'Reach lane 50 in a single run' },
 ];
 

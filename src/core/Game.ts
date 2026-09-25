@@ -104,6 +104,9 @@ export class Game implements LoopDelegate {
   async boot(): Promise<void> {
     if (this.booted) return;
     this.booted = true;
+    if (this.isTouch && typeof document !== 'undefined') {
+      document.body.classList.add('is-touch');
+    }
     applyCoinTheme();
     this.ui.setLoad(10, 'CROSS!');
     this.save.load();
@@ -185,6 +188,7 @@ export class Game implements LoopDelegate {
           this.setState(GameState.MAIN_MENU);
           this.ui.setTouchControlsVisible(false, this.isTouch);
           this.ui.hideLoading();
+          this.pwaBottomPanel?.onLoaderFinished();
         });
       });
       console.log('CROSS! Game initialized');
@@ -271,7 +275,7 @@ export class Game implements LoopDelegate {
     );
     this.menu = new MainMenu(this.save);
     this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion);
-    this.worldPreviews = new WorldPreviewManager(vehicles, () => this.reducedMotion);
+    this.worldPreviews = new WorldPreviewManager(this.assets, vehicles, trees, props, () => this.reducedMotion);
     this.charSelect = new CharacterSelect(
       this.save, this.audio, this.progression, this.charPreviews, this.ui,
       () => this.rebuildPlayerMesh(), () => this.menu.render(),
@@ -416,7 +420,7 @@ export class Game implements LoopDelegate {
     this.ui.fitHud();
     this.controller.setEnabled(s === GameState.PLAYING);
     this.ui.setTouchControlsVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO, this.isTouch);
-    this.pwaBottomPanel?.setVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO);
+    this.pwaBottomPanel?.setGameplayMode(s === GameState.PLAYING || s === GameState.WORLD_INTRO);
     if (this.worlds?.current?.config) {
       this.pwaBottomPanel?.setWorld(this.worlds.current.config.id);
     }
@@ -610,7 +614,7 @@ export class Game implements LoopDelegate {
     const openScreen = (target: GameState) => {
       this.ui.returnTo = this.ui.state === GameState.GAME_OVER ? GameState.GAME_OVER
         : this.ui.state === GameState.PAUSED ? GameState.PAUSED : GameState.MAIN_MENU;
-      this.missionsScreen.render(this.score.maxLane, this.manager.runNear, this.worlds.current.config.id);
+      this.missionsScreen.render(this.score.maxLane, this.manager.runNear, this.worlds.current.config.id, this.coins.runCoins);
       this.settingsScreen.render();
       this.audio.click();
       this.setState(target);

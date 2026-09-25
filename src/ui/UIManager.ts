@@ -196,7 +196,7 @@ export class UIManager {
     } catch { /* ignore */ }
   }
 
-  hideLoading(): void {
+  hideLoading(onComplete?: () => void): void {
     try {
       const l = el('loading');
       l.style.transition = 'opacity .3s ease';
@@ -204,11 +204,14 @@ export class UIManager {
       window.setTimeout(() => {
         l.style.display = 'none';
         try {
-          const worldGround = document.documentElement.style.getPropertyValue('--panel-ground-color') || '#848886';
-          document.body.style.backgroundColor = worldGround;
+          // Authoritative brand green across all loading transitions: never gray or fallback
+          document.body.style.backgroundColor = '#7AC74F';
         } catch { /* ignore */ }
+        onComplete?.();
       }, 320);
-    } catch { /* ignore */ }
+    } catch {
+      onComplete?.();
+    }
   }
 
   toast(msg: string, ms = 2600): void {

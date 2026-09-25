@@ -33,6 +33,20 @@ export class SaveManager {
         stats: { ...base.stats, ...(parsed.stats ?? {}) },
         tutorialShown: parsed.tutorialShown ?? base.tutorialShown,
       } as SaveData;
+      merged.dailyMissions = {
+        date: parsed.dailyMissions?.date ?? '',
+        completed: parsed.dailyMissions?.completed ?? {},
+        progress: {
+          steps: parsed.dailyMissions?.progress?.steps ?? 0,
+          coins: parsed.dailyMissions?.progress?.coins ?? 0,
+          nearMiss: parsed.dailyMissions?.progress?.nearMiss ?? 0,
+          runs: parsed.dailyMissions?.progress?.runs ?? 0,
+          maxLane: parsed.dailyMissions?.progress?.maxLane ?? 0,
+          worldLanes: parsed.dailyMissions?.progress?.worldLanes ?? {},
+          cleanRuns: parsed.dailyMissions?.progress?.cleanRuns ?? 0,
+          runsOver30: parsed.dailyMissions?.progress?.runsOver30 ?? 0,
+        },
+      };
       // Auto-unlock any world reached in progression, worldBest, or last checkpoint
       merged.unlockedWorlds ??= ['city'];
       if (!merged.unlockedWorlds.includes('city')) merged.unlockedWorlds.push('city');

@@ -13,6 +13,23 @@ export interface GameStats {
   totalNearMiss: number;
 }
 
+export interface DailyProgressState {
+  steps: number;
+  coins: number;
+  nearMiss: number;
+  runs: number;
+  maxLane: number;
+  worldLanes: Record<string, number>;
+  cleanRuns: number;
+  runsOver30: number;
+}
+
+export interface DailyMissionsSave {
+  date: string;
+  completed: Record<string, boolean>;
+  progress: DailyProgressState;
+}
+
 export interface SaveData {
   version: 1;
   bestScore: number;
@@ -31,10 +48,24 @@ export interface SaveData {
   lastWorldId: string;
   lastLane: number;
   missions: Record<string, boolean>;
+  dailyMissions: DailyMissionsSave;
   achievements: Record<string, boolean>;
   settings: GameSettings;
   stats: GameStats;
   tutorialShown: boolean;
+}
+
+export function defaultDailyProgress(): DailyProgressState {
+  return {
+    steps: 0,
+    coins: 0,
+    nearMiss: 0,
+    runs: 0,
+    maxLane: 0,
+    worldLanes: {},
+    cleanRuns: 0,
+    runsOver30: 0,
+  };
 }
 
 export function defaultSave(): SaveData {
@@ -51,6 +82,11 @@ export function defaultSave(): SaveData {
     lastWorldId: 'city',
     lastLane: 0,
     missions: {},
+    dailyMissions: {
+      date: '',
+      completed: {},
+      progress: defaultDailyProgress(),
+    },
     achievements: {},
     settings: { music: true, sfx: true, reducedMotion: false, quality: 'AUTO' },
     stats: { totalSteps: 0, gamesPlayed: 0, totalNearMiss: 0 },
