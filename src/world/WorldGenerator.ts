@@ -490,7 +490,7 @@ export class WorldGenerator {
     }
     void playerColumnX;
     const builders: PropBuilder[] =
-      world.id === 'beach' ? [(g) => this.trees.palm(g), (g) => this.props.dune(g)] : def.decor;
+      world.id === 'beach' ? [(g: THREE.Group) => this.trees.palm(g), (g: THREE.Group) => this.props.dune(g)] : def.decor;
     const buildChance = world.id === 'city' ? 0.55 : 0.65;
     if (Math.random() > buildChance) return;
     for (const side of [-1, 1]) {
@@ -594,7 +594,7 @@ export class WorldGenerator {
       const dif = this.difficultyFor(index, world, opts.difficulty);
       const kinds = type === 'car' ? world.carKinds : world.truckKinds;
       const exotic = /^(hover|neocar|snowmobile|moto|bus)$/;
-      const pool = index < 40 ? kinds.filter((k) => !exotic.test(k)) : kinds;
+      const pool = index < 40 ? kinds.filter((k: string) => !exotic.test(k)) : kinds;
       const spawnKinds = pool.length ? pool : kinds;
 
       const baseCars = type === 'car' ? 3 : 2;
@@ -673,7 +673,7 @@ export class WorldGenerator {
 
       for (const col of cols) {
         if (lane.occupied[col]) continue;
-        if (lane.coins.some((c) => c.col === col)) continue;
+        if (lane.coins.some((c: { col: number }) => c.col === col)) continue;
 
         // Spawn signature superpower collectible ~30% of the time, else standard gold coin
         const isCollectible = Math.random() < 0.32;
@@ -744,7 +744,7 @@ export class WorldGenerator {
   private enforceLaneSpacing(lane: Lane, minGap: number): void {
     const vs = lane.vehicles;
     if (vs.length < 2) return;
-    vs.sort((a, b) => a.position.x - b.position.x);
+    vs.sort((a: THREE.Group, b: THREE.Group) => a.position.x - b.position.x);
     for (let i = 0; i < vs.length - 1; i++) {
       const v1 = vs[i] as BuiltVehicle;
       const v2 = vs[i + 1] as BuiltVehicle;

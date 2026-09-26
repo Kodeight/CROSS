@@ -302,7 +302,7 @@ export class Game implements LoopDelegate {
       },
     );
     this.missionsScreen = new MissionsScreen(this.save);
-    this.settingsScreen = new SettingsScreen(this.save, this.audio, (what) => this.onSettingsChanged(what));
+    this.settingsScreen = new SettingsScreen(this.save, this.audio, (what: 'music' | 'sfx' | 'motion' | 'quality' | 'difficulty' | 'reset' | 'tutorial') => this.onSettingsChanged(what));
     this.pwaBottomPanel = new PWABottomPanel();
     this.pwaBottomPanel.setPreGameTheme();
 
@@ -573,7 +573,7 @@ export class Game implements LoopDelegate {
         this.manager.stepPlayer(nowMs);
         this.manager.checkCollect();
         this.manager.updateMagnet(nowMs, dt);
-        this.lanes.maintain(this.player.lane, (i) => {
+        this.lanes.maintain(this.player.lane, (i: number) => {
           const def = this.worlds.worldDefForLane(i, this.save.data.selectedWorld);
           const lane = this.generator.makeLane(i, def, {
             playerX: this.player.position.x,
@@ -779,7 +779,7 @@ export class Game implements LoopDelegate {
     const cam = this.camera.camera.position;
     let modalLine = '';
     try {
-      const open = modalScrollInfo().find((m) => m.visible);
+      const open = modalScrollInfo().find((m: { visible: boolean }) => m.visible);
       if (open) {
         modalLine = `\n modal ${open.section} sh ${open.sh} ch ${open.ch} st ${open.st} ovf ${open.overflowY} ta ${open.touchAction} pe ${open.pointerEvents}` +
           `\n  el ${open.elAtCenter}\n  down ${lastPointerDown()}`;
