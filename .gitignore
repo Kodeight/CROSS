@@ -20,6 +20,7 @@ coverage/
 
 # Vercel
 .vercel/
+.vite/
 
 # Environment / editor
 .env
