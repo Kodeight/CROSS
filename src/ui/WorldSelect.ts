@@ -50,13 +50,16 @@ export class WorldSelect {
       }
       card.appendChild(wrap);
       this.canvases.push({ canvas, world: def });
+      const info = document.createElement('div');
+      info.className = 'card-info';
       const h = document.createElement('h3');
       h.textContent = `${w.num} · ${w.name}`;
-      card.appendChild(h);
+      info.appendChild(h);
       const best = this.save.data.worldBest[w.id] ?? 0;
       const p = document.createElement('p');
       p.textContent = selected ? `PLAYING · BEST ${best}` : unlocked ? `BEST ${best}` : `${price} COINS`;
-      card.appendChild(p);
+      info.appendChild(p);
+      card.appendChild(info);
       const b = document.createElement('button');
       b.className = 'btn' + (selected ? '' : ' primary');
       // Card buttons never capture touches: a swipe starting on one must

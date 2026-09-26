@@ -33,6 +33,7 @@ export const CHARACTERS: CharacterConfig[] = [
   { id: 'robot', name: 'ROBOT', cost: 2000, body: 0x7c8da6, accent: 0x38e1ff, beak: 0x1e2430 },
   { id: 'turtle', name: 'TURTLE', cost: 2400, body: 0x27ae60, accent: 0x8e44ad, beak: 0x2ecc71 },
   { id: 'alien', name: 'ALIEN', cost: 3000, body: 0xa55eea, accent: 0x00f0ff, beak: 0x2d3436 },
+  { id: 'dragon', name: 'DRAGON', cost: 3500, body: 0xe74c3c, accent: 0xf1c40f, beak: 0xd35400 },
 ];
 
 export function characterById(id: string): CharacterConfig {

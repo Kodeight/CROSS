@@ -21,6 +21,7 @@ export class HUD {
     private readonly getRunStartLane: () => number = () => 0,
     private readonly getPlayerLane: () => number = () => 0,
     private readonly onActivatePower?: () => void,
+    private readonly onProgressUpdate?: (pct: number) => void,
   ) {
     this.powerBtn = document.getElementById('hud-power');
     this.powerSym = document.getElementById('hud-power-sym');
@@ -82,6 +83,7 @@ export class HUD {
         w.id,
       );
       applyWorldNotch(w, pct);
+      this.onProgressUpdate?.(pct);
     } catch { /* ignore */ }
   }
 }

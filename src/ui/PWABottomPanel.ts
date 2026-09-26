@@ -26,6 +26,8 @@ export class PWABottomPanel {
   private currentState: GameState = GameState.MAIN_MENU;
   private loaderFinished: boolean = false;
   private isStandaloneMobile: boolean = false;
+  private currentProgress: number = 0;
+  private displayedProgress: number = 0;
 
   constructor() {
     this.checkMode();
@@ -152,7 +154,8 @@ export class PWABottomPanel {
 
       case GameState.PLAYING:
       case GameState.WORLD_INTRO:
-      default:
+      default: {
+        const rounded = Math.min(100, Math.max(0, Math.round(this.displayedProgress)));
         this.contentEl.innerHTML = `
           <div class="pwa-panel-controls" aria-hidden="true">
             <svg class="pwa-ctrl-icon pwa-ctrl-left" width="13" height="13" viewBox="0 0 20 20" fill="none">
@@ -167,9 +170,32 @@ export class PWABottomPanel {
             </svg>
           </div>
           <div class="pwa-panel-primary">AVOID TRAFFIC</div>
-          <div class="pwa-panel-secondary">SWIPE TO MOVE</div>
+          <div class="pwa-panel-progress-wrap">
+            <div class="pwa-panel-progress-track">
+              <div class="pwa-panel-progress-bar" style="width: ${rounded}%"></div>
+            </div>
+            <div class="pwa-panel-progress-text">${rounded}% WORLD PROGRESS</div>
+          </div>
         `;
         break;
+      }
+    }
+  }
+
+  public setWorldProgress(targetPct: number): void {
+    const clamped = Math.min(100, Math.max(0, targetPct));
+    this.currentProgress = clamped;
+    // Smoothly step displayedProgress towards currentProgress
+    this.displayedProgress += (this.currentProgress - this.displayedProgress) * 0.3;
+    if (Math.abs(this.currentProgress - this.displayedProgress) < 0.2) {
+      this.displayedProgress = this.currentProgress;
+    }
+    const rounded = Math.min(100, Math.max(0, Math.round(this.displayedProgress)));
+    if (this.currentState === GameState.PLAYING && this.container) {
+      const bar = this.container.querySelector('.pwa-panel-progress-bar') as HTMLElement | null;
+      const txt = this.container.querySelector('.pwa-panel-progress-text') as HTMLElement | null;
+      if (bar) bar.style.width = `${rounded}%`;
+      if (txt) txt.textContent = `${rounded}% WORLD PROGRESS`;
     }
   }
 

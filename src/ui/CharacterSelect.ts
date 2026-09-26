@@ -47,12 +47,15 @@ export class CharacterSelect {
       }
       card.appendChild(wrap);
       this.canvases.push({ canvas, id: c.id });
+      const info = document.createElement('div');
+      info.className = 'card-info';
       const h = document.createElement('h3');
       h.textContent = c.name;
-      card.appendChild(h);
+      info.appendChild(h);
       const p = document.createElement('p');
       p.textContent = selected ? 'SELECTED' : unlocked ? 'UNLOCKED' : `${price} COINS`;
-      card.appendChild(p);
+      info.appendChild(p);
+      card.appendChild(info);
       const b = document.createElement('button');
       b.className = 'btn' + (selected ? '' : ' primary');
       // Card buttons never capture touches: a swipe starting on one must

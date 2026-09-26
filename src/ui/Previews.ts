@@ -3,18 +3,13 @@
  * renderers are created on open and fully disposed on close — one bad
  * preview never breaks the menu. Gameplay uses the single GameRenderer.
  *
- * Context budget: browsers cap simultaneous WebGL contexts (~16 desktop,
- * fewer on mobile). Eagerly creating one renderer per card (19 characters
- * + 20 worlds + main scene ≈ 40) exhausts the budget, the main context
- * gets lost, and Three's next program compile crashes inside
- * gl.shaderSource (createShader returns null on a dead context). So GL
- * contexts are created LAZILY per visible card via IntersectionObserver
- * and released when cards scroll far offscreen — only a handful of
- * contexts ever exist at once. Cards without a live context show their
- * branded placeholder (never an empty dark rectangle).
+ * World Previews: Every world card features a unique, handcrafted 3D miniature
+ * diorama/globe representing that world's living biome with signature props
+ * and custom lighting (no gameplay roads or moving cars).
  */
 import * as THREE from 'three';
 import { CHARACTERS } from '../config/characters.config';
+import type { WorldConfig } from '../config/worlds.config';
 import type { World } from '../world/World';
 import type { CharacterFactory } from '../player/CharacterFactory';
 import type { VehicleFactory } from '../world/environment/VehicleFactory';
@@ -52,9 +47,6 @@ export class CharacterPreviewManager {
   private observer: IntersectionObserver | null = null;
   private rafId = 0;
   private running = false;
-  /** User is actively scrolling the list: freeze rotation (rendering
-   * continues) so a vertical swipe never appears to manipulate the 3D
-   * models. Scroll listeners call hold(). */
   private holdUntil = 0;
 
   constructor(private readonly factory: CharacterFactory, private readonly reducedMotion: () => boolean) {}
@@ -66,13 +58,7 @@ export class CharacterPreviewManager {
   open(canvases: Array<{ canvas: HTMLCanvasElement; id: string }>): void {
     this.close();
     if (canvases.length === 0) return;
-    // Branded placeholder behind every card: the same green ground the 3D
-    // scene uses, so a card never reads as an empty dark rectangle even
-    // before (or without) its GL context.
     for (const entry of canvases) {
-      try {
-        entry.canvas.style.background = '#8ab53f';
-      } catch { /* placeholder is decorative */ }
       this.entries.push({ canvas: entry.canvas, id: entry.id, live: null, failed: false, onLost: null });
     }
     if (typeof IntersectionObserver === 'undefined') {
@@ -132,10 +118,10 @@ export class CharacterPreviewManager {
       dl.position.set(60, -40, 120);
       sc.add(dl);
       const ground = new THREE.Mesh(
-        new THREE.BoxGeometry(150, 150, 6),
-        new THREE.MeshPhongMaterial({ color: 0x8ab53f, flatShading: true }),
+        new THREE.CylinderGeometry(20, 18, 4, 20),
+        new THREE.MeshPhongMaterial({ color: 0x3b82f6, flatShading: true }),
       );
-      ground.position.z = -3;
+      ground.position.z = -2;
       ground.receiveShadow = true;
       sc.add(ground);
       const model = this.factory.create(e.id);
@@ -145,8 +131,8 @@ export class CharacterPreviewManager {
       cam.position.set(95, -125, 95);
       cam.lookAt(0, 0, 26);
       e.live = { renderer, scene: sc, camera: cam, model };
-      // A lost preview context is expendable: drop it and keep the
-      // branded placeholder. The main game context is never touched.
+      e.canvas.classList.add('loaded');
+
       const onLost = (ev: Event) => {
         try {
           ev.preventDefault();
@@ -156,13 +142,10 @@ export class CharacterPreviewManager {
       e.onLost = onLost;
       e.canvas.addEventListener('webglcontextlost', onLost);
     } catch {
-      // No context budget left (or headless): keep the placeholder so the
-      // card stays intentional, and never retry in a hot loop.
       e.failed = true;
     }
   }
 
-  /** Release a far-offscreen card's context back to the browser budget. */
   private release(e: CharEntry): void {
     const it = e.live;
     e.live = null;
@@ -174,6 +157,7 @@ export class CharacterPreviewManager {
     }
     if (!it) return;
     try {
+      e.canvas.classList.remove('loaded');
       it.renderer.dispose();
       it.renderer.forceContextLoss();
     } catch { /* ignore */ }
@@ -194,11 +178,245 @@ export class CharacterPreviewManager {
   }
 }
 
+/** Crafts a stylized 3D miniature diorama island for each world. */
+function createWorldDiorama(world: WorldConfig): THREE.Group {
+  const g = new THREE.Group();
+
+  // Base Pedestal / Diorama Island Disk
+  const baseGeo = new THREE.CylinderGeometry(28, 25, 7, 24);
+  const baseMat = new THREE.MeshPhongMaterial({ color: world.safe, flatShading: true });
+  const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+  baseMesh.position.y = -3.5;
+  baseMesh.receiveShadow = true;
+  g.add(baseMesh);
+
+  const subMat = new THREE.MeshPhongMaterial({ color: world.safeDark, flatShading: true });
+  const subMesh = new THREE.Mesh(new THREE.CylinderGeometry(25, 22, 5, 24), subMat);
+  subMesh.position.y = -9.5;
+  g.add(subMesh);
+
+  const box = (w: number, h: number, d: number, color: number, x: number, y: number, z: number, emissive = 0) => {
+    const m = new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, d),
+      new THREE.MeshPhongMaterial({ color, emissive, flatShading: true })
+    );
+    m.position.set(x, y, z);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    g.add(m);
+    return m;
+  };
+
+  const ball = (r: number, color: number, x: number, y: number, z: number, emissive = 0) => {
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(r, 12, 10),
+      new THREE.MeshPhongMaterial({ color, emissive, flatShading: true })
+    );
+    m.position.set(x, y, z);
+    m.castShadow = true;
+    g.add(m);
+    return m;
+  };
+
+  const id = world.id.toLowerCase();
+
+  switch (id) {
+    case 'city': {
+      box(12, 22, 12, 0x3a404d, -8, 11, -6);
+      box(10, 16, 10, 0x5a6375, 8, 8, 4);
+      box(8, 2, 8, 0xffe9a3, -8, 23, -6, 0x665500);
+      box(2, 12, 2, 0x22242a, 12, 6, -10);
+      ball(3, 0xffc93c, 12, 13, -10, 0x886600);
+      ball(5, 0x4a7c59, -12, 5, 10);
+      box(10, 5, 5, 0xffc93c, 0, 2.5, 10);
+      break;
+    }
+    case 'jungle': {
+      ball(8, 0x2ecc71, -8, 12, -4);
+      ball(6, 0x27ae60, 6, 10, 6);
+      box(3, 14, 3, 0x5a4128, -8, 7, -4);
+      box(2.5, 10, 2.5, 0x5a4128, 6, 5, 6);
+      ball(5, 0x7f8c8d, 10, 2.5, -8);
+      box(20, 0.5, 6, 0x8a6b3f, 0, 0.3, 0);
+      break;
+    }
+    case 'desert': {
+      ball(12, 0xe8c878, -6, 2, -6);
+      ball(9, 0xd9b25e, 8, 2, 4);
+      box(3, 12, 3, 0x27ae60, -10, 6, 8);
+      box(6, 2.5, 2.5, 0x27ae60, -10, 7, 8);
+      ball(4, 0xb08b52, 10, 2, -10);
+      break;
+    }
+    case 'snow': {
+      ball(10, 0xffffff, -8, 2, -6);
+      ball(8, 0xd3ddf0, 8, 2, 6);
+      box(2, 6, 2, 0x5a4128, -8, 3, -6);
+      const pine1 = new THREE.Mesh(new THREE.ConeGeometry(7, 12, 8), new THREE.MeshPhongMaterial({ color: 0x2f6b4f, flatShading: true }));
+      pine1.position.set(-8, 12, -6);
+      g.add(pine1);
+      const pine2 = new THREE.Mesh(new THREE.ConeGeometry(5, 8, 8), new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true }));
+      pine2.position.set(-8, 17, -6);
+      g.add(pine2);
+      ball(4, 0xbcd8ee, 10, 2, 8);
+      break;
+    }
+    case 'neon': {
+      box(4, 18, 4, 0x38e1ff, -10, 9, -6, 0x38e1ff);
+      box(4, 22, 4, 0xff3fb4, 8, 11, 4, 0xff3fb4);
+      box(14, 8, 2, 0x1e2331, 0, 10, -12);
+      box(12, 6, 1, 0x38e1ff, 0, 10, -11, 0x38e1ff);
+      break;
+    }
+    case 'volcano': {
+      const vol = new THREE.Mesh(new THREE.ConeGeometry(16, 16, 12, 1, true), new THREE.MeshPhongMaterial({ color: 0x351912, flatShading: true }));
+      vol.position.set(0, 8, 0);
+      g.add(vol);
+      ball(5, 0xff5252, 0, 15, 0, 0xff2200);
+      ball(3, 0xff7744, -10, 2, 8, 0xff4400);
+      ball(4, 0x4a2820, 10, 2, -8);
+      break;
+    }
+    case 'beach': {
+      const water = new THREE.Mesh(new THREE.CylinderGeometry(32, 32, 2, 24), new THREE.MeshPhongMaterial({ color: 0x3f8efc, transparent: true, opacity: 0.75, flatShading: true }));
+      water.position.y = -3;
+      g.add(water);
+      box(2.5, 14, 2.5, 0x8a5f36, -8, 7, -4);
+      ball(8, 0x2ecc71, -8, 15, -4);
+      box(1, 10, 1, 0x8a5f36, 8, 5, 6);
+      const umb = new THREE.Mesh(new THREE.ConeGeometry(7, 4, 8), new THREE.MeshPhongMaterial({ color: 0xff5252, flatShading: true }));
+      umb.position.set(8, 11, 6);
+      g.add(umb);
+      break;
+    }
+    case 'forest': {
+      ball(9, 0x2e7d32, -8, 10, -6);
+      box(3, 10, 3, 0x5a4128, -8, 5, -6);
+      ball(4, 0xe056fd, 8, 4, 6, 0xaa22dd);
+      box(1.5, 4, 1.5, 0xffffff, 8, 2, 6);
+      box(4, 12, 4, 0x6e5f4d, 0, 6, -10);
+      break;
+    }
+    case 'industrial': {
+      box(8, 24, 8, 0x4b5358, -8, 12, -6);
+      box(6, 2, 6, 0xffa502, -8, 23, -6, 0xaa6600);
+      box(10, 8, 8, 0xd64045, 8, 4, 4);
+      box(24, 0.5, 4, 0xffa502, 0, 0.3, 8);
+      break;
+    }
+    case 'temple': {
+      box(16, 4, 16, 0x6e5f4d, 0, 2, 0);
+      box(10, 4, 10, 0x8c7b65, 0, 6, 0);
+      box(3, 14, 3, 0x8c7b65, -10, 7, -10);
+      box(3, 14, 3, 0x8c7b65, 10, 7, -10);
+      ball(3, 0xffd700, 0, 10, 0, 0x886600);
+      break;
+    }
+    case 'flooded': {
+      const water = new THREE.Mesh(new THREE.CylinderGeometry(32, 32, 3, 24), new THREE.MeshPhongMaterial({ color: 0x365d84, transparent: true, opacity: 0.8, flatShading: true }));
+      water.position.y = -2;
+      g.add(water);
+      box(10, 10, 10, 0x273c75, -6, 2, -6);
+      box(14, 1, 4, 0x6e5636, 6, 0.5, 6);
+      ball(2.5, 0xff5252, 10, 1, -8, 0xaa1111);
+      break;
+    }
+    case 'railway': {
+      box(28, 1, 14, 0x576574, 0, 0.5, 0);
+      for (let i = -10; i <= 10; i += 5) {
+        box(1.5, 1.2, 12, 0x6e5636, i, 0.8, 0);
+      }
+      box(26, 0.8, 1, 0x95a5a6, 0, 1.6, -4);
+      box(26, 0.8, 1, 0x95a5a6, 0, 1.6, 4);
+      box(10, 6, 6, 0xd64045, -2, 4.5, 0);
+      break;
+    }
+    case 'countryside': {
+      box(12, 10, 10, 0xd64045, -6, 5, -4);
+      const roof = new THREE.Mesh(new THREE.ConeGeometry(9, 6, 4), new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true }));
+      roof.rotation.y = Math.PI / 4;
+      roof.position.set(-6, 13, -4);
+      g.add(roof);
+      ball(5, 0xf5cd79, 8, 2.5, 6);
+      box(16, 2, 0.5, 0xffffff, 4, 2, 10);
+      break;
+    }
+    case 'mountain': {
+      const peak = new THREE.Mesh(new THREE.ConeGeometry(14, 20, 8), new THREE.MeshPhongMaterial({ color: 0x4a7f93, flatShading: true }));
+      peak.position.set(-4, 10, -4);
+      g.add(peak);
+      const cap = new THREE.Mesh(new THREE.ConeGeometry(7, 8, 8), new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true }));
+      cap.position.set(-4, 16, -4);
+      g.add(cap);
+      const pine = new THREE.Mesh(new THREE.ConeGeometry(5, 10, 7), new THREE.MeshPhongMaterial({ color: 0x2f6b4f, flatShading: true }));
+      pine.position.set(10, 5, 6);
+      g.add(pine);
+      break;
+    }
+    case 'fantasy': {
+      const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(6, 0), new THREE.MeshPhongMaterial({ color: 0xe056fd, emissive: 0x6611aa, flatShading: true }));
+      crystal.position.set(0, 12, 0);
+      g.add(crystal);
+      ball(7, 0x538d3b, -8, 8, -6);
+      box(2, 8, 2, 0x535c68, -8, 4, -6);
+      ball(5, 0xf8c291, 8, 6, 6);
+      break;
+    }
+    case 'pirate': {
+      box(6, 5, 4, 0x6e5636, -6, 2.5, 4);
+      ball(1, 0xffd700, -6, 5, 4, 0x886600);
+      box(2.5, 12, 2.5, 0x8a5f36, 8, 6, -6);
+      ball(7, 0x2ecc71, 8, 13, -6);
+      box(2, 8, 2, 0x2c3e50, -8, 4, -8);
+      break;
+    }
+    case 'ocean': {
+      const sea = new THREE.Mesh(new THREE.SphereGeometry(26, 16, 14), new THREE.MeshPhongMaterial({ color: 0x0083c7, transparent: true, opacity: 0.82, flatShading: true }));
+      sea.position.y = -10;
+      g.add(sea);
+      ball(4, 0x00d2d3, -6, 2, -4);
+      ball(3, 0xff9ff3, 6, 2, 6);
+      box(8, 4, 4, 0x3fa8d8, 0, 1, 0);
+      break;
+    }
+    case 'moon': {
+      ball(5, 0x576574, -8, 1, -6);
+      ball(4, 0x576574, 8, 1, 6);
+      box(6, 6, 6, 0xced6e0, 0, 3, 0);
+      box(1, 8, 1, 0xffffff, 6, 4, -8);
+      box(3, 2, 0.2, 0xff5252, 7.5, 7, -8);
+      break;
+    }
+    case 'sky': {
+      ball(10, 0xffffff, -10, 0, -4);
+      ball(12, 0xffffff, 0, 1, 0);
+      ball(10, 0xffffff, 10, 0, 4);
+      box(14, 2, 14, 0xced6e0, 0, 4, 0);
+      box(2, 10, 2, 0xffffff, -5, 10, -5);
+      box(2, 10, 2, 0xffffff, 5, 10, -5);
+      box(12, 2, 2, 0xffd700, 0, 15, -5, 0x554400);
+      break;
+    }
+    case 'alien':
+    default: {
+      ball(6, 0xa55eea, -8, 5, -6, 0x4400aa);
+      ball(5, 0x00f0ff, 8, 4, 6, 0x0066aa);
+      const ufo = new THREE.Mesh(new THREE.CylinderGeometry(8, 2, 3, 12), new THREE.MeshPhongMaterial({ color: 0xced6e0, emissive: 0x330066, flatShading: true }));
+      ufo.position.set(0, 14, 0);
+      g.add(ufo);
+      ball(3, 0x00f0ff, 0, 16, 0, 0x00ffff);
+      break;
+    }
+  }
+
+  return g;
+}
+
 interface WorldItem {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
-  vehicles: THREE.Group[];
+  diorama: THREE.Group;
   t: number;
 }
 
@@ -217,7 +435,9 @@ export class WorldPreviewManager {
   private running = false;
   private holdUntil = 0;
 
-  constructor(private readonly vehicles: VehicleFactory, private readonly reducedMotion: () => boolean) {}
+  constructor(private readonly vehicles: VehicleFactory, private readonly reducedMotion: () => boolean) {
+    void this.vehicles;
+  }
 
   hold(ms = 900): void {
     this.holdUntil = performance.now() + ms;
@@ -226,13 +446,7 @@ export class WorldPreviewManager {
   open(canvases: Array<{ canvas: HTMLCanvasElement; world: World }>): void {
     this.close();
     if (canvases.length === 0) return;
-    // Branded placeholder: each card shows its world's own ground color,
-    // so a card never reads as an empty dark (or blue) rectangle even
-    // before (or without) its GL context.
     for (const entry of canvases) {
-      try {
-        entry.canvas.style.background = hex(entry.world.config.safe);
-      } catch { /* placeholder is decorative */ }
       this.entries.push({ canvas: entry.canvas, world: entry.world, live: null, failed: false, onLost: null });
     }
     if (typeof IntersectionObserver === 'undefined') {
@@ -267,9 +481,8 @@ export class WorldPreviewManager {
           if (!it) return;
           it.t += 0.016;
           if (!this.reducedMotion() && !held) {
-            it.vehicles.forEach((v, vi) => {
-              v.position.x = Math.sin(it.t * 0.7 + vi * Math.PI) * 70;
-            });
+            it.diorama.rotation.y += 0.012;
+            it.diorama.position.y = Math.sin(it.t * 1.5) * 1.2;
           }
           it.renderer.render(it.scene, it.camera);
         });
@@ -288,58 +501,28 @@ export class WorldPreviewManager {
       const W = entry.canvas.clientWidth || 220;
       const H = entry.canvas.clientHeight || 150;
       renderer.setSize(W, H, false);
-      renderer.shadowMap.enabled = false;
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
       const world = entry.world.config;
       const sc = new THREE.Scene();
-      // Transparent background over the ground-colored placeholder: the
-      // frame is filled edge-to-edge with the actual map (no sky box).
       sc.background = null;
       sc.add(new THREE.HemisphereLight(world.hemiSky, world.hemiGround, 0.95));
-      const dl = new THREE.DirectionalLight(world.dirColor, 0.75);
-      dl.position.set(60, -40, 120);
+      const dl = new THREE.DirectionalLight(world.dirColor, 0.85);
+      dl.position.set(40, 60, 50);
+      dl.castShadow = true;
       sc.add(dl);
-      const ground = new THREE.Mesh(
-        new THREE.BoxGeometry(230, 150, 6),
-        new THREE.MeshPhongMaterial({ color: world.safe, flatShading: true }),
-      );
-      ground.position.z = -3;
-      ground.receiveShadow = true;
-      sc.add(ground);
-      const road = new THREE.Mesh(
-        new THREE.PlaneGeometry(230, 44),
-        new THREE.MeshPhongMaterial({ color: world.road }),
-      );
-      road.position.set(0, 10, 0.6);
-      sc.add(road);
-      for (let d = -4; d <= 4; d++) {
-        const dash = new THREE.Mesh(
-          new THREE.PlaneGeometry(14, 2.4),
-          new THREE.MeshBasicMaterial({ color: world.marking }),
-        );
-        dash.position.set(d * 26, 10, 0.9);
-        sc.add(dash);
-      }
-      // Two real traffic vehicles from this world's own roster, driving
-      // the road in opposite phases — the card reads as the living map.
-      const kinds = world.carKinds.length ? world.carKinds : ['car'];
-      const vehicles: THREE.Group[] = [];
-      for (let vi = 0; vi < 2; vi++) {
-        const veh = this.vehicles.create(kinds[vi % kinds.length]);
-        veh.position.set(vi === 0 ? -50 : 55, 10, 0);
-        sc.add(veh);
-        vehicles.push(veh);
-      }
-      // Top-down map framing: the 230x150 ground patch slightly overflows
-      // every edge of the frame at any card aspect, so no sky/background
-      // blue can ever show around the map.
-      const cam = new THREE.PerspectiveCamera(35, W / H, 1, 3000);
-      const halfFov = (35 * Math.PI) / 360;
-      const dist = Math.max(150 * 0.94, (230 * 0.94) / (W / H)) / (2 * Math.tan(halfFov));
-      cam.position.set(0, 10, dist);
-      cam.lookAt(0, 10, 0);
-      e.live = { renderer, scene: sc, camera: cam, vehicles, t: Math.random() * 10 };
-      // A lost preview context is expendable: drop it and keep the branded
-      // placeholder. The main game context is never touched.
+
+      const diorama = createWorldDiorama(world);
+      sc.add(diorama);
+
+      const cam = new THREE.PerspectiveCamera(38, W / H, 1, 1000);
+      cam.position.set(0, 42, 62);
+      cam.lookAt(0, 4, 0);
+
+      e.live = { renderer, scene: sc, camera: cam, diorama, t: Math.random() * 10 };
+      e.canvas.classList.add('loaded');
+
       const onLost = (ev: Event) => {
         try {
           ev.preventDefault();
@@ -349,13 +532,10 @@ export class WorldPreviewManager {
       e.onLost = onLost;
       e.canvas.addEventListener('webglcontextlost', onLost);
     } catch {
-      // No context budget left (or headless): keep the placeholder so the
-      // card stays intentional, and never retry in a hot loop.
       e.failed = true;
     }
   }
 
-  /** Release a far-offscreen card's context back to the browser budget. */
   private release(e: WorldEntry): void {
     const it = e.live;
     e.live = null;
@@ -367,6 +547,7 @@ export class WorldPreviewManager {
     }
     if (!it) return;
     try {
+      e.canvas.classList.remove('loaded');
       it.renderer.dispose();
       it.renderer.forceContextLoss();
     } catch { /* ignore */ }

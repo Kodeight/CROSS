@@ -40,6 +40,26 @@ export class LaneTraffic {
         this.recycle(lane, v, sgn, minX, maxX);
       }
     }
+
+    // Post-pass strict separation guarantee: vehicles never overlap
+    if (lane.vehicles.length >= 2) {
+      lane.vehicles.sort((a, b) => (a.position.x - b.position.x) * sgn);
+      for (let i = 0; i < lane.vehicles.length - 1; i++) {
+        const vBehind = lane.vehicles[i];
+        const vAhead = lane.vehicles[i + 1];
+        const minSpace = vehicleHalf(vBehind) + vehicleHalf(vAhead) + TRAFFIC_CONFIG.hardGap;
+        const actualDist = (vAhead.position.x - vBehind.position.x) * sgn;
+        if (actualDist < minSpace) {
+          vBehind.position.x = vAhead.position.x - sgn * minSpace;
+          if (typeof vBehind.userData.cur === 'number' && typeof vAhead.userData.cur === 'number') {
+            if (vBehind.userData.cur > vAhead.userData.cur) {
+              vBehind.userData.cur = vAhead.userData.cur;
+            }
+          }
+        }
+      }
+    }
+
     return braking;
   }
 

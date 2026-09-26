@@ -87,6 +87,7 @@ export class CharacterFactory {
       case 'cat': this.buildCat(g, spec.body, spec.accent); break;
       case 'fox': this.buildFox(g, spec.body); break;
       case 'robot': this.buildRobot(g, spec.body); break;
+      case 'dragon': this.buildDragon(g, spec.body, spec.accent); break;
       case 'chicken':
       default: this.buildChicken(g, spec.body, spec.beak, spec.accent); break;
     }
@@ -232,6 +233,26 @@ export class CharacterFactory {
     g.add(tip);
     g.userData.tipMat = tipMat;
     g.userData.idle = 'mech';
+  }
+
+  private buildDragon(g: THREE.Group, red: number, yellow: number): void {
+    const mb = this.mb;
+    mb.addLegsFeet(g, 0x8a1c1c, 0xf1c40f, 4, 4.5);
+    const body = mb.part(g, 16, 14, 14, red, 0, 0, 12);
+    g.userData.body = body;
+    mb.part(g, 10, 6, 10, yellow, 0, 5, 12);
+    const head = mb.part(g, 12, 11, 10, red, 0, 1, 24);
+    g.userData.head = mb.saveBase(head);
+    mb.spike(g, 2.5, 6, yellow, -4, 0, 31);
+    mb.spike(g, 2.5, 6, yellow, 4, 0, 31);
+    mb.addEyes(g, 4, 6, 25, 1);
+    // Wings
+    const wL = mb.part(g, 10, 2, 8, yellow, -11, -2, 16);
+    wL.rotation.z = 0.4;
+    const wR = mb.part(g, 10, 2, 8, yellow, 11, -2, 16);
+    wR.rotation.z = -0.4;
+    g.userData.wings = [mb.saveBase(wL), mb.saveBase(wR)];
+    g.userData.idle = 'bob';
   }
 
   /** Idle animation shared by gameplay + menu previews. */
