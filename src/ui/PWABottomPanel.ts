@@ -61,11 +61,11 @@ export class PWABottomPanel {
       el.setAttribute('role', 'region');
       el.hidden = true;
 
-      // Soft organic concave scoop with deeper upward reach and subtly flattened center
+      // Soft organic concave scoop proportionally calibrated (20% more compact)
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
-          <svg class="pwa-panel-svg" viewBox="0 0 1000 70" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,0 C 130,2 240,36 370,48 C 435,51 565,51 630,48 C 760,36 870,2 1000,0 L 1000,70 L 0,70 Z" fill="#848886" />
+          <svg class="pwa-panel-svg" viewBox="0 0 1000 56" preserveAspectRatio="none">
+            <path id="pwa-panel-curve-path" d="M 0,0 C 130,2 240,29 370,38 C 435,41 565,41 630,38 C 760,29 870,2 1000,0 L 1000,56 L 0,56 Z" fill="#848886" />
           </svg>
         </div>
         <div class="pwa-panel-body">

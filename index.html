@@ -25,6 +25,30 @@
 <link rel="icon" href="./favicon/favicon.ico">
 <link rel="icon" type="image/svg+xml" href="./favicon/favicon.svg">
 <link rel="manifest" href="/manifest.webmanifest">
+<script>
+(function(){
+  try {
+    var raw = localStorage.getItem('cross_save_v1');
+    var wid = 'city';
+    if (raw) {
+      var d = JSON.parse(raw);
+      if (d && d.selectedWorld) wid = String(d.selectedWorld).toLowerCase();
+    }
+    var colors = {
+      city: '#848886',
+      jungle: '#7a6236',
+      desert: '#dab664',
+      snow: '#d7e2f2',
+      neon: '#2c3244',
+      beach: '#e8d291'
+    };
+    var hex = colors[wid] || '#848886';
+    document.documentElement.style.setProperty('--panel-ground-color', hex);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', hex);
+  } catch(e){}
+})();
+</script>
 <style>
 /* ============================================================
    FIRST-PAINT BOOT LAYER — no JS, no Three.js, no async.
@@ -32,20 +56,20 @@
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{touch-action:manipulation;-webkit-text-size-adjust:none}
-html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#848886}
-html{height:100%}
+html,body{width:100%;height:100%;min-height:100dvh;margin:0;padding:0;overflow:hidden;background:var(--panel-ground-color, #848886)}
+html{height:100%;min-height:100dvh}
 body{
   margin:0;padding:0;font-family:'Nunito',system-ui,sans-serif;color:#1E2430;
-  background:#848886;user-select:none;-webkit-user-select:none;overscroll-behavior:none;
-  position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;
+  background:var(--panel-ground-color, #848886);user-select:none;-webkit-user-select:none;overscroll-behavior:none;
+  position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;min-height:100dvh;
   touch-action:manipulation;
 }
 img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #game{
-  position:fixed;inset:0;left:0;right:0;bottom:0;
-  width:100%;height:100%;
+  position:fixed;inset:0;top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;min-height:100dvh;
   overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
-  background:#848886;
+  background:transparent;
 }
 #game canvas{
   display:block;position:absolute;left:0;bottom:0;
@@ -53,9 +77,9 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   touch-action:none;user-select:none;-webkit-user-select:none;
 }
 
-/* Loading — world ground color full-bleed boot layer (including safe-area and bottom space). */
-#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;min-height:100dvh;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#848886;color:#FFFFFF;gap:8px}
-#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:#848886;pointer-events:none}
+/* Loading — active world ground color full-bleed boot layer (including safe-area and bottom space). */
+#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;min-height:100dvh;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--panel-ground-color, #848886);color:#FFFFFF;gap:8px}
+#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--panel-ground-color, #848886);pointer-events:none}
 .load-logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:#FFFFFF;text-shadow:0 6px 0 rgba(30,36,48,.25);margin:0}
 .load-logo span{color:#FFC93C;text-shadow:0 6px 0 rgba(30,36,48,.25)}
 .load-tag{font-weight:800;color:#FFFFFF;opacity:.92}

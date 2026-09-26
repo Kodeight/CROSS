@@ -110,6 +110,8 @@ export class Game implements LoopDelegate {
     applyCoinTheme();
     this.ui.setLoad(10, 'CROSS!');
     this.save.load();
+    const initialWorld = this.save.data.selectedWorld || 'city';
+    updateWorldEnvironmentTheme(initialWorld);
     this.reducedMotion = this.save.data.settings.reducedMotion || prefersReducedMotion();
 
     // Stage 1 — renderer only. The WebGL screen belongs exclusively to

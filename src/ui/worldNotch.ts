@@ -83,7 +83,15 @@ export function updateWorldEnvironmentTheme(worldId: string): void {
     document.body.style.backgroundColor = colorHex;
     document.documentElement.style.backgroundColor = colorHex;
     const game = document.getElementById('game');
-    if (game) game.style.backgroundColor = colorHex;
+    if (game) game.style.backgroundColor = 'transparent';
+
+    const loading = document.getElementById('loading');
+    if (loading) {
+      loading.style.backgroundColor = colorHex;
+    }
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', colorHex);
   } catch { /* ignore */ }
 }
 
