@@ -110,8 +110,6 @@ export class Game implements LoopDelegate {
     applyCoinTheme();
     this.ui.setLoad(10, 'CROSS!');
     this.save.load();
-    const initialWorld = this.save.data.selectedWorld || 'city';
-    updateWorldEnvironmentTheme(initialWorld);
     this.reducedMotion = this.save.data.settings.reducedMotion || prefersReducedMotion();
 
     // Stage 1 — renderer only. The WebGL screen belongs exclusively to
@@ -189,8 +187,12 @@ export class Game implements LoopDelegate {
         requestAnimationFrame(() => {
           this.setState(GameState.MAIN_MENU);
           this.ui.setTouchControlsVisible(false, this.isTouch);
-          this.pwaBottomPanel?.onLoaderFinished();
-          this.ui.hideLoading();
+          this.ui.hideLoading(() => {
+            const activeWorld = this.worlds?.current?.config?.id || this.save.data.selectedWorld || 'city';
+            updateWorldEnvironmentTheme(activeWorld);
+            this.pwaBottomPanel?.setWorld(activeWorld);
+            this.pwaBottomPanel?.onLoaderFinished();
+          });
         });
       });
       console.log('CROSS! Game initialized');

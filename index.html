@@ -28,25 +28,11 @@
 <script>
 (function(){
   try {
-    var raw = localStorage.getItem('cross_save_v1');
-    var wid = 'city';
-    if (raw) {
-      var d = JSON.parse(raw);
-      if (d && d.selectedWorld) wid = String(d.selectedWorld).toLowerCase();
-    }
     var pistachio = '#FFFDF5';
-    var colors = {
-      city: '#848886',
-      jungle: '#7a6236',
-      desert: '#dab664',
-      snow: '#d7e2f2',
-      neon: '#2c3244',
-      beach: '#e8d291'
-    };
-    var hex = colors[wid] || pistachio;
-    document.documentElement.style.setProperty('--panel-ground-color', hex);
+    document.documentElement.style.setProperty('--brand-pistachio-light', pistachio);
+    document.documentElement.style.setProperty('--panel-ground-color', pistachio);
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', hex);
+    if (meta) meta.setAttribute('content', pistachio);
   } catch(e){}
 })();
 </script>
@@ -57,11 +43,11 @@
    ============================================================ */
 *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{touch-action:manipulation;-webkit-text-size-adjust:none}
-html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--panel-ground-color, #FFFDF5)}
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--brand-pistachio-light, #FFFDF5)}
 html{height:100%}
 body{
   margin:0;padding:0;font-family:'Nunito',system-ui,sans-serif;color:#1E2430;
-  background:var(--panel-ground-color, #FFFDF5);user-select:none;-webkit-user-select:none;overscroll-behavior:none;
+  background:var(--brand-pistachio-light, #FFFDF5);user-select:none;-webkit-user-select:none;overscroll-behavior:none;
   position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;
   touch-action:manipulation;
 }
@@ -78,11 +64,11 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   touch-action:none;user-select:none;-webkit-user-select:none;
 }
 
-/* Loading — light pistachio full-bleed boot layer (including safe-area and bottom space). */
-#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--panel-ground-color, #FFFDF5);color:#1E2430;gap:8px}
-#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--panel-ground-color, #FFFDF5);pointer-events:none}
-.load-logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:#1E2430;text-shadow:0 6px 0 rgba(30,36,48,.15);margin:0}
-.load-logo span{color:#FFC93C;text-shadow:0 6px 0 rgba(30,36,48,.15)}
+/* Loading — exact pistachio-light Coins Counter background with brand green ! */
+#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--brand-pistachio-light, #FFFDF5);color:#1E2430;gap:8px}
+#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--brand-pistachio-light, #FFFDF5);pointer-events:none}
+.load-logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:#1E2430;text-shadow:0 6px 0 rgba(30,36,48,.12);margin:0}
+.load-logo span{color:#7AC74F;text-shadow:0 6px 0 rgba(30,36,48,.12)}
 .load-tag{font-weight:800;color:#1E2430;opacity:.88}
 .load-bar{width:min(320px,70vw);height:14px;background:rgba(30,36,48,.12);border-radius:99px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.08)}
 #load-fill{display:block;height:100%;width:10%;background:#7AC74F;border-radius:99px;transition:width .2s;box-shadow:0 0 8px rgba(122,199,79,.4)}

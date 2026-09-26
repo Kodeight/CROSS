@@ -80,6 +80,10 @@ export function updateWorldEnvironmentTheme(worldId: string): void {
     root.style.setProperty('--ground-g', String(g));
     root.style.setProperty('--ground-b', String(b));
 
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const textColor = luminance > 0.6 ? '#1E2430' : '#FFFFFF';
+    root.style.setProperty('--panel-text-color', textColor);
+
     document.body.style.backgroundColor = colorHex;
     document.documentElement.style.backgroundColor = colorHex;
     const game = document.getElementById('game');

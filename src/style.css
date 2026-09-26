@@ -3,19 +3,21 @@
   --paper:#FFFDF5; --yellow:#FFC93C; --red:#FF5252;
   --asphalt:#3A3F4B; --card-shadow:0 6px 0 rgba(30,36,48,.9);
   --radius:18px;
-  --panel-ground-color:#FFFDF5;
-  --panel-text-color:#1E2430;
+  /* Shared pistachio-light token: exact background of HUD Coins Counter and initial boot surface */
+  --brand-pistachio-light:var(--paper);
+  --panel-ground-color:var(--brand-pistachio-light);
+  --panel-text-color:var(--ink);
   /* Centralized brand accent: every UI accent references these, never a raw blue. */
   --brand:var(--green); --brand-dark:var(--green-dark); --accent:var(--brand);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html{touch-action:manipulation;-webkit-text-size-adjust:none}
-html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--panel-ground-color, #FFFDF5)}
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--brand-pistachio-light, #FFFDF5)}
 html{height:100%}
 body{
   margin:0;padding:0;font-family:'Nunito',system-ui,sans-serif;color:var(--ink);
-  background:var(--panel-ground-color, #FFFDF5);user-select:none;-webkit-user-select:none;overscroll-behavior:none;
+  background:var(--brand-pistachio-light, #FFFDF5);user-select:none;-webkit-user-select:none;overscroll-behavior:none;
   position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;
   touch-action:manipulation;
 }
@@ -32,17 +34,17 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   touch-action:none;user-select:none;-webkit-user-select:none;
 }
 
-/* Loading — light pistachio full-bleed boot layer (including safe-area and bottom space). */
-#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--panel-ground-color, #FFFDF5);color:var(--panel-text-color, #1E2430);gap:8px}
-#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--panel-ground-color, #FFFDF5);pointer-events:none}
-.load-logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:var(--panel-text-color, #1E2430);text-shadow:0 6px 0 rgba(30,36,48,.12);margin:0}
-.load-logo span{color:var(--yellow);text-shadow:0 6px 0 rgba(30,36,48,.12)}
+/* Loading — exact pistachio-light Coins Counter background with brand green ! */
+#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--brand-pistachio-light, #FFFDF5);color:var(--ink);gap:8px}
+#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--brand-pistachio-light, #FFFDF5);pointer-events:none}
+.load-logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:var(--ink);text-shadow:0 6px 0 rgba(30,36,48,.12);margin:0}
+.load-logo span{color:var(--brand);text-shadow:0 6px 0 rgba(30,36,48,.12)}
 .logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:var(--ink);text-shadow:0 6px 0 rgba(30,36,48,.12);margin:0}
 .logo span{color:var(--brand)}
-.load-tag{font-weight:800;color:var(--panel-text-color, #1E2430);opacity:.88}
+.load-tag{font-weight:800;color:var(--ink);opacity:.88}
 .load-bar{width:min(320px,70vw);height:14px;background:rgba(30,36,48,.12);border-radius:99px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.08)}
 #load-fill{display:block;height:100%;width:10%;background:var(--brand);border-radius:99px;transition:width .2s;box-shadow:0 0 8px rgba(122,199,79,.4)}
-.load-text{font-weight:800;font-size:12px;letter-spacing:3px;color:var(--panel-text-color, #1E2430);opacity:.88}
+.load-text{font-weight:800;font-size:12px;letter-spacing:3px;color:var(--ink);opacity:.88}
 
 #webgl-error,#app-error{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:#f5f1e6;padding:20px}
 .err-card{background:#fff;border-radius:var(--radius);padding:28px;max-width:440px;box-shadow:var(--card-shadow)}
@@ -57,7 +59,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 @media (prefers-reduced-motion:reduce){#world-title.wt-animating #world-title-text{animation:worldCinematicReduced 1.5s ease forwards}@keyframes worldCinematicReduced{0%{opacity:0}25%{opacity:1}70%{opacity:1}100%{opacity:0}}}
 
 #hud{position:fixed;top:0;left:0;right:0;z-index:20;pointer-events:none;padding:calc(10px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) 0 calc(14px + env(safe-area-inset-left))}
-#hud-coins{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));display:flex;align-items:center;gap:8px;background:#FFFDF5;color:#1E2430;font-weight:800;padding:10px 14px;border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.25);font-size:clamp(13px,4vw,16px);min-width:0;max-width:36vw;white-space:nowrap;border:1.5px solid rgba(30,36,48,.15)}
+#hud-coins{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(14px + env(safe-area-inset-left));display:flex;align-items:center;gap:8px;background:var(--brand-pistachio-light);color:var(--ink);font-weight:800;padding:10px 14px;border-radius:99px;box-shadow:0 4px 0 rgba(0,0,0,.25);font-size:clamp(13px,4vw,16px);min-width:0;max-width:36vw;white-space:nowrap;border:1.5px solid rgba(30,36,48,.15)}
 #hud-coins-val{min-width:0;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 #btn-pause{position:fixed;top:calc(10px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));width:44px;height:44px;border-radius:14px;border:none;background:#FFFDF5;color:#1E2430;font-weight:900;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(30,36,48,.15)}
 #btn-pause:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
@@ -291,7 +293,7 @@ body.is-touch .mobile-hint{display:inline !important}
   display:flex;
   flex-direction:column;
   width:100%;
-  --panel-ground-color:#FFFDF5;
+  --panel-ground-color:var(--brand-pistachio-light);
   transition:background-color .35s ease;
   will-change:transform;
 }
@@ -301,11 +303,11 @@ body.is-touch .mobile-hint{display:inline !important}
 .pwa-panel-curve-wrap{
   position:relative;
   width:100%;
-  height:clamp(9px, 1.4vh, 14px);
+  height:clamp(22px, 3.5vh, 32px);
   margin-bottom:-1px;
   overflow:visible;
   pointer-events:none;
-  filter:drop-shadow(0 -4px 8px rgba(0,0,0,.1));
+  filter:drop-shadow(0 -4px 8px rgba(0,0,0,.12));
 }
 .pwa-panel-svg{
   display:block;
@@ -316,7 +318,7 @@ body.is-touch .mobile-hint{display:inline !important}
   position:relative;
   background:var(--panel-ground-color);
   width:100%;
-  padding:0 12px calc(3px + env(safe-area-inset-bottom, 6px));
+  padding:4px 16px calc(8px + env(safe-area-inset-bottom, 12px));
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -341,49 +343,49 @@ body.is-touch .mobile-hint{display:inline !important}
   text-align:center;
   user-select:none;
   -webkit-user-select:none;
-  padding-top:1px;
+  padding-top:2px;
 }
 .pwa-panel-controls{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:12px;
-  margin-bottom:2px;
+  gap:16px;
+  margin-bottom:5px;
 }
 .pwa-ctrl-icon{
   display:block;
   color:var(--panel-text-color, #1E2430);
-  opacity:0.9;
+  opacity:0.95;
 }
 .pwa-panel-primary{
   font-family:'Bungee', 'Nunito', system-ui, sans-serif;
-  font-size:clamp(10px, 2.6vw, 12px);
+  font-size:clamp(12px, 3.2vw, 14px);
   font-weight:900;
-  letter-spacing:1.5px;
+  letter-spacing:2px;
   color:var(--panel-text-color, #1E2430);
-  line-height:1.1;
+  line-height:1.15;
 }
 .pwa-panel-secondary{
   font-family:'Nunito', system-ui, sans-serif;
-  font-size:clamp(7.5px, 1.9vw, 9px);
+  font-size:clamp(9px, 2.3vw, 10.5px);
   font-weight:800;
-  letter-spacing:1.2px;
+  letter-spacing:1.6px;
   color:var(--panel-text-color, #1E2430);
-  opacity:0.75;
-  margin-top:1px;
-  line-height:1.1;
+  opacity:0.78;
+  margin-top:3px;
+  line-height:1.15;
 }
 .pwa-panel-indicator{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:5px;
-  margin-top:2px;
+  gap:6px;
+  margin-top:5px;
   font-family:'Bungee', 'Nunito', system-ui, sans-serif;
-  font-size:7px;
-  letter-spacing:1.2px;
+  font-size:8.5px;
+  letter-spacing:1.5px;
   color:var(--panel-text-color, #1E2430);
-  opacity:0.65;
+  opacity:0.7;
 }
 .pwa-swipe-arrows{
   display:block;

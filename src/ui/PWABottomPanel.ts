@@ -61,11 +61,11 @@ export class PWABottomPanel {
       el.setAttribute('role', 'region');
       el.hidden = true;
 
-      // Soft organic concave scoop 50% more compact
+      // Pronounced organic concave scoop with smooth shoulder arches and flat center
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
-          <svg class="pwa-panel-svg" viewBox="0 0 1000 28" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,0 C 130,1 240,14 370,19 C 435,21 565,21 630,19 C 760,14 870,1 1000,0 L 1000,28 L 0,28 Z" fill="#FFFDF5" />
+          <svg class="pwa-panel-svg" viewBox="0 0 1000 80" preserveAspectRatio="none">
+            <path id="pwa-panel-curve-path" d="M 0,0 C 70,2 170,42 300,58 C 410,68 590,68 700,58 C 830,42 930,2 1000,0 L 1000,80 L 0,80 Z" fill="#FFFDF5" />
           </svg>
         </div>
         <div class="pwa-panel-body">
@@ -80,7 +80,9 @@ export class PWABottomPanel {
     this.pathEl = el.querySelector('#pwa-panel-curve-path');
     this.contentEl = el.querySelector('#pwa-panel-content');
     this.renderContent();
-    this.applyWorldColor(this.currentWorldId);
+    if (this.loaderFinished) {
+      this.applyWorldColor(this.currentWorldId);
+    }
   }
 
   private renderContent(): void {
@@ -210,7 +212,9 @@ export class PWABottomPanel {
 
   public setWorld(worldId: string): void {
     this.currentWorldId = worldId;
-    this.applyWorldColor(worldId);
+    if (this.loaderFinished) {
+      this.applyWorldColor(worldId);
+    }
   }
 
   public setState(state: GameState): void {
