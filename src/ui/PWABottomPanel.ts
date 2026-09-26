@@ -61,11 +61,11 @@ export class PWABottomPanel {
       el.setAttribute('role', 'region');
       el.hidden = true;
 
-      // Soft organic concave scoop proportionally calibrated (20% more compact)
+      // Soft organic concave scoop 50% more compact
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
-          <svg class="pwa-panel-svg" viewBox="0 0 1000 56" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,0 C 130,2 240,29 370,38 C 435,41 565,41 630,38 C 760,29 870,2 1000,0 L 1000,56 L 0,56 Z" fill="#848886" />
+          <svg class="pwa-panel-svg" viewBox="0 0 1000 28" preserveAspectRatio="none">
+            <path id="pwa-panel-curve-path" d="M 0,0 C 130,1 240,14 370,19 C 435,21 565,21 630,19 C 760,14 870,1 1000,0 L 1000,28 L 0,28 Z" fill="#FFFDF5" />
           </svg>
         </div>
         <div class="pwa-panel-body">
@@ -222,15 +222,19 @@ export class PWABottomPanel {
   private applyWorldColor(worldId: string): void {
     const [r, g, b] = getFadeColorForWorld(worldId);
     const colorHex = '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const textColor = luminance > 0.6 ? '#1E2430' : '#FFFFFF';
 
     if (this.container) {
       this.container.style.setProperty('--panel-ground-color', colorHex);
+      this.container.style.setProperty('--panel-text-color', textColor);
     }
     if (this.pathEl) {
       this.pathEl.setAttribute('fill', colorHex);
     }
     if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty('--panel-ground-color', colorHex);
+      document.documentElement.style.setProperty('--panel-text-color', textColor);
       document.body.style.backgroundColor = colorHex;
       document.documentElement.style.backgroundColor = colorHex;
     }

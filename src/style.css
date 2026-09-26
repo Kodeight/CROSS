@@ -3,44 +3,46 @@
   --paper:#FFFDF5; --yellow:#FFC93C; --red:#FF5252;
   --asphalt:#3A3F4B; --card-shadow:0 6px 0 rgba(30,36,48,.9);
   --radius:18px;
+  --panel-ground-color:#FFFDF5;
+  --panel-text-color:#1E2430;
   /* Centralized brand accent: every UI accent references these, never a raw blue. */
   --brand:var(--green); --brand-dark:var(--green-dark); --accent:var(--brand);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html{touch-action:manipulation;-webkit-text-size-adjust:none}
-html,body{width:100%;height:100%;min-height:100dvh;margin:0;padding:0;overflow:hidden;background:var(--panel-ground-color, #848886)}
-html{height:100%;min-height:100dvh}
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:var(--panel-ground-color, #FFFDF5)}
+html{height:100%}
 body{
   margin:0;padding:0;font-family:'Nunito',system-ui,sans-serif;color:var(--ink);
-  background:var(--panel-ground-color, #848886);user-select:none;-webkit-user-select:none;overscroll-behavior:none;
-  position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;min-height:100dvh;
+  background:var(--panel-ground-color, #FFFDF5);user-select:none;-webkit-user-select:none;overscroll-behavior:none;
+  position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;
   touch-action:manipulation;
 }
 img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 #game{
   position:fixed;inset:0;top:0;left:0;right:0;bottom:0;
-  width:100%;height:100%;min-height:100dvh;
+  width:100%;height:100%;
   overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;
   background:transparent;
 }
 #game canvas{
-  display:block;position:absolute;left:0;bottom:0;
+  display:block;position:absolute;left:0;top:0;bottom:0;right:0;
   width:100%;height:100%;
   touch-action:none;user-select:none;-webkit-user-select:none;
 }
 
-/* Loading — world ground tone full-bleed boot layer (including safe-area and bottom space). */
-#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;min-height:100dvh;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--panel-ground-color, #848886);color:#FFFFFF;gap:8px}
-#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--panel-ground-color, #848886);pointer-events:none}
-.load-logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:#FFFFFF;text-shadow:0 6px 0 rgba(30,36,48,.25);margin:0}
-.load-logo span{color:var(--yellow);text-shadow:0 6px 0 rgba(30,36,48,.25)}
+/* Loading — light pistachio full-bleed boot layer (including safe-area and bottom space). */
+#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--panel-ground-color, #FFFDF5);color:var(--panel-text-color, #1E2430);gap:8px}
+#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--panel-ground-color, #FFFDF5);pointer-events:none}
+.load-logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:var(--panel-text-color, #1E2430);text-shadow:0 6px 0 rgba(30,36,48,.12);margin:0}
+.load-logo span{color:var(--yellow);text-shadow:0 6px 0 rgba(30,36,48,.12)}
 .logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:var(--ink);text-shadow:0 6px 0 rgba(30,36,48,.12);margin:0}
 .logo span{color:var(--brand)}
-.load-tag{font-weight:800;color:#FFFFFF;opacity:.92}
-.load-bar{width:min(320px,70vw);height:14px;background:rgba(30,36,48,.22);border-radius:99px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.15)}
-#load-fill{display:block;height:100%;width:10%;background:#FFFFFF;border-radius:99px;transition:width .2s;box-shadow:0 0 8px rgba(255,255,255,.5)}
-.load-text{font-weight:800;font-size:12px;letter-spacing:3px;color:#FFFFFF;opacity:.88}
+.load-tag{font-weight:800;color:var(--panel-text-color, #1E2430);opacity:.88}
+.load-bar{width:min(320px,70vw);height:14px;background:rgba(30,36,48,.12);border-radius:99px;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.08)}
+#load-fill{display:block;height:100%;width:10%;background:var(--brand);border-radius:99px;transition:width .2s;box-shadow:0 0 8px rgba(122,199,79,.4)}
+.load-text{font-weight:800;font-size:12px;letter-spacing:3px;color:var(--panel-text-color, #1E2430);opacity:.88}
 
 #webgl-error,#app-error{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:#f5f1e6;padding:20px}
 .err-card{background:#fff;border-radius:var(--radius);padding:28px;max-width:440px;box-shadow:var(--card-shadow)}
@@ -289,7 +291,7 @@ body.is-touch .mobile-hint{display:inline !important}
   display:flex;
   flex-direction:column;
   width:100%;
-  --panel-ground-color:#848886;
+  --panel-ground-color:#FFFDF5;
   transition:background-color .35s ease;
   will-change:transform;
 }
@@ -299,11 +301,11 @@ body.is-touch .mobile-hint{display:inline !important}
 .pwa-panel-curve-wrap{
   position:relative;
   width:100%;
-  height:clamp(18px, 2.7vh, 26px);
+  height:clamp(9px, 1.4vh, 14px);
   margin-bottom:-1px;
   overflow:visible;
   pointer-events:none;
-  filter:drop-shadow(0 -4px 8px rgba(0,0,0,.15));
+  filter:drop-shadow(0 -4px 8px rgba(0,0,0,.1));
 }
 .pwa-panel-svg{
   display:block;
@@ -314,7 +316,7 @@ body.is-touch .mobile-hint{display:inline !important}
   position:relative;
   background:var(--panel-ground-color);
   width:100%;
-  padding:1px 16px calc(6px + env(safe-area-inset-bottom, 11px));
+  padding:0 12px calc(3px + env(safe-area-inset-bottom, 6px));
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -339,47 +341,49 @@ body.is-touch .mobile-hint{display:inline !important}
   text-align:center;
   user-select:none;
   -webkit-user-select:none;
-  padding-top:2px;
+  padding-top:1px;
 }
 .pwa-panel-controls{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:16px;
-  margin-bottom:3px;
+  gap:12px;
+  margin-bottom:2px;
 }
 .pwa-ctrl-icon{
   display:block;
-  color:#FFFFFF;
-  opacity:0.95;
+  color:var(--panel-text-color, #1E2430);
+  opacity:0.9;
 }
 .pwa-panel-primary{
   font-family:'Bungee', 'Nunito', system-ui, sans-serif;
-  font-size:clamp(11.5px, 3vw, 13.5px);
+  font-size:clamp(10px, 2.6vw, 12px);
   font-weight:900;
-  letter-spacing:1.8px;
-  color:#FFFFFF;
-  line-height:1.15;
+  letter-spacing:1.5px;
+  color:var(--panel-text-color, #1E2430);
+  line-height:1.1;
 }
 .pwa-panel-secondary{
   font-family:'Nunito', system-ui, sans-serif;
-  font-size:clamp(8.5px, 2.1vw, 10px);
+  font-size:clamp(7.5px, 1.9vw, 9px);
   font-weight:800;
-  letter-spacing:1.5px;
-  color:rgba(255, 255, 255, 0.72);
+  letter-spacing:1.2px;
+  color:var(--panel-text-color, #1E2430);
+  opacity:0.75;
   margin-top:1px;
-  line-height:1.15;
+  line-height:1.1;
 }
 .pwa-panel-indicator{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:6px;
-  margin-top:3px;
+  gap:5px;
+  margin-top:2px;
   font-family:'Bungee', 'Nunito', system-ui, sans-serif;
-  font-size:8px;
-  letter-spacing:1.4px;
-  color:rgba(255, 255, 255, 0.6);
+  font-size:7px;
+  letter-spacing:1.2px;
+  color:var(--panel-text-color, #1E2430);
+  opacity:0.65;
 }
 .pwa-swipe-arrows{
   display:block;
