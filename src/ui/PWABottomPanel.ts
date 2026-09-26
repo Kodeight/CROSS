@@ -210,16 +210,33 @@ export class PWABottomPanel {
     this.updateVisibility();
   }
 
+  public setPreGameTheme(): void {
+    if (this.container) {
+      this.container.style.setProperty('--panel-ground-color', '#FFFDF5');
+      this.container.style.setProperty('--panel-text-color', '#1E2430');
+    }
+    if (this.pathEl) {
+      this.pathEl.setAttribute('fill', '#FFFDF5');
+    }
+  }
+
   public setWorld(worldId: string): void {
     this.currentWorldId = worldId;
-    if (this.loaderFinished) {
+    if (this.currentState === GameState.PLAYING || this.currentState === GameState.WORLD_INTRO) {
       this.applyWorldColor(worldId);
+    } else {
+      this.setPreGameTheme();
     }
   }
 
   public setState(state: GameState): void {
     this.currentState = state;
     this.renderContent();
+    if (state === GameState.PLAYING || state === GameState.WORLD_INTRO) {
+      this.applyWorldColor(this.currentWorldId);
+    } else {
+      this.setPreGameTheme();
+    }
     this.updateVisibility();
   }
 
@@ -246,7 +263,11 @@ export class PWABottomPanel {
 
   public onLoaderFinished(): void {
     this.loaderFinished = true;
-    this.applyWorldColor(this.currentWorldId);
+    if (this.currentState === GameState.PLAYING || this.currentState === GameState.WORLD_INTRO) {
+      this.applyWorldColor(this.currentWorldId);
+    } else {
+      this.setPreGameTheme();
+    }
     this.updateVisibility();
   }
 

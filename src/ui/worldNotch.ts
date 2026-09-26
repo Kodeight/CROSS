@@ -68,6 +68,30 @@ export function worldCompletionPct(
 let transitionTimer: number | null = null;
 let lastNotchWorld: string | null = null;
 
+export const PISTACHIO_LIGHT = '#FFFDF5';
+
+/** Sets the pre-game pistachio theme across document, theme-color, and UI */
+export function setPreGameTheme(): void {
+  try {
+    const root = document.documentElement;
+    root.style.setProperty('--panel-ground-color', PISTACHIO_LIGHT);
+    root.style.setProperty('--panel-text-color', '#1E2430');
+
+    document.body.style.backgroundColor = PISTACHIO_LIGHT;
+    document.documentElement.style.backgroundColor = PISTACHIO_LIGHT;
+    const game = document.getElementById('game');
+    if (game) game.style.backgroundColor = 'transparent';
+
+    const loading = document.getElementById('loading');
+    if (loading) {
+      loading.style.backgroundColor = PISTACHIO_LIGHT;
+    }
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', PISTACHIO_LIGHT);
+  } catch { /* ignore */ }
+}
+
 /** Sets the world environment color on document root as compositor fallback. */
 export function updateWorldEnvironmentTheme(worldId: string): void {
   try {

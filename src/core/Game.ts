@@ -47,7 +47,7 @@ import { modalScrollInfo, installPointerProbe, lastPointerDown } from '../utils/
 import { installViewportDebug } from '../utils/ViewportDebug';
 import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
-import { showWorldTransition, updateWorldEnvironmentTheme } from '../ui/worldNotch';
+import { showWorldTransition, updateWorldEnvironmentTheme, setPreGameTheme } from '../ui/worldNotch';
 import { registerPWA } from '../pwa';
 import { PWABottomPanel } from '../ui/PWABottomPanel';
 
@@ -188,9 +188,8 @@ export class Game implements LoopDelegate {
           this.setState(GameState.MAIN_MENU);
           this.ui.setTouchControlsVisible(false, this.isTouch);
           this.ui.hideLoading(() => {
-            const activeWorld = this.worlds?.current?.config?.id || this.save.data.selectedWorld || 'city';
-            updateWorldEnvironmentTheme(activeWorld);
-            this.pwaBottomPanel?.setWorld(activeWorld);
+            setPreGameTheme();
+            this.pwaBottomPanel?.setPreGameTheme();
             this.pwaBottomPanel?.onLoaderFinished();
           });
         });
@@ -292,15 +291,13 @@ export class Game implements LoopDelegate {
         this.worlds.setCurrent(w);
         this.lighting.setWorld(w.config, true);
         this.lanes.setWorldTheme(w.config.safeDark);
-        this.pwaBottomPanel?.setWorld(w.config.id);
         this.hud.update();
-        showWorldTransition(w.config);
       },
     );
     this.missionsScreen = new MissionsScreen(this.save);
     this.settingsScreen = new SettingsScreen(this.save, this.audio, (what) => this.onSettingsChanged(what));
     this.pwaBottomPanel = new PWABottomPanel();
-    this.pwaBottomPanel.setWorld(this.worlds.current.config.id);
+    this.pwaBottomPanel.setPreGameTheme();
 
     const worldName = this.worlds.current.config.name;
     // Initial showcase buffer behind the menu: full city section with the
@@ -323,8 +320,7 @@ export class Game implements LoopDelegate {
     this.lighting.setWorld(w, true);
     this.lanes.setWorldTheme(w.safeDark);
     this.camera.snapToPlayer(this.player.position);
-    updateWorldEnvironmentTheme(w.id);
-    showWorldTransition(w);
+    setPreGameTheme();
 
     window.addEventListener('resize', () => this.onViewportChange());
     window.addEventListener('orientationchange', () => {
@@ -425,8 +421,14 @@ export class Game implements LoopDelegate {
     this.controller.setEnabled(s === GameState.PLAYING);
     this.ui.setTouchControlsVisible(s === GameState.PLAYING || s === GameState.WORLD_INTRO, this.isTouch);
     this.pwaBottomPanel?.setState(s);
-    if (this.worlds?.current?.config) {
-      this.pwaBottomPanel?.setWorld(this.worlds.current.config.id);
+    if (s === GameState.PLAYING || s === GameState.WORLD_INTRO) {
+      if (this.worlds?.current?.config) {
+        updateWorldEnvironmentTheme(this.worlds.current.config.id);
+        this.pwaBottomPanel?.setWorld(this.worlds.current.config.id);
+      }
+    } else {
+      setPreGameTheme();
+      this.pwaBottomPanel?.setPreGameTheme();
     }
     if (s === GameState.MAIN_MENU) {
       this.menu.render();
