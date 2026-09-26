@@ -98,17 +98,17 @@ export class GameRenderer {
     try {
       const canvas = this.renderer.domElement;
       canvas.style.position = 'absolute';
-      canvas.style.bottom = '0';
+      canvas.style.top = '0';
       canvas.style.left = '0';
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
 
       if (this.container) {
         this.container.style.position = 'fixed';
-        this.container.style.bottom = '0';
+        this.container.style.top = '0';
         this.container.style.left = '0';
-        this.container.style.width = `${width}px`;
-        this.container.style.height = `${height}px`;
+        this.container.style.width = '100%';
+        this.container.style.height = '100%';
       }
     } catch { /* stylesheet covers */ }
   }

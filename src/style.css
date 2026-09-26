@@ -115,7 +115,13 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 body.is-touch .desktop-hint{display:none !important}
 body.is-touch .mobile-hint{display:inline !important}
 
-.panel-screen{position:fixed;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(30,36,48,.75)}
+/* ============================================================
+   MODAL / MENU OVERLAYS
+   TEMPORARILY DISABLED
+   TODO: RESTORE AFTER PWA VIEWPORT ROOT-CAUSE FIX
+   Original: background:rgba(30,36,48,.75);
+   ============================================================ */
+.panel-screen{position:fixed;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;padding:16px;background:transparent}
 .panel{background:#FFFDF5;border-radius:22px;padding:20px;width:min(520px,calc(100vw - 32px));max-height:88vh;overflow:auto;overflow-x:hidden;box-shadow:var(--card-shadow);border:2px solid rgba(30,36,48,.1)}
 /* Masked scroll panels: outer panel clips (overflow hidden + radius), the
    inner scroll container does the actual scrolling so the scrollbar can
@@ -249,7 +255,13 @@ body.is-touch .mobile-hint{display:inline !important}
   .panel-scroll::-webkit-scrollbar{display:none}
 }
 
-#gameover{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(30,36,48,.75)}
+/* ============================================================
+   GAME OVER OVERLAY
+   TEMPORARILY DISABLED
+   TODO: RESTORE AFTER PWA VIEWPORT ROOT-CAUSE FIX
+   Original: background:rgba(30,36,48,.75);
+   ============================================================ */
+#gameover{position:fixed;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;padding:18px;background:transparent}
 .over-card{background:#FFFDF5;border-radius:24px;padding:24px;width:min(400px,calc(100vw - 36px));text-align:center;box-shadow:var(--card-shadow);border:2px solid rgba(30,36,48,.1)}
 .over-card h2{font-family:'Bungee';margin:0}
 #new-best{background:var(--yellow);font-family:'Bungee';border-radius:10px;padding:6px;margin:10px 0}

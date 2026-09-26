@@ -303,8 +303,9 @@ body.is-touch .mobile-hint{display:inline !important}
   </div>
 </section>
 
-<!-- Tutorial overlay -->
-<div id="tutorial" hidden style="position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(30,36,48,.6);pointer-events:auto">
+<!-- Tutorial overlay (dimming overlay temporarily disabled) -->
+<!-- TEMPORARILY DISABLED -- TODO: RESTORE AFTER PWA VIEWPORT ROOT-CAUSE FIX (Original: background:rgba(30,36,48,.6)) -->
+<div id="tutorial" hidden style="position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;background:transparent;pointer-events:auto">
   <div id="tutorial-text" style="font-family:'Bungee';font-size:clamp(28px,7vw,48px);color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.5);text-align:center;padding:0 20px"></div>
   <div id="tutorial-gesture" style="margin-top:20px;font-size:clamp(36px,8vw,56px);animation:gestureBounce 1.2s ease-in-out infinite"></div>
 </div>
