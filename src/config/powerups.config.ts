@@ -1,6 +1,6 @@
 /**
  * Power-up system definitions.
- * Real, working active gameplay abilities with HUD indicator, sound, duration, and cooldowns.
+ * Real, working active gameplay abilities with HUD indicator, sound, duration, and visual FX.
  */
 
 export type PowerUpType =
@@ -12,7 +12,8 @@ export type PowerUpType =
   | 'ghost'
   | 'fire_shield'
   | 'double_jump'
-  | 'low_gravity';
+  | 'low_gravity'
+  | 'coin_mult';
 
 export interface PowerUpDef {
   id: PowerUpType;
@@ -30,7 +31,7 @@ export const POWER_UPS: Record<PowerUpType, PowerUpDef> = {
     name: 'FORCE SHIELD',
     symbol: '🛡️',
     color: 0x38e1ff,
-    durationMs: 8000,
+    durationMs: 9000,
     cooldownMs: 2000,
     description: 'Survive one vehicle collision or fatal impact.',
   },
@@ -39,7 +40,7 @@ export const POWER_UPS: Record<PowerUpType, PowerUpDef> = {
     name: 'COIN MAGNET',
     symbol: '🧲',
     color: 0xffc93c,
-    durationMs: 7000,
+    durationMs: 8000,
     cooldownMs: 2000,
     description: 'Attracts all nearby coins and collectibles directly to your hero.',
   },
@@ -48,34 +49,34 @@ export const POWER_UPS: Record<PowerUpType, PowerUpDef> = {
     name: 'SONIC DASH',
     symbol: '⚡',
     color: 0x7ac74f,
-    durationMs: 1500,
-    cooldownMs: 3000,
-    description: 'Instant forward dash leaping across 3 lanes with temporary invulnerability.',
+    durationMs: 2000,
+    cooldownMs: 2500,
+    description: 'Instant forward dash leaping across 3 lanes with invulnerability.',
   },
   freeze: {
     id: 'freeze',
     name: 'FROST FREEZE',
     symbol: '❄️',
     color: 0xa8d8ea,
-    durationMs: 4500,
+    durationMs: 5000,
     cooldownMs: 3000,
-    description: 'Freezes all vehicle traffic and hazards in their tracks.',
+    description: 'Freezes all vehicle traffic and hazards solid in their tracks.',
   },
   time_warp: {
     id: 'time_warp',
     name: 'TIME WARP',
     symbol: '⏳',
     color: 0xff3fb4,
-    durationMs: 6000,
+    durationMs: 7000,
     cooldownMs: 2500,
-    description: 'Slows world time by 60% while player hops remain ultra responsive.',
+    description: 'Slows traffic speed by 65% while player hops remain ultra responsive.',
   },
   ghost: {
     id: 'ghost',
     name: 'PHASE GHOST',
     symbol: '👻',
     color: 0xe0e6ed,
-    durationMs: 4000,
+    durationMs: 5500,
     cooldownMs: 2500,
     description: 'Phase shift through vehicles and obstacle trees without taking damage.',
   },
@@ -84,9 +85,9 @@ export const POWER_UPS: Record<PowerUpType, PowerUpDef> = {
     name: 'HEAT SHIELD',
     symbol: '🔥',
     color: 0xff5252,
-    durationMs: 7000,
+    durationMs: 9000,
     cooldownMs: 2000,
-    description: 'Total protection from magma, lava hazards, and vehicle impacts.',
+    description: 'Total protection from magma hazards and vehicle impacts.',
   },
   double_jump: {
     id: 'double_jump',
@@ -99,12 +100,21 @@ export const POWER_UPS: Record<PowerUpType, PowerUpDef> = {
   },
   low_gravity: {
     id: 'low_gravity',
-    name: 'LUNAR GRAVITY',
-    symbol: '🌙',
-    color: 0xdcdde1,
-    durationMs: 7000,
+    name: 'LOW GRAVITY',
+    symbol: '🚀',
+    color: 0xced6e0,
+    durationMs: 8000,
     cooldownMs: 2000,
-    description: 'Soar through the air with extended float time over broad lanes.',
+    description: 'Lunar low-gravity leap carrying your hero across high hazards.',
+  },
+  coin_mult: {
+    id: 'coin_mult',
+    name: '3X GOLD MULTIPLIER',
+    symbol: '💰',
+    color: 0xffd700,
+    durationMs: 10000,
+    cooldownMs: 2000,
+    description: 'Triples all coins and bonus points collected during the run.',
   },
 };
 
@@ -118,4 +128,9 @@ export const POWER_UP_LIST: PowerUpType[] = [
   'fire_shield',
   'double_jump',
   'low_gravity',
+  'coin_mult',
 ];
+
+export function getPowerUpDef(type: PowerUpType | string): PowerUpDef {
+  return POWER_UPS[type as PowerUpType] || POWER_UPS.shield;
+}

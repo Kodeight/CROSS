@@ -1,7 +1,9 @@
 /**
  * World-specific unique collectibles catalogue.
- * Each world has its signature item with distinct visual model, name, and value.
+ * Each world has its signature item with distinct visual model, name, value,
+ * and mapped usable SUPERPOWER ability!
  */
+import type { PowerUpType } from './powerups.config';
 
 export interface WorldCollectibleDef {
   id: string;
@@ -12,8 +14,9 @@ export interface WorldCollectibleDef {
   glowColor: number;
   emissive: number;
   bonusCoins: number;
+  powerType: PowerUpType;
   description: string;
-  shape: 'crystal' | 'cell' | 'scarab' | 'chip' | 'pearl' | 'leaf' | 'gear' | 'coin' | 'seed' | 'crown' | 'map' | 'coral' | 'fragment' | 'plasma';
+  shape: 'crystal' | 'cell' | 'scarab' | 'chip' | 'pearl' | 'leaf' | 'gear' | 'coin' | 'seed' | 'crown' | 'map' | 'coral' | 'fragment' | 'plasma' | 'star' | 'feather';
 }
 
 export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
@@ -26,7 +29,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x00f0ff,
     emissive: 0x006688,
     bonusCoins: 5,
-    description: 'A compact high-voltage power cell discarded by city delivery bots.',
+    powerType: 'dash',
+    description: 'High-voltage power cell granting instant Sonic Dash across lanes.',
     shape: 'cell',
   },
   jungle: {
@@ -38,7 +42,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x27ae60,
     emissive: 0x005522,
     bonusCoins: 6,
-    description: 'An ancient emerald stone glowing with tropical life force.',
+    powerType: 'double_jump',
+    description: 'Ancient emerald stone granting Double Hop to leap over obstacles.',
     shape: 'crystal',
   },
   desert: {
@@ -50,7 +55,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xffd700,
     emissive: 0x554400,
     bonusCoins: 7,
-    description: 'A sacred golden beetle amulet preserved in desert sands.',
+    powerType: 'magnet',
+    description: 'Sacred golden amulet magnetically drawing all nearby coins to your hero.',
     shape: 'scarab',
   },
   snow: {
@@ -62,7 +68,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xdff9fb,
     emissive: 0x224466,
     bonusCoins: 6,
-    description: 'A prism of eternal permafrost that never melts.',
+    powerType: 'freeze',
+    description: 'Permafrost prism that freezes all traffic and hazards in place.',
     shape: 'crystal',
   },
   neon: {
@@ -74,7 +81,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xff70a6,
     emissive: 0x660044,
     bonusCoins: 8,
-    description: 'An encrypted quantum memory unit loaded with cyber secrets.',
+    powerType: 'time_warp',
+    description: 'Quantum memory chip that slows world traffic by 65%.',
     shape: 'chip',
   },
   volcano: {
@@ -86,7 +94,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xff793f,
     emissive: 0x771100,
     bonusCoins: 9,
-    description: 'Solidified obsidian crust pulsating with active subterranean heat.',
+    powerType: 'fire_shield',
+    description: 'Obsidian core creating a Heat Shield that absorbs collision damage.',
     shape: 'crystal',
   },
   beach: {
@@ -98,7 +107,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xfaf0e6,
     emissive: 0x443333,
     bonusCoins: 6,
-    description: 'An iridescent luminous pearl washed ashore from the coral reef.',
+    powerType: 'shield',
+    description: 'Iridescent pearl creating a Force Shield barrier against traffic.',
     shape: 'pearl',
   },
   forest: {
@@ -110,7 +120,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x2ed573,
     emissive: 0x004422,
     bonusCoins: 7,
-    description: 'A phosphorescent leaf blessed by woodland spirits.',
+    powerType: 'ghost',
+    description: 'Phosphorescent woodland leaf enabling Phase Ghost mode through cars.',
     shape: 'leaf',
   },
   industrial: {
@@ -122,7 +133,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xe67e22,
     emissive: 0x442200,
     bonusCoins: 7,
-    description: 'Precision industrial cog salvaged from automated assembly lines.',
+    powerType: 'magnet',
+    description: 'Industrial cog emitting magnetic field pulling coins directly to you.',
     shape: 'gear',
   },
   temple: {
@@ -134,7 +146,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xbe2edd,
     emissive: 0x440055,
     bonusCoins: 8,
-    description: 'A carved stone coin engraved with temple guardian wards.',
+    powerType: 'time_warp',
+    description: 'Guardian ward coin slowing world time flow for easy dodging.',
     shape: 'coin',
   },
   flooded: {
@@ -146,7 +159,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x48dbfb,
     emissive: 0x003344,
     bonusCoins: 7,
-    description: 'Pure crystallized tidal water condensed under submerged ruins.',
+    powerType: 'freeze',
+    description: 'Tidal crystal that freezes road traffic and boat hazards solid.',
     shape: 'crystal',
   },
   railway: {
@@ -158,7 +172,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xe55039,
     emissive: 0x442211,
     bonusCoins: 8,
-    description: 'An antique conductor token granting passage through mountain tunnels.',
+    powerType: 'dash',
+    description: 'Conductor token granting high-speed Sonic Dash across rail lines.',
     shape: 'coin',
   },
   countryside: {
@@ -170,7 +185,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x38ada9,
     emissive: 0x113311,
     bonusCoins: 6,
-    description: 'A miraculously fertile seed that glows under sunlight.',
+    powerType: 'magnet',
+    description: 'Luminous agrarian seed pulling all gold coins to your hero.',
     shape: 'seed',
   },
   mountain: {
@@ -182,7 +198,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x60a3bc,
     emissive: 0x112233,
     bonusCoins: 8,
-    description: 'High-altitude crystalline shard forged amidst freezing gale winds.',
+    powerType: 'double_jump',
+    description: 'Alpine quartz allowing mighty leaps over rocks and vehicles.',
     shape: 'crystal',
   },
   fantasy: {
@@ -194,7 +211,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xe77f67,
     emissive: 0x552211,
     bonusCoins: 10,
-    description: 'A miniature jewel-encrusted coronet lost during castle defense.',
+    powerType: 'shield',
+    description: 'Royal enchanted coronet shielding the hero from fatal strikes.',
     shape: 'crown',
   },
   pirate: {
@@ -206,7 +224,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x82589f,
     emissive: 0x331144,
     bonusCoins: 9,
-    description: 'A parchment chart marking buried treasure chests across the archipelago.',
+    powerType: 'dash',
+    description: 'Ancient treasure chart powering a rapid sprint past cannon carts.',
     shape: 'map',
   },
   ocean: {
@@ -218,7 +237,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xff4757,
     emissive: 0x551122,
     bonusCoins: 8,
-    description: 'Living branch of bioluminescent deep sea reef.',
+    powerType: 'freeze',
+    description: 'Deep sea living coral instantly freezing moving obstacles.',
     shape: 'coral',
   },
   moon: {
@@ -230,7 +250,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0xf1f2f6,
     emissive: 0x2f3542,
     bonusCoins: 10,
-    description: 'An exotic moon rock sample containing traces of zero-gravity helium.',
+    powerType: 'low_gravity',
+    description: 'Zero-gravity lunar rock granting soaring multi-lane leaps.',
     shape: 'fragment',
   },
   sky: {
@@ -242,7 +263,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x1e90ff,
     emissive: 0x002266,
     bonusCoins: 10,
-    description: 'A floating crystalline shard suspended by skyward thermals.',
+    powerType: 'time_warp',
+    description: 'High-altitude aether shard slowing down aerial and ground traffic.',
     shape: 'crystal',
   },
   alien: {
@@ -254,7 +276,8 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
     glowColor: 0x8854d0,
     emissive: 0x381768,
     bonusCoins: 12,
-    description: 'A pulsing extraterrestrial singularity capable of bending spacetime.',
+    powerType: 'ghost',
+    description: 'Alien singularity allowing phase shifting directly through UFOs.',
     shape: 'plasma',
   },
 };

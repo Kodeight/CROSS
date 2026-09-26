@@ -1,8 +1,8 @@
 /**
  * Gameplay owner: run lifecycle, collision (PLAYER+VEHICLE), coins,
- * near-miss, world transitions, ambient weather. Traffic-vs-traffic lives
- * in TrafficManager; UI lives in UIManager — this class talks via callbacks
- * and the event bus.
+ * superpower collectibles, near-miss, world transitions, ambient weather.
+ * Traffic-vs-traffic lives in TrafficManager; UI lives in UIManager —
+ * this class coordinates systems via callbacks and the event bus.
  */
 import { GAME_CONFIG } from '../config/game.config';
 import type { EventBus } from '../core/EventBus';
@@ -17,7 +17,10 @@ import type { CoinSystem } from './CoinSystem';
 import type { MissionSystem } from './MissionSystem';
 import type { ProgressionSystem } from './ProgressionSystem';
 import type { ParticleSystem } from './Particles';
+import type { PowerUpSystem } from './PowerUpSystem';
 import type { Lighting } from '../renderer/Lighting';
+import { collectibleForWorld } from '../config/collectibles.config';
+import { getPowerUpDef } from '../config/powerups.config';
 import { vibrate } from '../utils/DeviceUtils';
 
 export interface RunCallbacks {
@@ -53,6 +56,7 @@ export class GameManager {
     private readonly traffic: TrafficManager,
     private readonly score: ScoreSystem,
     private readonly coins: CoinSystem,
+    private readonly powerups: PowerUpSystem,
     private readonly missions: MissionSystem,
     private readonly progression: ProgressionSystem,
     private readonly particles: ParticleSystem,
@@ -95,26 +99,20 @@ export class GameManager {
       }
     }
     this.coins.reset();
+    this.powerups.reset();
     this.runNear = 0;
     this.runSteps = 0;
     this.dying = false;
     this.shake = 0;
     this.eventActive = null;
     rebuildPlayerMesh();
-    // Order matters: generate the full initial buffer FIRST, then place
-    // the player inside it (never at the world edge), so the first frame
-    // is already a complete composed world.
+
     this.lanes.clear();
-    // Pre-place the player so generation-time fairness uses a live position.
     this.player.reset(startLane, center);
-    // Generate a generous initial buffer so the camera (elevated,
-    // top-down) never sees ungenerated world/blue areas on launch.
-    // Lanes below zero are safe field: the camera sees behind
-    // the player, so retreating or intro cameras still show ample ground.
+
     const initialBuffer = startLane + 200;
     for (let i = startLane - 45; i <= initialBuffer; i++) makeLane(i);
-    // Prefer a calm field lane at/just behind the start point with a free
-    // center cell — safe spawn for fresh runs and resumed journeys alike.
+
     let spawn = startLane;
     for (let l = startLane; l >= Math.max(0, startLane - 12); l--) {
       const ln = this.lanes.laneAt(l);
@@ -166,50 +164,166 @@ export class GameManager {
   }
 
   /**
-   * Coin pickup via real 3D world-space distance — never column matching
-   * alone. Scans the player's lane plus neighbours so a coin is collected
-   * the moment the player physically touches it (works mid-hop, on
-   * desktop and mobile, with no tapping required). Safe to call every
-   * frame: only nearby lanes are scanned and taken coins are skipped.
+   * Superpower & coin pickup via real 3D world-space proximity.
+   * Scans player's lane plus neighbours for seamless pickups.
    */
   checkCollect(): void {
     const px = this.player.position.x;
     const py = this.player.position.y;
     const pz = this.player.position.z;
     const laneH = GAME_CONFIG.positionWidth * GAME_CONFIG.zoom;
-    const pickupR = 44;
+    const pickupR = 48;
+    const wid = this.worlds.current.config.id;
+    const isMult = this.powerups.isCoinMultActive();
+
     for (const lane of this.lanes.lanes) {
-      if (!lane.coins.length) continue;
       const laneY = lane.mesh.position.y;
-      if (Math.abs(laneY - py) > laneH) continue;
-      for (const c of lane.coins) {
-        if (c.taken) continue;
-        const wx = c.mesh.position.x;
-        const wy = laneY + c.mesh.position.y;
-        const wz = c.mesh.position.z;
-        const dx = wx - px;
-        const dy = wy - py;
-        const dz = wz - pz;
-        if (dx * dx + dy * dy > pickupR * pickupR) continue;
-        if (Math.abs(dz) > 70) continue;
-        c.taken = true;
-        this.coins.beginCollect(c.mesh);
-        this.coins.collect();
-        this.missions.onCoin();
-        this.score.addBonus(1);
-        this.audio.coin();
-        vibrate(10);
-        this.particles.burst(px, py, 30, 0xffc93c, 8, 200, 0.6, 300, this.lowQuality);
-        this.bus.emit('coinCollected');
-        this.cb.onHud();
-        this.cb.onCoin();
-        const msgs = this.missions.check(this.score.maxLane, this.runNear, this.worlds.current.config.id, this.coins.runCoins);
-        for (const m of msgs) {
-          this.cb.onToast(m);
+      if (Math.abs(laneY - py) > laneH * 1.5) continue;
+
+      // 1. Regular gold coins
+      if (lane.coins && lane.coins.length) {
+        for (const c of lane.coins) {
+          if (c.taken) continue;
+          const wx = c.mesh.position.x;
+          const wy = laneY + c.mesh.position.y;
+          const wz = c.mesh.position.z;
+          const dx = wx - px;
+          const dy = wy - py;
+          const dz = wz - pz;
+          if (dx * dx + dy * dy > pickupR * pickupR) continue;
+          if (Math.abs(dz) > 75) continue;
+
+          c.taken = true;
+          this.coins.beginCollect(c.mesh);
+          const add = isMult ? 3 : 1;
+          for (let k = 0; k < add; k++) this.coins.collect();
+          this.missions.onCoin();
+          this.score.addBonus(add);
+          this.audio.coin();
+          vibrate(10);
+          this.particles.burst(px, py, 30, 0xffc93c, 8, 200, 0.6, 300, this.lowQuality);
+          this.bus.emit('coinCollected');
+          this.cb.onHud();
+          this.cb.onCoin();
+        }
+      }
+
+      // 2. Signature World Collectibles with active SUPERPOWERS!
+      if (lane.collectibles && lane.collectibles.length) {
+        for (const col of lane.collectibles) {
+          if (col.taken) continue;
+          const wx = col.mesh.position.x;
+          const wy = laneY + col.mesh.position.y;
+          const wz = col.mesh.position.z;
+          const dx = wx - px;
+          const dy = wy - py;
+          const dz = wz - pz;
+          if (dx * dx + dy * dy > pickupR * pickupR * 1.25) continue;
+          if (Math.abs(dz) > 85) continue;
+
+          col.taken = true;
+          this.coins.beginCollect(col.mesh);
+
+          const colDef = collectibleForWorld(lane.worldId || wid);
+          const bonus = (isMult ? col.bonusCoins * 3 : col.bonusCoins) || 5;
+          for (let k = 0; k < bonus; k++) this.coins.collect();
+          this.score.addBonus(bonus * 2);
+
+          // Activate usable superpower ability!
+          this.powerups.collect(colDef.powerType, true);
+          const pDef = getPowerUpDef(colDef.powerType);
+
           this.audio.unlock();
+          this.audio.fanfare();
+          vibrate([30, 50, 30]);
+
+          // Visual explosion in collectible's signature glow color
+          this.particles.burst(px, py, 45, colDef.glowColor, 12, 340, 0.85, 450, this.lowQuality);
+
+          // Instant dramatic in-game toast feedback
+          this.cb.onToast(`${pDef.symbol} ${pDef.name} ACTIVATED! (+${bonus} COINS)`);
+          this.cb.onHud();
+          this.cb.onCoin();
+
+          // If Dash power was collected, trigger immediate forward leap
+          if (colDef.powerType === 'dash') {
+            this.triggerSonicDash();
+          }
         }
       }
     }
+  }
+
+  /** Magnet ability: draws all nearby coins and collectibles directly toward player */
+  updateMagnet(now: number, dtMs: number): void {
+    if (!this.powerups.isMagnetActive()) return;
+    const px = this.player.position.x;
+    const py = this.player.position.y;
+    const pullRadius = 380;
+    const pullSpeed = (380 * dtMs) / 1000;
+
+    for (const lane of this.lanes.lanes) {
+      const laneY = lane.mesh.position.y;
+      if (Math.abs(laneY - py) > pullRadius) continue;
+
+      if (lane.coins) {
+        for (const c of lane.coins) {
+          if (c.taken) continue;
+          const wx = c.mesh.position.x;
+          const wy = laneY + c.mesh.position.y;
+          const dx = px - wx;
+          const dy = py - wy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < pullRadius && dist > 1) {
+            c.mesh.position.x += (dx / dist) * pullSpeed;
+            c.mesh.position.y += (dy / dist) * pullSpeed;
+            if (dist < 40) {
+              c.taken = true;
+              this.coins.beginCollect(c.mesh);
+              this.coins.collect();
+              this.audio.coin();
+              this.score.addBonus(1);
+              this.cb.onHud();
+            }
+          }
+        }
+      }
+
+      if (lane.collectibles) {
+        for (const col of lane.collectibles) {
+          if (col.taken) continue;
+          const wx = col.mesh.position.x;
+          const wy = laneY + col.mesh.position.y;
+          const dx = px - wx;
+          const dy = py - wy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < pullRadius && dist > 1) {
+            col.mesh.position.x += (dx / dist) * pullSpeed;
+            col.mesh.position.y += (dy / dist) * pullSpeed;
+            if (dist < 40) {
+              this.checkCollect();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /** Sonic Dash ability: instantly propels the player forward 3 safe lanes */
+  triggerSonicDash(): void {
+    try {
+      const startLane = this.player.lane;
+      const targetLane = startLane + 3;
+      this.player.lane = targetLane;
+      this.player.group.position.y = this.player.laneToY(targetLane);
+      this.score.reachLane(targetLane);
+      this.checkWorldTransition();
+      this.particles.burst(
+        this.player.position.x, this.player.position.y, 40,
+        0x7ac74f, 16, 400, 1.0, 500, this.lowQuality,
+      );
+      this.cb.onHud();
+    } catch { /* ignore */ }
   }
 
   nearMiss(): void {
@@ -233,22 +347,46 @@ export class GameManager {
     this.bus.emit('nearMiss');
   }
 
-  /** PLAYER+VEHICLE collision — forgiving hitbox, plus near-miss tracking. */
+  /** PLAYER+VEHICLE collision — checks for Ghost invulnerability and Shield absorption */
   collisionCheck(slowMo: (ms: number, scale: number) => void): void {
     const lane = this.lanes.laneAt(this.player.lane);
     if (!lane || (lane.type !== 'car' && lane.type !== 'truck')) return;
     if (this.player.position.z > 10 * GAME_CONFIG.zoom) return;
+
+    // 1. Ghost superpower: phase directly through traffic without harm
+    if (this.powerups.isGhostActive()) {
+      return;
+    }
+
     const pxMin = this.player.position.x - this.player.halfWidth();
     const pxMax = this.player.position.x + this.player.halfWidth();
+
     for (const v of lane.vehicles) {
       const len = (v.userData.length as number | undefined) ?? 60;
       const half = ((len * GAME_CONFIG.zoom) / 2) * 0.82;
       const vMin = v.position.x - half;
       const vMax = v.position.x + half;
+
       if (pxMax > vMin && pxMin < vMax) {
+        // 2. Shield superpower: absorbs fatal collision!
+        if (this.powerups.absorbCollision()) {
+          this.shake = 8;
+          this.audio.bump();
+          vibrate([30, 60]);
+          this.particles.burst(
+            this.player.position.x, this.player.position.y, 35,
+            0x38e1ff, 12, 280, 0.7, 300, this.lowQuality,
+          );
+          this.cb.onToast('🛡️ FORCE SHIELD ABSORBED IMPACT!');
+          this.cb.onHud();
+          return;
+        }
+
+        // Fatal collision
         this.onDeath();
         return;
       }
+
       const dx = v.position.x - this.player.position.x;
       const nearDist = half + 11 * GAME_CONFIG.zoom + 34 * GAME_CONFIG.zoom;
       const prev = v.userData.prevDx as number | null | undefined;
@@ -282,8 +420,6 @@ export class GameManager {
     this.dying = false;
     this.player.dying = false;
     const worldId = this.worlds.current.config.id;
-    // Death checkpoint: PLAY AGAIN returns to THIS world, near the death
-    // spot (newRun backs off + re-validates safety).
     this.save.data.lastWorldId = worldId;
     this.save.data.lastLane = this.player.lane;
     const newBest = this.progression.recordRun(this.score.score, worldId, this.player.lane);
@@ -305,17 +441,11 @@ export class GameManager {
   }
 
   checkWorldTransition(): void {
-    // Active world follows the player's FEET, not the frontier: stepping
-    // back into a previous stretch switches environment, HUD and lighting
-    // back to that world. Score/progress (maxLane) is untouched.
     const w = this.worlds.worldForLane(this.player.lane, this.save.data.selectedWorld);
     const wFrontier = this.worlds.worldForLane(this.score.maxLane, this.save.data.selectedWorld);
-    // Journey checkpoint: quitting mid-run and pressing PLAY resumes near
-    // here (newRun backs off + re-validates safety — never the exact spot).
     this.save.data.lastWorldId = w.id;
     this.save.data.lastLane = this.player.lane;
 
-    // Automatically unlock any new map reached through progression
     if (this.progression.unlockWorldByProgression(w.id)) {
       this.cb.onToast(`${w.name} map unlocked in store!`);
       this.audio.unlock();
@@ -331,12 +461,8 @@ export class GameManager {
       this.lighting.setWorld(w, false);
       this.lanes.setWorldTheme(w.safeDark);
       this.cb.onWorldIntro(w.name, `CROSS! WORLD ${w.num}`);
-      // §15 — reactive world change: HUD notch updates from the same state.
       this.bus.emit('worldLoaded', { previousWorldId: prevId, currentWorldId: w.id });
       this.cb.onHud();
-      // World best = furthest lane reached WHILE IN this world. Crossing
-      // forward, that is the frontier; stepping back, it is the feet —
-      // never a lane from another world's stretch.
       const pos = this.player.lane < this.score.maxLane ? this.player.lane : this.score.maxLane;
       const best = this.save.data.worldBest[w.id] ?? 0;
       if (pos > best) {
@@ -347,11 +473,8 @@ export class GameManager {
       const best = this.save.data.worldBest[w.id] ?? 0;
       if (this.score.maxLane > best) {
         this.save.data.worldBest[w.id] = this.score.maxLane;
-        // Persist stretch progress immediately: quitting mid-stretch must
-        // not lose the notch progress earned so far.
         this.save.save();
       }
-      // Keep notch progress live as the player pushes through the stretch.
       this.cb.onHud();
     }
   }

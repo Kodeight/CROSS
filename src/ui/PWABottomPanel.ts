@@ -188,46 +188,24 @@ export class PWABottomPanel {
 
   public setWorld(worldId: string): void {
     this.currentWorldId = worldId;
-    if (this.loaderFinished && (this.currentState === GameState.PLAYING || this.currentState === GameState.WORLD_INTRO)) {
-      this.applyWorldColor(worldId);
-    } else {
-      this.setPreGameTheme();
-    }
+    this.setPreGameTheme();
   }
 
   public setState(state: GameState): void {
     this.currentState = state;
     this.renderContent();
-    if (this.loaderFinished && (state === GameState.PLAYING || state === GameState.WORLD_INTRO)) {
-      this.applyWorldColor(this.currentWorldId);
-    } else {
-      this.setPreGameTheme();
-    }
+    this.setPreGameTheme();
     this.updateVisibility();
   }
 
-  public applyWorldColor(worldId: string): void {
-    const [r, g, b] = getFadeColorForWorld(worldId);
-    const hex = `rgb(${r}, ${g}, ${b})`;
-    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    const text = lum > 0.5 ? '#1E2430' : '#FFFFFF';
-
-    if (this.container) {
-      this.container.style.setProperty('--panel-ground-color', hex);
-      this.container.style.setProperty('--panel-text-color', text);
-    }
-    if (this.pathEl) {
-      this.pathEl.setAttribute('fill', hex);
-    }
+  public applyWorldColor(_worldId: string): void {
+    // Keep consistent light pistachio color (#FFFDF5) across all worlds and states
+    this.setPreGameTheme();
   }
 
   public onLoaderFinished(): void {
     this.loaderFinished = true;
-    if (this.currentState === GameState.PLAYING || this.currentState === GameState.WORLD_INTRO) {
-      this.applyWorldColor(this.currentWorldId);
-    } else {
-      this.setPreGameTheme();
-    }
+    this.setPreGameTheme();
     this.updateVisibility();
   }
 

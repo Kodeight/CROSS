@@ -33,6 +33,7 @@ import { CoinSystem } from '../gameplay/CoinSystem';
 import { MissionSystem } from '../gameplay/MissionSystem';
 import { ProgressionSystem } from '../gameplay/ProgressionSystem';
 import { ParticleSystem } from '../gameplay/Particles';
+import { PowerUpSystem } from '../gameplay/PowerUpSystem';
 import { GameManager } from '../gameplay/GameManager';
 import { UIManager } from '../ui/UIManager';
 import { HUD } from '../ui/HUD';
@@ -77,6 +78,7 @@ export class Game implements LoopDelegate {
   private traffic!: TrafficManager;
   private score = new ScoreSystem();
   private coins = new CoinSystem();
+  private powerups!: PowerUpSystem;
   private missions!: MissionSystem;
   private progression!: ProgressionSystem;
   private particles!: ParticleSystem;
@@ -233,10 +235,11 @@ export class Game implements LoopDelegate {
     this.missions = new MissionSystem(this.save, this.bus);
     this.progression = new ProgressionSystem(this.save, this.bus);
     this.particles = new ParticleSystem(scene, this.assets);
+    this.powerups = new PowerUpSystem(this.bus, this.audio, () => this.hud?.update());
 
     this.manager = new GameManager(
       this.bus, this.save, this.audio, this.player, this.lanes, this.worlds,
-      this.traffic, this.score, this.coins, this.missions, this.progression,
+      this.traffic, this.score, this.coins, this.powerups, this.missions, this.progression,
       this.particles, this.lighting,
       {
         onHud: () => {
@@ -266,20 +269,23 @@ export class Game implements LoopDelegate {
       () => this.togglePause(),
       (lane, col) => this.lanes.laneAt(lane)?.occupied[col] === true,
       (lane, col) => this.lanes.laneAt(lane)?.jumpable[col] === true,
+      () => this.activateSuperpower(),
     );
     this.input.bind();
 
     this.hud = new HUD(
       this.save,
+      this.powerups,
       () => this.coins.runCoins,
       () => this.worlds.current.config,
       () => this.score.maxLane,
       () => this.score.startLane,
       () => this.player.lane,
+      () => this.activateSuperpower(),
     );
     this.menu = new MainMenu(this.save);
-    this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion);
-    this.worldPreviews = new WorldPreviewManager(this.assets, vehicles, trees, props, () => this.reducedMotion);
+    this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion, this.renderer);
+    this.worldPreviews = new WorldPreviewManager(this.assets, vehicles, trees, props, () => this.reducedMotion, this.renderer);
     this.charSelect = new CharacterSelect(
       this.save, this.audio, this.progression, this.charPreviews, this.ui,
       () => this.rebuildPlayerMesh(), () => this.menu.render(),
@@ -383,9 +389,22 @@ export class Game implements LoopDelegate {
     const lane = this.generator.makeLane(index, def, {
       playerX: this.player.position.x,
       playerLane: this.player.lane,
+      difficulty: this.save.data.settings.difficulty,
     });
     for (const c of lane.coins) this.coins.track(c.mesh);
+    if (lane.collectibles) {
+      for (const col of lane.collectibles) this.coins.track(col.mesh);
+    }
     this.lanes.add(lane);
+  }
+
+  public activateSuperpower(): void {
+    if (!this.powerups) return;
+    const activated = this.powerups.activate();
+    if (activated && this.powerups.activePower?.id === 'dash') {
+      this.manager.triggerSonicDash();
+    }
+    this.hud?.update();
   }
 
   private rebuildPlayerMesh(): void {
@@ -550,15 +569,25 @@ export class Game implements LoopDelegate {
         this.player.updateIdle(nowMs, this.reducedMotion);
         if (nowMs - this.manager.deathAt > 1000) this.doGameOver();
       } else {
+        this.powerups.update(nowMs);
         this.manager.stepPlayer(nowMs);
         this.manager.checkCollect();
+        this.manager.updateMagnet(nowMs, dt);
         this.lanes.maintain(this.player.lane, (i) => {
           const def = this.worlds.worldDefForLane(i, this.save.data.selectedWorld);
-          const lane = this.generator.makeLane(i, def, { playerX: this.player.position.x, playerLane: this.player.lane });
+          const lane = this.generator.makeLane(i, def, {
+            playerX: this.player.position.x,
+            playerLane: this.player.lane,
+            difficulty: this.save.data.settings.difficulty,
+          });
           for (const c of lane.coins) this.coins.track(c.mesh);
+          if (lane.collectibles) {
+            for (const col of lane.collectibles) this.coins.track(col.mesh);
+          }
           return lane;
         });
-        this.traffic.update(this.lanes.lanes, dt, DEBUG);
+        const timeScale = this.powerups.isFreezeActive() ? 0 : this.powerups.timeScale();
+        this.traffic.update(this.lanes.lanes, dt, DEBUG, timeScale);
         this.particles.update(dt);
         this.coins.update(nowMs, GAME_CONFIG.zoom, dt);
         this.generator.updateWater(nowMs);

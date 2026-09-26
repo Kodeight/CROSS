@@ -1,5 +1,5 @@
 /**
- * §13 — TrafficManager: centralized owner of all active vehicle movement.
+ * TrafficManager: centralized owner of all active vehicle movement.
  * VEHICLE+VEHICLE avoids here; PLAYER+VEHICLE collision stays in GameManager.
  */
 import type { Lane } from '../world/World';
@@ -20,8 +20,8 @@ export class TrafficManager {
     this.audit = { worst: 0, lane: -1, braking: 0 };
   }
 
-  update(lanes: Lane[], dtMs: number, debug: boolean): void {
-    this.controller.update(lanes, dtMs);
+  update(lanes: Lane[], dtMs: number, debug: boolean, timeScale = 1.0): void {
+    this.controller.update(lanes, dtMs, timeScale);
     if (debug && this.audit) {
       this.audit.braking = this.controller.brakingVehicles;
       for (const lane of lanes) {

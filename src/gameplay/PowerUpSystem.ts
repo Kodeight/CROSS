@@ -17,6 +17,7 @@ export class PowerUpSystem {
   readyPower: PowerUpDef | null = null;
   activePower: PowerUpDef | null = null;
   activeEndsAt = 0;
+  activeTotalDuration = 0;
   cooldownEndsAt = 0;
   activeItems: PowerUpItem[] = [];
 
@@ -30,29 +31,45 @@ export class PowerUpSystem {
     this.readyPower = null;
     this.activePower = null;
     this.activeEndsAt = 0;
+    this.activeTotalDuration = 0;
     this.cooldownEndsAt = 0;
     this.activeItems = [];
     this.notifyHud();
   }
 
-  collect(type: PowerUpType): void {
+  collect(type: PowerUpType, autoActivate = true): void {
     const def = POWER_UPS[type];
     if (!def) return;
-    this.readyPower = def;
-    this.audio.coin();
-    this.bus.emit('powerCollected', def);
+    
+    if (autoActivate) {
+      const now = performance.now();
+      this.activePower = def;
+      this.activeTotalDuration = def.durationMs;
+      this.activeEndsAt = now + def.durationMs;
+      this.readyPower = null;
+      this.audio.unlock();
+      this.bus.emit('powerActivated', def);
+    } else {
+      this.readyPower = def;
+      this.audio.coin();
+      this.bus.emit('powerCollected', def);
+    }
     this.notifyHud();
   }
 
   activate(): boolean {
     const now = performance.now();
-    if (!this.readyPower) return false;
+    if (!this.readyPower) {
+      // If no stored ready power, allow reactivating current if available
+      return false;
+    }
     if (now < this.cooldownEndsAt) return false;
 
     this.activePower = this.readyPower;
+    this.activeTotalDuration = this.readyPower.durationMs;
     this.readyPower = null;
     this.activeEndsAt = now + this.activePower.durationMs;
-    this.audio.fanfare();
+    this.audio.unlock();
     this.bus.emit('powerActivated', this.activePower);
     this.notifyHud();
     return true;
@@ -79,8 +96,29 @@ export class PowerUpSystem {
     return this.activePower?.id === 'freeze';
   }
 
+  isMagnetActive(): boolean {
+    return this.activePower?.id === 'magnet';
+  }
+
+  isCoinMultActive(): boolean {
+    return this.activePower?.id === 'coin_mult';
+  }
+
+  isDoubleJumpActive(): boolean {
+    return this.activePower?.id === 'double_jump' || this.activePower?.id === 'low_gravity';
+  }
+
+  isDashActive(): boolean {
+    return this.activePower?.id === 'dash';
+  }
+
   timeScale(): number {
-    return this.activePower?.id === 'time_warp' ? 0.4 : 1.0;
+    return this.activePower?.id === 'time_warp' ? 0.35 : 1.0;
+  }
+
+  getActiveProgress(now: number): number {
+    if (!this.activePower || this.activeEndsAt <= now || this.activeTotalDuration <= 0) return 0;
+    return Math.max(0, Math.min(1, (this.activeEndsAt - now) / this.activeTotalDuration));
   }
 
   update(now: number): void {
@@ -88,8 +126,12 @@ export class PowerUpSystem {
       if (now >= this.activeEndsAt) {
         const ended = this.activePower;
         this.activePower = null;
+        this.activeEndsAt = 0;
         this.cooldownEndsAt = now + (ended.cooldownMs || 1500);
         this.bus.emit('powerEnded');
+        this.notifyHud();
+      } else {
+        // Continuous HUD refresh for progress countdown
         this.notifyHud();
       }
     }

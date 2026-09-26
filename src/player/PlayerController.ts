@@ -1,6 +1,5 @@
 /**
- * §9 — translates normalized InputManager actions into player moves.
- * The gameplay layer never sees keyboard vs touch.
+ * Translates normalized InputManager actions into player moves and superpower triggers.
  */
 import type { GameAction, InputManager } from '../core/Input';
 import type { Player, MoveDir } from './Player';
@@ -14,6 +13,7 @@ export class PlayerController {
     private readonly onPause: () => void,
     private readonly isBlocked?: (lane: number, col: number) => boolean,
     private readonly isJumpable?: (lane: number, col: number) => boolean,
+    private readonly onUsePower?: () => void,
   ) {
     this.input.onAction((a: GameAction) => this.handle(a));
   }
@@ -28,6 +28,10 @@ export class PlayerController {
       return;
     }
     if (!this.enabled) return;
+    if (action === 'USE_POWER') {
+      this.onUsePower?.();
+      return;
+    }
     if (action === 'JUMP') {
       this.player.queueJump(this.isBlocked, this.isJumpable);
       return;
@@ -39,6 +43,7 @@ export class PlayerController {
       MOVE_RIGHT: 'right',
       PAUSE: null,
       JUMP: null,
+      USE_POWER: null,
     };
     const dir = map[action];
     if (dir) this.player.queueMove(dir, 3, this.isBlocked);

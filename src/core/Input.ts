@@ -3,7 +3,7 @@
  * into game actions — gameplay layers never touch raw DOM events.
  */
 
-export type GameAction = 'MOVE_LEFT' | 'MOVE_RIGHT' | 'MOVE_FORWARD' | 'MOVE_BACK' | 'JUMP' | 'PAUSE';
+export type GameAction = 'MOVE_LEFT' | 'MOVE_RIGHT' | 'MOVE_FORWARD' | 'MOVE_BACK' | 'JUMP' | 'PAUSE' | 'USE_POWER';
 
 export class InputManager {
   private actionHandlers: Array<(a: GameAction) => void> = [];
@@ -12,14 +12,10 @@ export class InputManager {
   private touchStartY = 0;
   private touchStartT = 0;
   private bound = false;
-  // Double-tap jump: a lone tap still steps forward, but deferred briefly
-  // so a second tap can upgrade the gesture to a jump instead.
   private tapTimer = 0;
   private lastTapT = 0;
   private lastTapX = 0;
   private lastTapY = 0;
-  // Modal owns touches starting inside it: gameplay gesture tracking never
-  // starts, so modal swipes/scrolls can never move the player or camera.
   private touchInModal = false;
   private static readonly TAP_MS = 300;
   private static readonly TAP_DIST = 24;
@@ -33,7 +29,7 @@ export class InputManager {
     this.anyKeyHandlers.push(handler);
   }
 
-  private emit(action: GameAction): void {
+  public emit(action: GameAction): void {
     for (const h of this.actionHandlers) {
       try {
         h(action);
@@ -55,11 +51,6 @@ export class InputManager {
     }
   }
 
-  /**
-   * DOM-containment modal boundary: a touch starting inside a modal overlay
-   * (.panel-screen) belongs to the modal — never to gameplay. Uses event
-   * target semantics, never coordinates.
-   */
   private startsInModal(t: EventTarget | null): boolean {
     try {
       return t instanceof Element && !!t.closest('.panel-screen');
@@ -90,22 +81,22 @@ export class InputManager {
         e.preventDefault();
         this.emit('MOVE_BACK');
       } else if (k === ' ' || k === 'Spacebar') {
-        // SPACE = jump. preventDefault so focused buttons don't also click.
         e.preventDefault();
         this.emit('JUMP');
+      } else if (k === 'e' || k === 'E' || k === 'f' || k === 'F' || k === 'q' || k === 'Q') {
+        e.preventDefault();
+        this.emit('USE_POWER');
       } else if (k === 'Escape' || k === 'p' || k === 'P') {
         this.emit('PAUSE');
       }
     });
 
-    // Swipe anywhere on the 3D canvas.
     const game = document.getElementById('game');
     if (game) {
       game.addEventListener(
         'touchstart',
         (e) => {
           if (this.startsInModal(e.target)) {
-            // Modal owns this touch: do not start gameplay swipe detection.
             this.touchInModal = true;
             return;
           }
@@ -128,20 +119,17 @@ export class InputManager {
         const adx = Math.abs(dx);
         const ady = Math.abs(dy);
         const dt = performance.now() - this.touchStartT;
-        if (dt > 900) return; // slow drag: never a swipe nor a tap
+        if (dt > 900) return;
         if (Math.max(adx, ady) >= 24) {
-          // Swipe: immediate directional move, never a tap.
           this.lastTapT = 0;
           if (adx > ady) this.emit(dx > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT');
           else this.emit(dy < 0 ? 'MOVE_FORWARD' : 'MOVE_BACK');
           return;
         }
         if (Math.max(adx, ady) >= 12) {
-          // Deliberate dead zone: not a tap, must not arm double-tap.
           this.lastTapT = 0;
           return;
         }
-        // Tap: single = step forward (deferred); second tap in window = jump.
         const now = performance.now();
         const quick = now - this.lastTapT < InputManager.TAP_MS;
         const near = Math.hypot(t.clientX - this.lastTapX, t.clientY - this.lastTapY) < InputManager.TAP_DIST;
