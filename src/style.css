@@ -30,9 +30,9 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   touch-action:none;user-select:none;-webkit-user-select:none;
 }
 
-/* Loading — brand green full-bleed boot layer (including safe-area and bottom space). */
-#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;min-height:100dvh;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--brand);color:#FFFFFF;gap:8px}
-#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--brand);pointer-events:none}
+/* Loading — world ground tone full-bleed boot layer (including safe-area and bottom space). */
+#loading{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;min-height:100dvh;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--panel-ground-color, #848886);color:#FFFFFF;gap:8px}
+#loading::after{content:'';position:absolute;left:0;right:0;bottom:-150px;height:150px;background:var(--panel-ground-color, #848886);pointer-events:none}
 .load-logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:#FFFFFF;text-shadow:0 6px 0 rgba(30,36,48,.25);margin:0}
 .load-logo span{color:var(--yellow);text-shadow:0 6px 0 rgba(30,36,48,.25)}
 .logo{font-family:'Bungee',cursive;font-size:clamp(56px,12vw,110px);letter-spacing:2px;color:var(--ink);text-shadow:0 6px 0 rgba(30,36,48,.12);margin:0}
