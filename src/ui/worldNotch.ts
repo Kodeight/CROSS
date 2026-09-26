@@ -70,7 +70,7 @@ let lastNotchWorld: string | null = null;
 
 export const PISTACHIO_LIGHT = '#FFFDF5';
 
-/** Sets the pre-game pistachio theme across document, theme-color, and UI */
+/** Sets the pistachio theme across document, theme-color, and UI */
 export function setPreGameTheme(): void {
   try {
     const root = document.documentElement;
@@ -92,34 +92,30 @@ export function setPreGameTheme(): void {
   } catch { /* ignore */ }
 }
 
-/** Sets the world environment color on document root as compositor fallback. */
+/** Sets the world environment color coordinates while keeping the pistachio background & bottom surface */
 export function updateWorldEnvironmentTheme(worldId: string): void {
   try {
     const [r, g, b] = getFadeColorForWorld(worldId);
-    const colorHex = '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
     
     const root = document.documentElement;
-    root.style.setProperty('--panel-ground-color', colorHex);
+    root.style.setProperty('--panel-ground-color', PISTACHIO_LIGHT);
+    root.style.setProperty('--panel-text-color', '#1E2430');
     root.style.setProperty('--ground-r', String(r));
     root.style.setProperty('--ground-g', String(g));
     root.style.setProperty('--ground-b', String(b));
 
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    const textColor = luminance > 0.6 ? '#1E2430' : '#FFFFFF';
-    root.style.setProperty('--panel-text-color', textColor);
-
-    document.body.style.backgroundColor = colorHex;
-    document.documentElement.style.backgroundColor = colorHex;
+    document.body.style.backgroundColor = PISTACHIO_LIGHT;
+    document.documentElement.style.backgroundColor = PISTACHIO_LIGHT;
     const game = document.getElementById('game');
     if (game) game.style.backgroundColor = 'transparent';
 
     const loading = document.getElementById('loading');
     if (loading) {
-      loading.style.backgroundColor = colorHex;
+      loading.style.backgroundColor = PISTACHIO_LIGHT;
     }
 
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', colorHex);
+    if (meta) meta.setAttribute('content', PISTACHIO_LIGHT);
   } catch { /* ignore */ }
 }
 

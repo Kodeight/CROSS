@@ -375,21 +375,6 @@ body.is-touch .mobile-hint{display:inline !important}
   margin-top:3px;
   line-height:1.15;
 }
-.pwa-panel-indicator{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  margin-top:5px;
-  font-family:'Bungee', 'Nunito', system-ui, sans-serif;
-  font-size:8.5px;
-  letter-spacing:1.5px;
-  color:var(--panel-text-color, #1E2430);
-  opacity:0.7;
-}
-.pwa-swipe-arrows{
-  display:block;
-}
 /* In PWA standalone mode, completely suppress touch-controls to avoid duplicate hints */
 @media (display-mode: standalone){
   #touch-controls{
