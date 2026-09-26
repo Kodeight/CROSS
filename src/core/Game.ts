@@ -284,8 +284,8 @@ export class Game implements LoopDelegate {
       () => this.activateSuperpower(),
     );
     this.menu = new MainMenu(this.save);
-    this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion, this.renderer);
-    this.worldPreviews = new WorldPreviewManager(this.assets, vehicles, trees, props, () => this.reducedMotion, this.renderer);
+    this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion);
+    this.worldPreviews = new WorldPreviewManager(vehicles, () => this.reducedMotion);
     this.charSelect = new CharacterSelect(
       this.save, this.audio, this.progression, this.charPreviews, this.ui,
       () => this.rebuildPlayerMesh(), () => this.menu.render(),

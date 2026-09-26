@@ -732,6 +732,8 @@ export class WorldGenerator {
     lane.type = 'field';
     lane.variant = null;
     lane.vehicles = [];
+    lane.coins = [];
+    lane.collectibles = [];
     lane.occupied = {};
     lane.jumpable = {};
     this.consecutiveRoads = 0;
