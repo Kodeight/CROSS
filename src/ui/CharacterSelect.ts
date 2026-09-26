@@ -85,7 +85,13 @@ export class CharacterSelect {
       card.appendChild(b);
       grid.appendChild(card);
     }
-    this.previews.open(this.canvases);
+    // GL contexts are a scarce browser budget: only attach them while this
+    // screen is actually shown. Boot renders the DOM (hidden) without
+    // creating ~19 contexts the player may never open.
+    try {
+      const sec = document.getElementById('chars-screen');
+      if (sec && !sec.hidden) this.previews.open(this.canvases);
+    } catch { /* DOM-only render still succeeds */ }
     // Freeze preview rotation while the user scrolls: a list swipe must
     // never appear to manipulate the 3D models.
     try {

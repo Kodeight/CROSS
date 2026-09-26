@@ -92,7 +92,13 @@ export class WorldSelect {
       card.appendChild(b);
       grid.appendChild(card);
     }
-    this.previews.open(this.canvases);
+    // GL contexts are a scarce browser budget: only attach them while this
+    // screen is actually shown. Boot renders the DOM (hidden) without
+    // creating ~20 contexts the player may never open.
+    try {
+      const sec = document.getElementById('worlds-screen');
+      if (sec && !sec.hidden) this.previews.open(this.canvases);
+    } catch { /* DOM-only render still succeeds */ }
     try {
       const scroller = document.querySelector('#worlds-screen .panel-scroll');
       if (scroller && !(scroller as unknown as { _holdBound?: boolean })._holdBound) {

@@ -52,7 +52,10 @@ export class PWABottomPanel {
       el.id = 'pwa-bottom-panel';
       el.setAttribute('aria-label', 'Gameplay instructions and tips');
       el.setAttribute('role', 'region');
-      el.hidden = true;
+      // Present from the initial page load: the loader (z-index above)
+      // paints over it, and loader removal reveals it with zero layout
+      // shift. Visibility is decided below, never deferred to the loader.
+      el.hidden = false;
 
       // Rounded upper corners curving upward into gameplay area with subtle flat center
       el.innerHTML = `
@@ -74,6 +77,7 @@ export class PWABottomPanel {
     this.contentEl = el.querySelector('#pwa-panel-content');
     this.renderContent();
     this.setPreGameTheme();
+    this.updateVisibility();
   }
 
   private renderContent(): void {
@@ -224,7 +228,10 @@ export class PWABottomPanel {
     if (!this.container) return;
     this.checkMode();
 
-    const shouldDisplay = this.isStandaloneMobile && this.loaderFinished;
+    // Visible from the first frame in standalone mobile: the loader is a
+    // layer above (higher z-index), so revealing never shifts layout.
+    // Desktop browsers never show the panel.
+    const shouldDisplay = this.isStandaloneMobile;
     if (shouldDisplay) {
       this.container.hidden = false;
       this.container.classList.add('visible');

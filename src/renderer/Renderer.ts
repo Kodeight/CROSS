@@ -76,6 +76,21 @@ export class GameRenderer {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
     const inst = new GameRenderer(container, scene, renderer, hemi, dirLight, backLight);
+    // Context-loss resilience: a lost main context makes every later
+    // program compile fail inside gl.shaderSource (createShader returns
+    // null on a dead context). preventDefault() lets the browser restore
+    // the context instead of killing the game; Three re-initializes all
+    // programs/textures automatically on restore.
+    try {
+      renderer.domElement.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        console.warn('CROSS! WebGL context lost — waiting for restore');
+      });
+      renderer.domElement.addEventListener('webglcontextrestored', () => {
+        console.log('CROSS! WebGL context restored');
+        inst.onResize();
+      });
+    } catch { /* listeners are additive robustness only */ }
     inst.onResize();
     console.log('CROSS! WebGL renderer initialized successfully');
     return inst;

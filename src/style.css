@@ -175,7 +175,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .stat{flex:1;background:#eef3e4;border-radius:14px;padding:10px}
 .stat-label{display:block;font-size:11px;letter-spacing:2px;font-weight:800;opacity:.6}
 .stat span:last-child{font-family:'Bungee';font-size:24px}
-.btn{font-family:'Nunito';font-weight:900;border:none;border-radius:14px;padding:12px 14px;background:#e8e4d8;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(30,36,48,.85);font-size:14px;letter-spacing:.5px}
+.btn{font-family:'Nunito';font-weight:900;border:2px solid var(--ink);border-radius:14px;padding:12px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(30,36,48,.85);font-size:14px;letter-spacing:.5px}
 .btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(30,36,48,.85)}
 .btn.primary{background:#7AC74F;color:#fff}
 .btn.big{width:100%;font-family:'Bungee';font-size:26px;padding:14px;text-shadow:0 2px 0 rgba(30,36,48,.25)}
@@ -323,7 +323,7 @@ body.is-touch .mobile-hint{display:inline !important}
 /* Modal header with top-right close: title left, X right, one row. */
 .modal-head{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex:none}
 .modal-head h2{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.modal-x{width:44px;height:44px;flex:none;border:none;border-radius:12px;background:rgba(232,228,216,.6);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 rgba(30,36,48,.85);touch-action:manipulation}
+.modal-x{width:44px;height:44px;flex:none;border:2px solid var(--ink);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 rgba(30,36,48,.85);touch-action:manipulation}
 .modal-x:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(30,36,48,.85)}
 .modal-x svg{display:block}
 
