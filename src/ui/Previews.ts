@@ -198,7 +198,7 @@ interface WorldItem {
   renderer: THREE.WebGLRenderer;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
-  vehicle: THREE.Group;
+  vehicles: THREE.Group[];
   t: number;
 }
 
@@ -226,12 +226,12 @@ export class WorldPreviewManager {
   open(canvases: Array<{ canvas: HTMLCanvasElement; world: World }>): void {
     this.close();
     if (canvases.length === 0) return;
-    // Branded placeholder: each card shows its world's own sky color, so a
-    // card never reads as an empty dark rectangle even before (or without)
-    // its GL context.
+    // Branded placeholder: each card shows its world's own ground color,
+    // so a card never reads as an empty dark (or blue) rectangle even
+    // before (or without) its GL context.
     for (const entry of canvases) {
       try {
-        entry.canvas.style.background = hex(entry.world.config.sky);
+        entry.canvas.style.background = hex(entry.world.config.safe);
       } catch { /* placeholder is decorative */ }
       this.entries.push({ canvas: entry.canvas, world: entry.world, live: null, failed: false, onLost: null });
     }
@@ -262,15 +262,15 @@ export class WorldPreviewManager {
       this.rafId = requestAnimationFrame(loop);
       try {
         const held = performance.now() < this.holdUntil;
-        this.entries.forEach((e, i) => {
+        this.entries.forEach((e) => {
           const it = e.live;
           if (!it) return;
           it.t += 0.016;
           if (!this.reducedMotion() && !held) {
-            it.vehicle.position.x = Math.sin(it.t * 0.7) * 70;
+            it.vehicles.forEach((v, vi) => {
+              v.position.x = Math.sin(it.t * 0.7 + vi * Math.PI) * 70;
+            });
           }
-          it.camera.position.x = 150 + Math.sin((it.t + i) * 0.25) * 14;
-          it.camera.lookAt(0, 0, 5);
           it.renderer.render(it.scene, it.camera);
         });
       } catch { /* ignore */ }
@@ -291,7 +291,9 @@ export class WorldPreviewManager {
       renderer.shadowMap.enabled = false;
       const world = entry.world.config;
       const sc = new THREE.Scene();
-      sc.background = new THREE.Color(world.sky);
+      // Transparent background over the ground-colored placeholder: the
+      // frame is filled edge-to-edge with the actual map (no sky box).
+      sc.background = null;
       sc.add(new THREE.HemisphereLight(world.hemiSky, world.hemiGround, 0.95));
       const dl = new THREE.DirectionalLight(world.dirColor, 0.75);
       dl.position.set(60, -40, 120);
@@ -317,14 +319,25 @@ export class WorldPreviewManager {
         dash.position.set(d * 26, 10, 0.9);
         sc.add(dash);
       }
+      // Two real traffic vehicles from this world's own roster, driving
+      // the road in opposite phases — the card reads as the living map.
       const kinds = world.carKinds.length ? world.carKinds : ['car'];
-      const veh = this.vehicles.create(kinds[0]);
-      veh.position.set(-60, 10, 0);
-      sc.add(veh);
+      const vehicles: THREE.Group[] = [];
+      for (let vi = 0; vi < 2; vi++) {
+        const veh = this.vehicles.create(kinds[vi % kinds.length]);
+        veh.position.set(vi === 0 ? -50 : 55, 10, 0);
+        sc.add(veh);
+        vehicles.push(veh);
+      }
+      // Top-down map framing: the 230x150 ground patch slightly overflows
+      // every edge of the frame at any card aspect, so no sky/background
+      // blue can ever show around the map.
       const cam = new THREE.PerspectiveCamera(35, W / H, 1, 3000);
-      cam.position.set(150, -185, 165);
-      cam.lookAt(0, 0, 5);
-      e.live = { renderer, scene: sc, camera: cam, vehicle: veh, t: Math.random() * 10 };
+      const halfFov = (35 * Math.PI) / 360;
+      const dist = Math.max(150 * 0.94, (230 * 0.94) / (W / H)) / (2 * Math.tan(halfFov));
+      cam.position.set(0, 10, dist);
+      cam.lookAt(0, 10, 0);
+      e.live = { renderer, scene: sc, camera: cam, vehicles, t: Math.random() * 10 };
       // A lost preview context is expendable: drop it and keep the branded
       // placeholder. The main game context is never touched.
       const onLost = (ev: Event) => {

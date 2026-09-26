@@ -139,7 +139,12 @@ class LiquidUIManager {
         el.style.overflowY = 'auto';
         el.style.overflowX = 'hidden';
       }
-      if (opts.press && !this.reduceMotion) {
+      // Press behaviour captures the touch (touch-action:none + pointer
+      // capture), so it must never sit on a scroll surface or its buttons:
+      // a swipe starting there would drag the element instead of scrolling
+      // the list. Opt out per element with data-press="off" (glass stays).
+      const press = opts.press && el.dataset.press !== 'off';
+      if (press && !this.reduceMotion) {
         try {
           const cfg = typeof opts.press === 'object'
             ? { pressScale: opts.press.scale, pressSquish: opts.press.squish }
@@ -210,7 +215,9 @@ class LiquidUIManager {
       this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true, tint: actionTints[key] });
     }
     for (const c of qa('.char-card')) {
-      this.attachOne(c, { preset: 'card', borderRadius: 16, press: true });
+      // No press behaviour on store cards: they are the scroll surface —
+      // a swipe must scroll the list, never drag the card (glass stays).
+      this.attachOne(c, { preset: 'card', borderRadius: 16 });
     }
     for (const m of qa('.mission, .ach')) {
       this.attachOne(m, { preset: 'card', borderRadius: 12 });

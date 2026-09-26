@@ -55,6 +55,9 @@ export class CharacterSelect {
       card.appendChild(p);
       const b = document.createElement('button');
       b.className = 'btn' + (selected ? '' : ' primary');
+      // Card buttons never capture touches: a swipe starting on one must
+      // scroll the list, never drag the button (native :active remains).
+      b.dataset.press = 'off';
       if (selected) {
         b.textContent = 'PLAYING';
         b.disabled = true;
@@ -70,7 +73,7 @@ export class CharacterSelect {
           window.setTimeout(() => card.classList.remove('pop'), 350);
         };
       } else {
-        b.textContent = this.save.data.coins >= price ? (price === 0 ? 'FREE' : 'UNLOCK') : 'LOCKED';
+        b.textContent = price === 0 ? 'FREE' : 'UNLOCK';
         b.disabled = this.save.data.coins < price;
         b.onclick = () => {
           if (this.progression.unlockCharacter(c.id, price)) {
