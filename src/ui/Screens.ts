@@ -223,11 +223,13 @@ export class MissionsScreen {
   }
 }
 
+import { DIFFICULTY_LEVELS, getDifficultySpec, type DifficultyLevel } from '../config/difficulty.config';
+
 export class SettingsScreen {
   constructor(
     private readonly save: SaveManager,
     private readonly audio: AudioManager,
-    private readonly onChanged: (what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset' | 'tutorial') => void,
+    private readonly onChanged: (what: 'music' | 'sfx' | 'motion' | 'quality' | 'difficulty' | 'reset' | 'tutorial') => void,
   ) {}
 
   render(): void {
@@ -243,6 +245,14 @@ export class SettingsScreen {
     set('set-sfx', s.sfx ? 'ON' : 'OFF', String(s.sfx));
     set('set-motion', s.reducedMotion ? 'ON' : 'OFF', String(s.reducedMotion));
     set('set-quality', s.quality.toUpperCase(), 'false');
+
+    const diffLevel = s.difficulty || 'NORMAL';
+    const diffSpec = getDifficultySpec(diffLevel);
+    set('set-difficulty', diffSpec.name, 'false');
+    const exp = document.getElementById('difficulty-explain');
+    if (exp) {
+      exp.textContent = diffSpec.description;
+    }
   }
 
   bind(): void {
@@ -285,6 +295,16 @@ export class SettingsScreen {
       this.render();
       this.audio.click();
       this.onChanged('quality');
+    });
+    on('set-difficulty', () => {
+      const s = this.save.data.settings;
+      const cur = s.difficulty || 'NORMAL';
+      const next = DIFFICULTY_LEVELS[(DIFFICULTY_LEVELS.indexOf(cur) + 1) % DIFFICULTY_LEVELS.length];
+      s.difficulty = next;
+      this.save.save();
+      this.render();
+      this.audio.click();
+      this.onChanged('difficulty');
     });
   }
 }

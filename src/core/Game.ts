@@ -48,6 +48,7 @@ import { installViewportDebug } from '../utils/ViewportDebug';
 import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
 import { showWorldTransition, updateWorldEnvironmentTheme, setPreGameTheme } from '../ui/worldNotch';
+import { getDifficultySpec } from '../config/difficulty.config';
 import { registerPWA } from '../pwa';
 import { PWABottomPanel } from '../ui/PWABottomPanel';
 
@@ -695,7 +696,7 @@ export class Game implements LoopDelegate {
     });
   }
 
-  private onSettingsChanged(what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset' | 'tutorial'): void {
+  private onSettingsChanged(what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset' | 'tutorial' | 'difficulty'): void {
     if (what === 'music') {
       if (this.save.data.settings.music) {
         this.audio.startMusic(this.ui.state === GameState.PLAYING ? 'play' : 'menu');
@@ -707,6 +708,9 @@ export class Game implements LoopDelegate {
       liquidUI.setReducedMotion(this.reducedMotion);
     } else if (what === 'quality') {
       this.applyQuality();
+    } else if (what === 'difficulty') {
+      const spec = getDifficultySpec(this.save.data.settings.difficulty);
+      this.ui.toast(`Difficulty: ${spec.name}`);
     } else if (what === 'reset') {
       this.save.reset();
       this.reducedMotion = false;

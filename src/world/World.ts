@@ -11,6 +11,22 @@ export interface CoinItem {
   taken: boolean;
 }
 
+export interface CollectibleItem {
+  mesh: THREE.Object3D;
+  col: number;
+  id: string;
+  name: string;
+  bonusCoins: number;
+  taken: boolean;
+}
+
+export interface PowerUpItemPlacement {
+  mesh: THREE.Object3D;
+  col: number;
+  powerType: import('../config/powerups.config').PowerUpType;
+  taken: boolean;
+}
+
 export interface Lane {
   index: number;
   type: LaneType;
@@ -20,6 +36,8 @@ export interface Lane {
   mesh: THREE.Group;
   vehicles: THREE.Group[];
   coins: CoinItem[];
+  collectibles?: CollectibleItem[];
+  powerUps?: PowerUpItemPlacement[];
   /**
    * Authoritative gameplay occupancy, registered at chunk generation and
    * visualized by the same pass — the single source movement queries.

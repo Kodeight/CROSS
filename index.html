@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>CROSS! — Don't Get Hit</title>
 <meta name="description" content="Cross as far as you can. Dodge traffic. Collect coins. Beat your best score.">
-<meta name="theme-color" content="#848886">
+<meta name="theme-color" content="#FFFDF5">
 <meta name="application-name" content="CROSS!">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -174,12 +174,16 @@ body.is-touch .mobile-hint{display:inline !important}
   <span id="world-title-text">CITY</span>
 </div>
 
-<!-- HUD — independent zones: LEFT coins, RIGHT settings/pause -->
+<!-- HUD — independent zones: LEFT coins, CENTER power slot, RIGHT pause -->
 <header id="hud" hidden>
   <div id="hud-coins" class="hud-zone hud-left" aria-label="Coins">
     <span class="coin-ico" aria-hidden="true"><span class="coin-ico-face"><span class="coin-ico-core"></span></span></span>
     <span id="hud-coins-val">0</span>
   </div>
+  <button id="hud-power" class="hud-zone hud-power-slot" hidden aria-label="Activate Power">
+    <span id="hud-power-sym">⚡</span>
+    <span id="hud-power-txt">READY</span>
+  </button>
   <button id="btn-pause" class="hud-zone hud-right icon-btn" aria-label="Pause game">
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 5h4v14H7V5zm6 0h4v14h-4V5z"/></svg>
   </button>
@@ -276,6 +280,8 @@ body.is-touch .mobile-hint{display:inline !important}
     <label class="row"><span>Sound FX</span><button id="set-sfx" class="toggle" aria-pressed="true">ON</button></label>
     <label class="row"><span>Reduced motion</span><button id="set-motion" class="toggle" aria-pressed="false">OFF</button></label>
     <label class="row"><span>Quality</span><button id="set-quality" class="toggle">AUTO</button></label>
+    <label class="row"><span>Difficulty</span><button id="set-difficulty" class="toggle">NORMAL</button></label>
+    <p class="settings-explain" id="difficulty-explain">Standard traffic flow and balanced arcade challenge.</p>
     <button id="btn-replay-tutorial" class="btn wide">REPLAY TUTORIAL</button>
     <button id="btn-reset-save" class="btn danger">RESET PROGRESS</button>
     <button class="btn back" data-back>BACK</button>

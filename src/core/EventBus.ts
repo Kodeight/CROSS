@@ -17,7 +17,13 @@ export type GameEventName =
   | 'worldSelected'
   | 'worldUnlocked'
   | 'settingsChanged'
-  | 'nearMiss';
+  | 'nearMiss'
+  | 'powerCollected'
+  | 'powerActivated'
+  | 'powerEnded'
+  | 'worldEventStarted'
+  | 'worldEventEnded'
+  | 'worldEventWarning';
 
 export type EventHandler = (payload?: unknown) => void;
 

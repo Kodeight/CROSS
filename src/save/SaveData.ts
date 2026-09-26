@@ -1,10 +1,13 @@
 /** Versioned save-shape. Never let a broken save crash the game. */
 
+import type { DifficultyLevel } from '../config/difficulty.config';
+
 export interface GameSettings {
   music: boolean;
   sfx: boolean;
   reducedMotion: boolean;
   quality: 'AUTO' | 'LOW' | 'MEDIUM' | 'HIGH';
+  difficulty: DifficultyLevel;
 }
 
 export interface GameStats {
@@ -53,6 +56,8 @@ export interface SaveData {
   settings: GameSettings;
   stats: GameStats;
   tutorialShown: boolean;
+  completedStages: Record<string, number>;
+  discoveredCollectibles: Record<string, number>;
 }
 
 export function defaultDailyProgress(): DailyProgressState {
@@ -88,8 +93,10 @@ export function defaultSave(): SaveData {
       progress: defaultDailyProgress(),
     },
     achievements: {},
-    settings: { music: true, sfx: true, reducedMotion: false, quality: 'AUTO' },
+    settings: { music: true, sfx: true, reducedMotion: false, quality: 'AUTO', difficulty: 'NORMAL' },
     stats: { totalSteps: 0, gamesPlayed: 0, totalNearMiss: 0 },
     tutorialShown: false,
+    completedStages: {},
+    discoveredCollectibles: {},
   };
 }

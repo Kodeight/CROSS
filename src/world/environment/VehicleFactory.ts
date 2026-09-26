@@ -133,6 +133,54 @@ export class VehicleFactory {
         this.headlights(g, len, 10, 10);
         break;
       }
+      case 'train': {
+        this.rbody(g, len * 0.95, 28, 28, 0xd64045, 0, 0, 20);
+        this.box(g, len * 0.35, 26, 12, 0x1e2430, -len * 0.22, 0, 36);
+        this.box(g, 6, 6, 16, 0x3a3f4b, len * 0.28, 0, 36);
+        this.wheel(g, -len * 0.35); this.wheel(g, -len * 0.15); this.wheel(g, len * 0.15); this.wheel(g, len * 0.35);
+        this.box(g, 4, 8, 8, 0xfff6b0, -len * 0.48, 0, 22, 0xffe9a3);
+        break;
+      }
+      case 'tractor': {
+        this.rbody(g, len * 0.6, 26, 18, 0x2ecc71, len * 0.15, 0, 14);
+        this.box(g, len * 0.35, 24, 18, 0xfff3e0, -len * 0.18, 0, 26);
+        this.wheel(g, len * 0.25);
+        // Big back tractor wheel
+        const bg = new THREE.Group();
+        const tire = new THREE.Mesh(this.assets.cylinder('veh-tire-big', 11 * ZOOM, 11 * ZOOM, 14 * ZOOM, 12), this.mat(0x22242a));
+        tire.castShadow = true;
+        bg.add(tire);
+        bg.position.set(-len * 0.25 * ZOOM, 0, 11 * ZOOM);
+        g.add(bg);
+        break;
+      }
+      case 'ufo': {
+        const saucer = new THREE.Mesh(this.assets.cylinder('veh-ufo-disc', 16 * ZOOM, 7 * ZOOM, 6 * ZOOM, 16), this.mat(0x7158e2, 0x331166));
+        saucer.position.set(0, 0, 9 * ZOOM);
+        g.add(saucer);
+        const dome = new THREE.Mesh(this.assets.sphere('veh-ufo-dome', 9 * ZOOM, 12, 8), this.mat(0x38e1ff, 0x114466));
+        dome.position.set(0, 0, 15 * ZOOM);
+        g.add(dome);
+        break;
+      }
+      case 'cart': {
+        this.box(g, len * 0.8, 22, 12, 0x8a5a2b, 0, 0, 12);
+        this.box(g, 4, 26, 4, 0x4a3219, -len * 0.2, 0, 8);
+        this.box(g, 4, 26, 4, 0x4a3219, len * 0.2, 0, 8);
+        break;
+      }
+      case 'boat': {
+        this.rbody(g, len * 0.9, 24, 12, 0xffffff, 0, 0, 7);
+        this.box(g, len * 0.45, 18, 10, 0x3fa8d8, -len * 0.1, 0, 16);
+        break;
+      }
+      case 'miner':
+      case 'rover': {
+        this.rbody(g, len * 0.85, 28, 18, color, 0, 0, 14);
+        this.box(g, len * 0.4, 24, 8, 0xced6e0, len * 0.1, 0, 24);
+        this.wheel(g, -len * 0.32); this.wheel(g, 0); this.wheel(g, len * 0.32);
+        break;
+      }
       default: {
         // car / taxi / hatch / van / neocar fallback: rounded body + glass cabin.
         this.rbody(g, len, 28, bodyH, color, 0, 0, 11);

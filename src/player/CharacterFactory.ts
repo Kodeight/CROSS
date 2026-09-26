@@ -87,8 +87,14 @@ export class CharacterFactory {
       case 'cat': this.buildCat(g, spec.body, spec.accent); break;
       case 'fox': this.buildFox(g, spec.body); break;
       case 'robot': this.buildRobot(g, spec.body); break;
+      case 'penguin': this.buildPenguin(g, spec.body, spec.beak); break;
+      case 'rabbit': this.buildRabbit(g, spec.body, spec.accent); break;
+      case 'turtle': this.buildTurtle(g, spec.body, spec.accent); break;
+      case 'alien': this.buildAlien(g, spec.body, spec.accent); break;
       case 'chicken':
-      default: this.buildChicken(g, spec.body, spec.beak, spec.accent); break;
+      default:
+        this.buildChicken(g, spec.body, spec.beak, spec.accent, spec.hat);
+        break;
     }
     g.userData.charId = spec.id;
     return g;
@@ -98,7 +104,7 @@ export class CharacterFactory {
     return (group.userData.idle as IdleKind) ?? 'bob';
   }
 
-  private buildChicken(g: THREE.Group, white: number, beak: number, accent: number): void {
+  private buildChicken(g: THREE.Group, white: number, beak: number, accent: number, hat?: string): void {
     const mb = this.mb;
     mb.addLegsFeet(g, 0xe08a00, 0xff9f1c, 3.5, 4.5);
     const body = mb.part(g, 16, 14, 14, white, 0, 0, 12);
@@ -116,6 +122,81 @@ export class CharacterFactory {
     mb.part(g, 2.5, 2.5, 4.2, accent, 0, 1.6, 31.2);
     mb.part(g, 2.5, 2.5, 3.5, accent, 0, 4.2, 31);
     mb.addEyes(g, 4, 6, 26, 1);
+
+    if (hat === 'pirate') {
+      mb.part(g, 14, 12, 4, 0x111111, 0, 1, 32);
+      mb.part(g, 4, 4, 3, 0xffffff, 0, 5.5, 32);
+    } else if (hat === 'helmet') {
+      mb.part(g, 14, 14, 12, 0xecf0f1, 0, 1, 25);
+      mb.part(g, 10, 2, 7, 0x3498db, 0, 7, 25, 0x114466);
+    } else if (hat === 'wizard') {
+      mb.spike(g, 7, 14, 0x8e44ad, 0, 1, 33);
+    }
+
+    g.userData.idle = 'bob';
+  }
+
+  private buildPenguin(g: THREE.Group, dark: number, beak: number): void {
+    const mb = this.mb;
+    mb.addLegsFeet(g, 0xe08a00, 0xff9f1c, 3.5, 4.5);
+    const body = mb.part(g, 16, 14, 15, dark, 0, 0, 12);
+    g.userData.body = body;
+    mb.part(g, 10, 2, 12, 0xffffff, 0, 6, 12);
+    const wl = mb.part(g, 2.5, 8, 12, dark, -9, 0, 12);
+    const wr = mb.part(g, 2.5, 8, 12, dark, 9, 0, 12);
+    g.userData.wings = [mb.saveBase(wl), mb.saveBase(wr)];
+    const head = mb.part(g, 12, 11, 10, dark, 0, 1, 24);
+    g.userData.head = mb.saveBase(head);
+    mb.part(g, 5, 5, 4, beak, 0, 7, 22);
+    mb.addEyes(g, 4, 5.5, 25, 1);
+    g.userData.idle = 'bob';
+  }
+
+  private buildRabbit(g: THREE.Group, white: number, pink: number): void {
+    const mb = this.mb;
+    mb.addLegsFeet(g, white, white, 4, 5);
+    const body = mb.part(g, 16, 14, 14, white, 0, 0, 12);
+    g.userData.body = body;
+    const tail = mb.ball(g, 3.5, white, 0, -8, 11);
+    g.userData.tail = tail;
+    const head = mb.part(g, 12, 11, 10, white, 0, 1, 24);
+    g.userData.head = mb.saveBase(head);
+    // Bunny Ears
+    mb.part(g, 3, 3, 14, white, -4, 0, 34);
+    mb.part(g, 1.8, 1.5, 10, pink, -4, 0.8, 34);
+    mb.part(g, 3, 3, 14, white, 4, 0, 34);
+    mb.part(g, 1.8, 1.5, 10, pink, 4, 0.8, 34);
+    mb.part(g, 3, 2, 2, pink, 0, 6.5, 22);
+    mb.addEyes(g, 4, 5.5, 25, 0.9);
+    g.userData.idle = 'bob';
+  }
+
+  private buildTurtle(g: THREE.Group, green: number, shellColor: number): void {
+    const mb = this.mb;
+    mb.addLegsFeet(g, green, green, 5, 4.5);
+    // Shell
+    const body = mb.part(g, 18, 16, 10, shellColor, 0, -1, 12);
+    g.userData.body = body;
+    mb.part(g, 14, 12, 4, 0xe67e22, 0, -1, 17);
+    const head = mb.part(g, 9, 10, 8, green, 0, 8, 13);
+    g.userData.head = mb.saveBase(head);
+    mb.addEyes(g, 3.5, 12, 14, 0.8);
+    g.userData.idle = 'bob';
+  }
+
+  private buildAlien(g: THREE.Group, purple: number, cyan: number): void {
+    const mb = this.mb;
+    mb.addLegsFeet(g, purple, purple, 3.5, 4.5);
+    const body = mb.part(g, 14, 12, 14, purple, 0, 0, 12);
+    g.userData.body = body;
+    const head = mb.part(g, 14, 13, 11, purple, 0, 1, 24);
+    g.userData.head = mb.saveBase(head);
+    // Alien Antenna
+    mb.part(g, 2, 2, 8, purple, 0, 0, 33);
+    mb.ball(g, 3, cyan, 0, 0, 38, cyan);
+    // Big glowing alien eyes
+    mb.part(g, 4, 2, 5, cyan, -4.5, 6, 24, cyan);
+    mb.part(g, 4, 2, 5, cyan, 4.5, 6, 24, cyan);
     g.userData.idle = 'bob';
   }
 

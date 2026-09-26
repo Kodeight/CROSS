@@ -33,11 +33,20 @@ const BUGGY: VehicleSpec = { kind: 'buggy', length: 30, width: 18, height: 10, b
 const SNOWMOBILE: VehicleSpec = { kind: 'snowmobile', length: 28, width: 14, height: 10, baseSpeed: 2.3, color: 0xcfe4ff };
 const HOVER: VehicleSpec = { kind: 'hover', length: 36, width: 19, height: 9, baseSpeed: 2.0, color: 0x38e1ff };
 const NEOCAR: VehicleSpec = { kind: 'neocar', length: 34, width: 18, height: 10, baseSpeed: 2.1, color: 0xff3fb4 };
+const TRAIN: VehicleSpec = { kind: 'train', length: 64, width: 22, height: 20, baseSpeed: 2.6, color: 0xd64045 };
+const TRACTOR: VehicleSpec = { kind: 'tractor', length: 36, width: 22, height: 18, baseSpeed: 1.5, color: 0x2ecc71 };
+const UFO: VehicleSpec = { kind: 'ufo', length: 34, width: 22, height: 12, baseSpeed: 2.2, color: 0xa55eea };
+const CART: VehicleSpec = { kind: 'cart', length: 32, width: 18, height: 14, baseSpeed: 1.6, color: 0xb08b52 };
+const BOAT: VehicleSpec = { kind: 'boat', length: 42, width: 19, height: 12, baseSpeed: 1.8, color: 0x3fa8d8 };
+const MINER: VehicleSpec = { kind: 'miner', length: 38, width: 20, height: 16, baseSpeed: 1.7, color: 0xe67e22 };
+const ROVER: VehicleSpec = { kind: 'rover', length: 36, width: 20, height: 15, baseSpeed: 1.8, color: 0xced6e0 };
 
 export const VEHICLE_SPECS: Record<string, VehicleSpec> = {
   car: CAR, taxi: TAXI, hatch: HATCH, van: VAN, moto: MOTO,
   bus: BUS, truck: TRUCK, jeep: JEEP, buggy: BUGGY,
   snowmobile: SNOWMOBILE, hover: HOVER, neocar: NEOCAR,
+  train: TRAIN, tractor: TRACTOR, ufo: UFO, cart: CART,
+  boat: BOAT, miner: MINER, rover: ROVER,
 };
 
 export function vehicleSpec(kind: string): VehicleSpec {

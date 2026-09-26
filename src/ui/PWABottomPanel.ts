@@ -171,8 +171,7 @@ export class PWABottomPanel {
               <polygon points="5,3 16,10 5,17" fill="currentColor"/>
             </svg>
           </div>
-          <div class="pwa-panel-primary">SWIPE TO MOVE</div>
-          <div class="pwa-panel-secondary">AVOID TRAFFIC</div>
+          <div class="pwa-panel-primary">AVOID TRAFFIC</div>
         `;
         break;
     }

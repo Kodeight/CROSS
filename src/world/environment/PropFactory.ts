@@ -193,6 +193,82 @@ export class PropFactory {
     this.box(g, 8, 1, 5, 0xffc93c, 0, 0, 15);
   };
 
+  // ---- volcano / industrial / temple / alien & new worlds props ----
+  magmaRock = (g: THREE.Group): void => {
+    this.ball(g, 7, 0x3d1c14, 0, 0, 4);
+    this.ball(g, 4, 0xff4757, 5, 2, 3, 0x661100);
+  };
+  obsidianSpire = (g: THREE.Group): void => {
+    this.box(g, 6, 6, 20, 0x221310, 0, 0, 10);
+    this.box(g, 4, 4, 10, 0xff5252, 0, 0, 18, 0x881100);
+  };
+  glowMushroom = (g: THREE.Group): void => {
+    this.box(g, 3, 3, 10, 0xffffff, 0, 0, 5);
+    this.ball(g, 6, 0x2ed573, 0, 0, 12, 0x005522);
+  };
+  magicRoot = (g: THREE.Group): void => {
+    this.box(g, 16, 4, 6, 0x3d2714, 0, 0, 3);
+    this.ball(g, 3, 0x7bed9f, 4, 0, 6, 0x114422);
+  };
+  barrelStack = (g: THREE.Group): void => {
+    this.box(g, 14, 7, 10, 0xffa502, 0, 0, 5);
+    this.box(g, 8, 6, 8, 0x747d8c, 0, 0, 13);
+  };
+  pipeSection = (g: THREE.Group): void => {
+    this.box(g, 18, 5, 8, 0x57606f, 0, 0, 4);
+    this.box(g, 4, 8, 12, 0x2f3542, 6, 0, 6);
+  };
+  ancientPillar = (g: THREE.Group): void => {
+    this.box(g, 8, 8, 22, 0x8c7b65, 0, 0, 11);
+    this.box(g, 12, 12, 3, 0x6e5f4d, 0, 0, 22);
+  };
+  stoneRelic = (g: THREE.Group): void => {
+    this.box(g, 10, 10, 8, 0x6e5f4d, 0, 0, 4);
+    this.ball(g, 4, 0xbe2edd, 0, 0, 10, 0x440055);
+  };
+  signalLight = (g: THREE.Group): void => {
+    this.box(g, 2, 2, 22, 0x2f3542, 0, 0, 11);
+    this.box(g, 6, 4, 10, 0x1e2430, 0, 0, 20);
+    this.ball(g, 2, 0xff4757, 0, 2, 22, 0x660000);
+    this.ball(g, 2, 0x2ed573, 0, 2, 17, 0x006622);
+  };
+  hayBale = (g: THREE.Group): void => {
+    this.box(g, 14, 10, 8, 0xf6b93b, 0, 0, 4);
+    this.box(g, 12, 8, 7, 0xeccc68, 0, 0, 11);
+  };
+  peakRock = (g: THREE.Group): void => {
+    this.box(g, 12, 10, 14, 0x4a7f93, 0, 0, 7);
+    this.box(g, 8, 8, 4, 0xdff9fb, 0, 0, 15);
+  };
+  bannerPillar = (g: THREE.Group): void => {
+    this.box(g, 6, 6, 20, 0x535c68, 0, 0, 10);
+    this.box(g, 1, 8, 12, 0xff4757, 4, 0, 16);
+  };
+  rumBarrel = (g: THREE.Group): void => {
+    this.box(g, 8, 8, 12, 0x6e4e2e, 0, 0, 6);
+    this.box(g, 9, 9, 2, 0x2f3542, 0, 0, 6);
+  };
+  giantCoral = (g: THREE.Group): void => {
+    this.box(g, 4, 4, 16, 0xff4757, 0, 0, 8, 0x440011);
+    this.box(g, 8, 4, 4, 0xff6b81, 2, 0, 14, 0x440022);
+  };
+  craterRock = (g: THREE.Group): void => {
+    this.ball(g, 7, 0x576574, 0, 0, 3);
+    this.ball(g, 3, 0xced6e0, 4, 3, 2);
+  };
+  aetherObelisk = (g: THREE.Group): void => {
+    this.box(g, 6, 6, 24, 0x70a1ff, 0, 0, 12, 0x113377);
+    this.ball(g, 3, 0xffffff, 0, 0, 26, 0x336699);
+  };
+  alienTentacle = (g: THREE.Group): void => {
+    this.box(g, 5, 5, 18, 0xa55eea, 0, 0, 9, 0x381768);
+    this.ball(g, 4, 0xff9ff3, 0, 0, 19, 0x662255);
+  };
+  plasmaGeode = (g: THREE.Group): void => {
+    this.box(g, 10, 10, 8, 0x2b1240, 0, 0, 4);
+    this.ball(g, 5, 0x00f0ff, 0, 0, 10, 0x006688);
+  };
+
   obstacleSets(): Record<string, PropBuilder[]> {
     const t = this.trees;
     return {
@@ -202,6 +278,20 @@ export class PropFactory {
       snow: [(g) => t.pine(g, true), this.snowBank, this.iceRock, (g) => t.pine(g, false)],
       neon: [this.holoPillar(0x38e1ff), this.holoPillar(0xff3fb4), this.neonSign, this.glowBarrier],
       beach: [(g) => t.palm(g), this.umbrella, this.surfboard],
+      volcano: [this.magmaRock, this.obsidianSpire, this.magmaRock],
+      forest: [this.glowMushroom, this.magicRoot, (g) => t.pine(g, false)],
+      industrial: [this.barrelStack, this.pipeSection, this.barrier],
+      temple: [this.ancientPillar, this.stoneRelic, this.ancientPillar],
+      flooded: [this.buoy, this.pierPost, this.boat],
+      railway: [this.signalLight, this.barrier, this.trashCan],
+      countryside: [this.hayBale, (g) => t.bush(g), this.hayBale],
+      mountain: [this.peakRock, (g) => t.pine(g, true), this.peakRock],
+      fantasy: [this.bannerPillar, (g) => t.pine(g, false), this.bannerPillar],
+      pirate: [this.rumBarrel, this.pierPost, this.boat],
+      ocean: [this.giantCoral, this.buoy, this.giantCoral],
+      moon: [this.craterRock, this.holoPillar(0xced6e0), this.craterRock],
+      sky: [this.aetherObelisk, (g) => t.streetTree(g), this.aetherObelisk],
+      alien: [this.alienTentacle, this.plasmaGeode, this.holoPillar(0xa55eea)],
     };
   }
 

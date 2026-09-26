@@ -61,7 +61,15 @@ export class SaveManager {
           merged.unlockedWorlds.push(wid);
         }
       }
-      const worldRotation = ['city', 'jungle', 'desert', 'snow', 'neon', 'beach'];
+      merged.completedStages ??= {};
+      merged.discoveredCollectibles ??= {};
+      merged.settings.difficulty ??= 'NORMAL';
+      const worldRotation = [
+        'city', 'jungle', 'desert', 'snow', 'neon',
+        'volcano', 'beach', 'forest', 'industrial', 'temple',
+        'flooded', 'railway', 'countryside', 'mountain', 'fantasy',
+        'pirate', 'ocean', 'moon', 'sky', 'alien',
+      ];
       const reachedCount = Math.floor(Math.max(0, merged.bestScore ?? 0) / 40) + 1;
       for (let i = 0; i < Math.min(reachedCount, worldRotation.length); i++) {
         const wid = worldRotation[i];

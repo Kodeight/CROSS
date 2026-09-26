@@ -16,14 +16,29 @@ export class WorldManager {
   current: World;
 
   constructor(props: PropFactory, buildings: BuildingFactory, trees: TreeFactory, selectedId: string) {
-    this.worlds = [
-      createCityWorld(props, buildings, trees),
-      createJungleWorld(props, buildings, trees),
-      createDesertWorld(props, buildings, trees),
-      createSnowWorld(props, buildings, trees),
-      createNeonWorld(props, buildings, trees),
-      createBeachWorld(props, buildings, trees),
-    ];
+    const obstacleSets = props.obstacleSets();
+    this.worlds = WORLDS.map((cfg) => {
+      if (cfg.id === 'city') return createCityWorld(props, buildings, trees);
+      if (cfg.id === 'jungle') return createJungleWorld(props, buildings, trees);
+      if (cfg.id === 'desert') return createDesertWorld(props, buildings, trees);
+      if (cfg.id === 'snow') return createSnowWorld(props, buildings, trees);
+      if (cfg.id === 'neon') return createNeonWorld(props, buildings, trees);
+      if (cfg.id === 'beach') return createBeachWorld(props, buildings, trees);
+
+      // Generic data-driven instantiation for all new worlds (Volcano, Forest, Industrial, etc.)
+      const obst = obstacleSets[cfg.id] ?? obstacleSets.city;
+      return {
+        config: cfg,
+        obstacles: obst,
+        decor: [
+          (g) => buildings.shop(g),
+          (g) => buildings.fence(g),
+          (g) => trees.streetTree(g),
+          (g) => props.crossSign(g),
+          (g) => props.lamp(g),
+        ],
+      };
+    });
     this.current = this.byId(selectedId);
   }
 
