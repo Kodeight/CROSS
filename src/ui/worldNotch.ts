@@ -74,20 +74,19 @@ export function updateWorldEnvironmentTheme(worldId: string): void {
     const [r, g, b] = getFadeColorForWorld(worldId);
     const colorHex = '#' + r.toString(16).padStart(2, '0') + g.toString(16).padStart(2, '0') + b.toString(16).padStart(2, '0');
     
-    const loading = document.getElementById('loading');
-    const isLoading = loading && loading.style.display !== 'none';
-    if (!isLoading) {
-      document.body.style.backgroundColor = colorHex;
-      document.documentElement.style.backgroundColor = colorHex;
-    }
-    const game = document.getElementById('game');
-    if (game) game.style.backgroundColor = colorHex;
-
     const root = document.documentElement;
     root.style.setProperty('--panel-ground-color', colorHex);
     root.style.setProperty('--ground-r', String(r));
     root.style.setProperty('--ground-g', String(g));
     root.style.setProperty('--ground-b', String(b));
+
+    const isAppReady = document.body && document.body.dataset.appReady === 'true';
+    if (isAppReady) {
+      document.body.style.backgroundColor = colorHex;
+      document.documentElement.style.backgroundColor = colorHex;
+    }
+    const game = document.getElementById('game');
+    if (game) game.style.backgroundColor = colorHex;
   } catch { /* ignore */ }
 }
 

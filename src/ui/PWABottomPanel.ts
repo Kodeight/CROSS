@@ -8,7 +8,7 @@
  * - Installed mobile PWA only (display-mode: standalone / fullscreen or iOS standalone)
  * - Solid color matching the active world's authoritative ground/environment tone
  * - Zero transparency, zero blur, zero glassmorphism, zero inner shadows
- * - Shallow organic curve with a subtly flattened center
+ * - Soft organic concave scoop coming upward from the bottom with a subtly flattened center
  * - Extends edge-to-edge behind the iOS/Android system gesture bar / home indicator
  * - Context-aware tips and controls:
  *     * Playing / World Intro: ◀  ❚❚  ▶ | SWIPE TO MOVE | AVOID TRAFFIC | ◁━━▷ SWIPE
@@ -16,7 +16,7 @@
  *     * Main Menu: ★ | READY TO HOP? | TIMING IS EVERYTHING | DODGE TRAFFIC & BEAT HIGH SCORE
  *     * Game Over: 🏆 | NICE TRY! | COLLECT COINS & MISSIONS | READY FOR ANOTHER RUN?
  *     * Other sub-screens: Custom informative guidance
- * - All content vertically centered within the compact panel
+ * - Content group vertically centered lower inside the panel
  * - Permanent panel shape & background across all states
  * - Strict single-background architecture during loading vs post-loading
  */
@@ -61,11 +61,11 @@ export class PWABottomPanel {
       el.setAttribute('role', 'region');
       el.hidden = true;
 
-      // Shallow organic curve with subtly flattened center across 400-600
+      // Soft organic concave scoop with deeper upward reach and subtly flattened center
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
-          <svg class="pwa-panel-svg" viewBox="0 0 1000 50" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,0 C 160,2 280,24 400,28 C 460,29 540,29 600,28 C 720,24 840,2 1000,0 L 1000,50 L 0,50 Z" fill="#848886" />
+          <svg class="pwa-panel-svg" viewBox="0 0 1000 70" preserveAspectRatio="none">
+            <path id="pwa-panel-curve-path" d="M 0,0 C 130,2 240,36 370,48 C 435,51 565,51 630,48 C 760,36 870,2 1000,0 L 1000,70 L 0,70 Z" fill="#848886" />
           </svg>
         </div>
         <div class="pwa-panel-body">

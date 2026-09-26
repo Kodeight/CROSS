@@ -287,11 +287,11 @@ body.is-touch .mobile-hint{display:inline !important}
 .pwa-panel-curve-wrap{
   position:relative;
   width:100%;
-  height:clamp(15px, 2.2vh, 24px);
+  height:clamp(22px, 3.4vh, 32px);
   margin-bottom:-1px;
   overflow:visible;
   pointer-events:none;
-  filter:drop-shadow(0 -3px 6px rgba(0,0,0,.12));
+  filter:drop-shadow(0 -4px 8px rgba(0,0,0,.15));
 }
 .pwa-panel-svg{
   display:block;
@@ -302,7 +302,7 @@ body.is-touch .mobile-hint{display:inline !important}
   position:relative;
   background:var(--panel-ground-color);
   width:100%;
-  padding:2px 16px calc(6px + env(safe-area-inset-bottom, 12px));
+  padding:2px 16px calc(8px + env(safe-area-inset-bottom, 14px));
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -327,13 +327,14 @@ body.is-touch .mobile-hint{display:inline !important}
   text-align:center;
   user-select:none;
   -webkit-user-select:none;
+  padding-top:4px;
 }
 .pwa-panel-controls{
   display:flex;
   align-items:center;
   justify-content:center;
   gap:16px;
-  margin-bottom:3px;
+  margin-bottom:4px;
 }
 .pwa-ctrl-icon{
   display:block;
@@ -362,7 +363,7 @@ body.is-touch .mobile-hint{display:inline !important}
   align-items:center;
   justify-content:center;
   gap:6px;
-  margin-top:3px;
+  margin-top:4px;
   font-family:'Bungee', 'Nunito', system-ui, sans-serif;
   font-size:8.5px;
   letter-spacing:1.5px;
