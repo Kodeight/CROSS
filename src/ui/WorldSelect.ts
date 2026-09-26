@@ -21,7 +21,11 @@ export class WorldSelect {
     private readonly onSelectionChanged: () => void,
   ) {}
 
-  render(): void {
+  open(): void {
+    this.render(true);
+  }
+
+  render(startPreviews = false): void {
     const grid = document.getElementById('worlds-grid');
     if (!grid) return;
     grid.innerHTML = '';
@@ -29,6 +33,7 @@ export class WorldSelect {
     const coinsEl = document.getElementById('worlds-coins');
     if (coinsEl) coinsEl.textContent = String(this.save.data.coins);
     const sel = this.save.data.selectedWorld;
+
     for (const def of this.worlds) {
       const w = def.config;
       const unlocked = this.save.isWorldUnlocked(w.id);
@@ -70,14 +75,12 @@ export class WorldSelect {
         b.textContent = 'SELECT';
         b.onclick = () => {
           this.save.data.selectedWorld = w.id;
-          // New journey in this world: restart progression here, not at an
-          // old checkpoint from another world.
           this.save.data.lastWorldId = w.id;
           this.save.data.lastLane = 0;
           this.save.save();
           this.audio.click();
           this.onSelectionChanged();
-          this.render();
+          this.render(true);
           card.classList.add('pop');
           window.setTimeout(() => card.classList.remove('pop'), 350);
         };
@@ -89,14 +92,18 @@ export class WorldSelect {
             this.audio.unlock();
             this.ui.toast(`${w.name} unlocked!`);
             this.onSelectionChanged();
-            this.render();
+            this.render(true);
           }
         };
       }
       card.appendChild(b);
       grid.appendChild(card);
     }
-    this.previews.open(this.canvases);
+
+    if (startPreviews) {
+      this.previews.open(this.canvases);
+    }
+
     try {
       const scroller = document.querySelector('#worlds-screen .panel-scroll');
       if (scroller && !(scroller as unknown as { _holdBound?: boolean })._holdBound) {

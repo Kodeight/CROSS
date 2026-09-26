@@ -280,6 +280,191 @@ export class WorldGenerator {
     return g;
   }
 
+  /**
+   * World-specific signature 3D collectible items with distinct geometry and materials:
+   * Volcano -> Magma Crystal
+   * Beach -> Ocean Pearl
+   * Forest -> Glowing Magic Leaf
+   * Industrial -> Titanium Gear
+   * Temple -> Ancient Rune Coin
+   * Neon -> Cyber Data Chip
+   * Desert -> Golden Scarab
+   * Snow -> Permafrost Ice Crystal
+   * City & other -> Energy Cell
+   */
+  makeCollectibleMesh(worldId: string): THREE.Group {
+    const g = new THREE.Group();
+    switch (worldId) {
+      case 'volcano': {
+        const R = 7 * ZOOM;
+        const H = 14 * ZOOM;
+        const top = new THREE.Mesh(
+          this.assets.cylinder('col-volc-top', 0.1, R, H / 2, 6),
+          this.assets.standard('col-volc', 0xff4757, { metalness: 0.3, roughness: 0.2, emissive: 0x991100 }),
+        );
+        top.position.z = H / 4;
+        top.castShadow = true;
+        g.add(top);
+        const bot = new THREE.Mesh(
+          this.assets.cylinder('col-volc-bot', R, 0.1, H / 2, 6),
+          this.assets.standard('col-volc', 0xff4757, { metalness: 0.3, roughness: 0.2, emissive: 0x991100 }),
+        );
+        bot.position.z = -H / 4;
+        bot.castShadow = true;
+        g.add(bot);
+        const core = new THREE.Mesh(
+          this.assets.sphere('col-volc-core', 3.5 * ZOOM, 8, 6),
+          this.assets.standard('col-volc-core', 0xffa502, { metalness: 0.8, roughness: 0.1, emissive: 0xff4500 }),
+        );
+        g.add(core);
+        break;
+      }
+      case 'beach': {
+        const pearl = new THREE.Mesh(
+          this.assets.sphere('col-pearl', 6 * ZOOM, 14, 10),
+          this.assets.standard('col-pearl', 0xfffafa, { metalness: 0.85, roughness: 0.15, emissive: 0x443333 }),
+        );
+        pearl.castShadow = true;
+        g.add(pearl);
+        const shellRing = new THREE.Mesh(
+          this.assets.torus('col-pearl-ring', 6.5 * ZOOM, 1.4 * ZOOM, 10, 20),
+          this.assets.standard('col-pearl-gold', 0xffc93c, { metalness: 0.9, roughness: 0.25, emissive: 0x442a00 }),
+        );
+        shellRing.rotation.x = Math.PI / 2;
+        shellRing.castShadow = true;
+        g.add(shellRing);
+        break;
+      }
+      case 'forest': {
+        const leaf = new THREE.Mesh(
+          this.assets.roundedBox(7 * ZOOM, 3 * ZOOM, 14 * ZOOM, 1.2 * ZOOM, 2),
+          this.assets.standard('col-forest-leaf', 0x2ed573, { metalness: 0.2, roughness: 0.2, emissive: 0x005522 }),
+        );
+        leaf.rotation.y = Math.PI / 4;
+        leaf.castShadow = true;
+        g.add(leaf);
+        const jewel = new THREE.Mesh(
+          this.assets.sphere('col-forest-dew', 2.8 * ZOOM, 8, 6),
+          this.assets.standard('col-forest-dew', 0x7bed9f, { metalness: 0.9, roughness: 0.1, emissive: 0x00bb44 }),
+        );
+        g.add(jewel);
+        break;
+      }
+      case 'industrial': {
+        const R = 7.5 * ZOOM;
+        const T = 2.4 * ZOOM;
+        const gearBody = new THREE.Mesh(
+          this.assets.cylinder('col-gear-body', R, R, T, 16),
+          this.assets.standard('col-gear', 0xffa502, { metalness: 0.85, roughness: 0.3, emissive: 0x442200 }),
+        );
+        gearBody.castShadow = true;
+        g.add(gearBody);
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2;
+          const tooth = new THREE.Mesh(
+            this.assets.box('col-gear-tooth', 3.2 * ZOOM, 2.5 * ZOOM, T),
+            this.assets.standard('col-gear', 0xffa502, { metalness: 0.85, roughness: 0.3, emissive: 0x442200 }),
+          );
+          tooth.position.set(Math.cos(a) * (R + 1.2 * ZOOM), Math.sin(a) * (R + 1.2 * ZOOM), 0);
+          tooth.rotation.z = a;
+          tooth.castShadow = true;
+          g.add(tooth);
+        }
+        const bore = new THREE.Mesh(
+          this.assets.cylinder('col-gear-bore', 3 * ZOOM, 3 * ZOOM, T + 0.4 * ZOOM, 12),
+          this.assets.standard('col-gear-bore', 0x2f3542, { metalness: 0.95, roughness: 0.4 }),
+        );
+        g.add(bore);
+        break;
+      }
+      case 'temple': {
+        const R = 7.5 * ZOOM;
+        const T = 2.4 * ZOOM;
+        const disc = new THREE.Mesh(
+          this.assets.cylinder('col-temple-disc', R, R, T, 18),
+          this.assets.standard('col-temple', 0xbe2edd, { metalness: 0.7, roughness: 0.35, emissive: 0x440066 }),
+        );
+        disc.castShadow = true;
+        g.add(disc);
+        const rune = new THREE.Mesh(
+          this.assets.box('col-temple-rune', 4 * ZOOM, 4 * ZOOM, T + 0.6 * ZOOM),
+          this.assets.standard('col-temple-gold', 0xffc93c, { metalness: 0.9, roughness: 0.25, emissive: 0x553300 }),
+        );
+        rune.rotation.z = Math.PI / 4;
+        rune.castShadow = true;
+        g.add(rune);
+        break;
+      }
+      case 'neon': {
+        const chip = new THREE.Mesh(
+          this.assets.roundedBox(11 * ZOOM, 11 * ZOOM, 2.2 * ZOOM, 1.2 * ZOOM, 2),
+          this.assets.standard('col-neon-chip', 0x1e2430, { metalness: 0.8, roughness: 0.3 }),
+        );
+        chip.castShadow = true;
+        g.add(chip);
+        const core = new THREE.Mesh(
+          this.assets.box('col-neon-core', 7 * ZOOM, 7 * ZOOM, 2.8 * ZOOM),
+          this.assets.standard('col-neon-glow', 0xff3fb4, { metalness: 0.6, roughness: 0.2, emissive: 0xaa1166 }),
+        );
+        g.add(core);
+        break;
+      }
+      case 'snow': {
+        const R = 6.5 * ZOOM;
+        const H = 14 * ZOOM;
+        const top = new THREE.Mesh(
+          this.assets.cylinder('col-snow-top', 0.1, R, H / 2, 6),
+          this.assets.standard('col-snow-ice', 0x70a1ff, { metalness: 0.3, roughness: 0.15, emissive: 0x113366 }),
+        );
+        top.position.z = H / 4;
+        top.castShadow = true;
+        g.add(top);
+        const bot = new THREE.Mesh(
+          this.assets.cylinder('col-snow-bot', R, 0.1, H / 2, 6),
+          this.assets.standard('col-snow-ice', 0x70a1ff, { metalness: 0.3, roughness: 0.15, emissive: 0x113366 }),
+        );
+        bot.position.z = -H / 4;
+        bot.castShadow = true;
+        g.add(bot);
+        break;
+      }
+      case 'desert': {
+        const scarab = new THREE.Mesh(
+          this.assets.sphere('col-scarab', 5.8 * ZOOM, 10, 8),
+          this.assets.standard('col-scarab-gold', 0xffc93c, { metalness: 0.95, roughness: 0.25, emissive: 0x553800 }),
+        );
+        scarab.scale.set(1.3, 1, 0.65);
+        scarab.castShadow = true;
+        g.add(scarab);
+        const gem = new THREE.Mesh(
+          this.assets.sphere('col-scarab-gem', 2.4 * ZOOM, 8, 6),
+          this.assets.standard('col-scarab-gem', 0x1dd1a1, { metalness: 0.7, roughness: 0.2, emissive: 0x005533 }),
+        );
+        gem.position.z = 2.8 * ZOOM;
+        g.add(gem);
+        break;
+      }
+      default: {
+        const cell = new THREE.Mesh(
+          this.assets.cylinder('col-cell-body', 4.5 * ZOOM, 4.5 * ZOOM, 11 * ZOOM, 12),
+          this.assets.standard('col-cell', 0x00f0ff, { metalness: 0.4, roughness: 0.2, emissive: 0x006688 }),
+        );
+        cell.castShadow = true;
+        g.add(cell);
+        for (const s of [-1, 1]) {
+          const cap = new THREE.Mesh(
+            this.assets.cylinder('col-cell-cap', 5 * ZOOM, 5 * ZOOM, 2 * ZOOM, 12),
+            this.assets.standard('col-cell-cap', 0xdfe4ea, { metalness: 0.9, roughness: 0.25 }),
+          );
+          cap.position.y = s * 5 * ZOOM;
+          g.add(cap);
+        }
+        break;
+      }
+    }
+    return g;
+  }
+
   private pickLaneType(index: number, world: WorldConfig, district: number): LaneType {
     // Safe spawn: the lanes around the run start are always calm grass —
     // never a road, so PLAY/restart can never drop the player into traffic.
@@ -516,7 +701,8 @@ export class WorldGenerator {
       for (const col of cols) {
         if (lane.occupied[col]) continue;
         if (lane.coins.some((c) => c.col === col)) continue;
-        const mesh = this.makeCoinMesh();
+        const isCollectible = Math.random() < 0.28;
+        const mesh = isCollectible ? this.makeCollectibleMesh(world.id) : this.makeCoinMesh();
         mesh.position.set((col * PW + PW / 2) * ZOOM - BOARD / 2, 0, 12 * ZOOM);
         lane.mesh.add(mesh);
         lane.coins.push({ mesh, col, taken: false });

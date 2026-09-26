@@ -20,13 +20,18 @@ export class CharacterSelect {
     private readonly onStatsChanged: () => void,
   ) {}
 
-  render(): void {
+  open(): void {
+    this.render(true);
+  }
+
+  render(startPreviews = false): void {
     const grid = document.getElementById('chars-grid');
     if (!grid) return;
     grid.innerHTML = '';
     this.canvases = [];
     const coinsEl = document.getElementById('chars-coins');
     if (coinsEl) coinsEl.textContent = String(this.save.data.coins);
+
     for (const c of CHARACTERS) {
       const unlocked = this.save.isCharacterUnlocked(c.id);
       const selected = this.save.data.selectedCharacter === c.id;
@@ -65,7 +70,7 @@ export class CharacterSelect {
           this.save.save();
           this.audio.click();
           this.onMeshChanged();
-          this.render();
+          this.render(true);
           card.classList.add('pop');
           window.setTimeout(() => card.classList.remove('pop'), 350);
         };
@@ -77,7 +82,7 @@ export class CharacterSelect {
             this.audio.unlock();
             this.ui.toast(`${c.name} unlocked!`);
             this.onMeshChanged();
-            this.render();
+            this.render(true);
             this.onStatsChanged();
           }
         };
@@ -85,9 +90,11 @@ export class CharacterSelect {
       card.appendChild(b);
       grid.appendChild(card);
     }
-    this.previews.open(this.canvases);
-    // Freeze preview rotation while the user scrolls: a list swipe must
-    // never appear to manipulate the 3D models.
+
+    if (startPreviews) {
+      this.previews.open(this.canvases);
+    }
+
     try {
       const scroller = document.querySelector('#chars-screen .panel-scroll');
       if (scroller && !(scroller as unknown as { _holdBound?: boolean })._holdBound) {

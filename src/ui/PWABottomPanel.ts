@@ -2,25 +2,18 @@
  * Mobile PWA Bottom Gameplay Instruction & Status Panel
  *
  * Implements a solid, world-integrated concave bottom instruction & status
- * panel for the installed mobile PWA (iOS & Android) ONLY.
+ * panel for the installed mobile PWA (iOS & Android).
  *
  * Requirements:
- * - Installed mobile PWA only (display-mode: standalone / fullscreen or iOS standalone)
- * - Solid color matching the active world's authoritative ground/environment tone
- * - Zero transparency, zero blur, zero glassmorphism, zero inner shadows
- * - Soft organic concave scoop coming upward from the bottom with a subtly flattened center
- * - Extends edge-to-edge behind the iOS/Android system gesture bar / home indicator
- * - Context-aware tips and controls:
- *     * Playing / World Intro: ◀  ❚❚  ▶ | SWIPE TO MOVE | AVOID TRAFFIC | ◁━━▷ SWIPE
- *     * Paused: ❚❚ | GAME PAUSED | TAKE A BREATHER · WATCH THE ROAD | TAP RESUME TO CONTINUE
- *     * Main Menu: ★ | READY TO HOP? | TIMING IS EVERYTHING | DODGE TRAFFIC & BEAT HIGH SCORE
- *     * Game Over: 🏆 | NICE TRY! | COLLECT COINS & MISSIONS | READY FOR ANOTHER RUN?
- *     * Other sub-screens: Custom informative guidance
- * - Content group vertically centered lower inside the panel
- * - Permanent panel shape & background across all states
- * - Strict single-background architecture during loading vs post-loading
+ * - Clear rounded upper corners curving upward into gameplay area
+ * - Subtle flattened/straighter center section near top of curve
+ * - Preserves controls: LEFT ARROW, PAUSE, RIGHT ARROW with exact spacing
+ * - Preserves instruction text: "AVOID TRAFFIC" & "SWIPE TO MOVE"
+ * - Coordinated color lifecycle:
+ *     * Loader / Pre-game: Pistachio-light (#FFFDF5)
+ *     * Loader disappears & gameplay starts: Switches seamlessly to active world color
+ *     * Menus (Main menu, Pause, Game over, Settings, etc.): Pistachio-light (#FFFDF5)
  */
-
 import { getFadeColorForWorld } from '../config/worlds.config';
 import { GameState } from '../core/GameState';
 import { isStandalonePWA, isTouchDevice } from '../utils/DeviceUtils';
@@ -61,11 +54,11 @@ export class PWABottomPanel {
       el.setAttribute('role', 'region');
       el.hidden = true;
 
-      // Pronounced organic concave scoop with smooth shoulder arches and flat center
+      // Rounded upper corners curving upward into gameplay area with subtle flat center
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
           <svg class="pwa-panel-svg" viewBox="0 0 1000 80" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,0 C 70,2 170,42 300,58 C 410,68 590,68 700,58 C 830,42 930,2 1000,0 L 1000,80 L 0,80 Z" fill="#FFFDF5" />
+            <path id="pwa-panel-curve-path" d="M 0,80 L 0,40 C 0,16 22,4 52,4 C 180,4 280,34 400,40 L 600,40 C 720,34 820,4 948,4 C 978,4 1000,16 1000,40 L 1000,80 Z" fill="#FFFDF5" />
           </svg>
         </div>
         <div class="pwa-panel-body">
@@ -80,9 +73,7 @@ export class PWABottomPanel {
     this.pathEl = el.querySelector('#pwa-panel-curve-path');
     this.contentEl = el.querySelector('#pwa-panel-content');
     this.renderContent();
-    if (this.loaderFinished) {
-      this.applyWorldColor(this.currentWorldId);
-    }
+    this.setPreGameTheme();
   }
 
   private renderContent(): void {
@@ -172,6 +163,7 @@ export class PWABottomPanel {
             </svg>
           </div>
           <div class="pwa-panel-primary">AVOID TRAFFIC</div>
+          <div class="pwa-panel-secondary">SWIPE TO MOVE</div>
         `;
         break;
     }
@@ -183,34 +175,59 @@ export class PWABottomPanel {
   }
 
   public setPreGameTheme(): void {
+    const bg = '#FFFDF5';
+    const text = '#1E2430';
     if (this.container) {
-      this.container.style.setProperty('--panel-ground-color', '#FFFDF5');
-      this.container.style.setProperty('--panel-text-color', '#1E2430');
+      this.container.style.setProperty('--panel-ground-color', bg);
+      this.container.style.setProperty('--panel-text-color', text);
     }
     if (this.pathEl) {
-      this.pathEl.setAttribute('fill', '#FFFDF5');
+      this.pathEl.setAttribute('fill', bg);
     }
   }
 
   public setWorld(worldId: string): void {
     this.currentWorldId = worldId;
-    this.setPreGameTheme();
+    if (this.loaderFinished && (this.currentState === GameState.PLAYING || this.currentState === GameState.WORLD_INTRO)) {
+      this.applyWorldColor(worldId);
+    } else {
+      this.setPreGameTheme();
+    }
   }
 
   public setState(state: GameState): void {
     this.currentState = state;
     this.renderContent();
-    this.setPreGameTheme();
+    if (this.loaderFinished && (state === GameState.PLAYING || state === GameState.WORLD_INTRO)) {
+      this.applyWorldColor(this.currentWorldId);
+    } else {
+      this.setPreGameTheme();
+    }
     this.updateVisibility();
   }
 
-  private applyWorldColor(_worldId: string): void {
-    this.setPreGameTheme();
+  public applyWorldColor(worldId: string): void {
+    const [r, g, b] = getFadeColorForWorld(worldId);
+    const hex = `rgb(${r}, ${g}, ${b})`;
+    const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    const text = lum > 0.5 ? '#1E2430' : '#FFFFFF';
+
+    if (this.container) {
+      this.container.style.setProperty('--panel-ground-color', hex);
+      this.container.style.setProperty('--panel-text-color', text);
+    }
+    if (this.pathEl) {
+      this.pathEl.setAttribute('fill', hex);
+    }
   }
 
   public onLoaderFinished(): void {
     this.loaderFinished = true;
-    this.setPreGameTheme();
+    if (this.currentState === GameState.PLAYING || this.currentState === GameState.WORLD_INTRO) {
+      this.applyWorldColor(this.currentWorldId);
+    } else {
+      this.setPreGameTheme();
+    }
     this.updateVisibility();
   }
 
@@ -229,7 +246,6 @@ export class PWABottomPanel {
     if (!this.container) return;
     this.checkMode();
 
-    // STRICT SCOPE: Only display in installed standalone mobile PWA after loader finishes.
     const shouldDisplay = this.isStandaloneMobile && this.loaderFinished;
     if (shouldDisplay) {
       this.container.hidden = false;

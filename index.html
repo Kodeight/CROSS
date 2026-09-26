@@ -104,12 +104,15 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
 /* Generic utility styles available before JS. */
 [hidden]{display:none!important}
-.err-card{background:#fff;border-radius:18px;padding:28px;max-width:440px;box-shadow:0 6px 0 rgba(30,36,48,.9);text-align:center}
-.err-card h1{font-family:'Bungee';margin:0 0 8px}
+#webgl-error,#app-error{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--brand-pistachio-light, #FFFDF5);color:#1E2430;padding:20px}
+.err-title{font-family:'Bungee',cursive;font-size:clamp(18px,4.8vw,24px);color:#1E2430;margin:4px 0 10px;letter-spacing:1px}
+.err-desc{font-family:'Nunito',system-ui,sans-serif;font-size:14px;font-weight:800;color:#1E2430;opacity:.85;line-height:1.45;margin:0 0 14px}
+.err-hint-box{background:#eef3e4;border-radius:14px;padding:12px 14px;margin-bottom:16px;border:1.5px solid rgba(30,36,48,.08);text-align:center}
+.err-hint{font-family:'Nunito',system-ui,sans-serif;font-size:12.5px;font-weight:800;color:#1E2430;opacity:.82;margin:0;line-height:1.4}
 .btn{font-family:'Nunito';font-weight:900;border:none;border-radius:14px;padding:12px 14px;background:#e8e4d8;color:#1E2430;cursor:pointer;box-shadow:0 4px 0 rgba(30,36,48,.85);font-size:14px;letter-spacing:.5px}
 .btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(30,36,48,.85)}
 .btn.primary{background:#7AC74F;color:#fff}
-.btn.big{width:100%;font-family:'Bungee';font-size:26px;padding:14px}
+.btn.big{width:100%;font-family:'Bungee';font-size:26px;padding:14px;text-shadow:0 2px 0 rgba(30,36,48,.25)}
 
 /* Menu styles immediately usable before JS. */
 #menu{position:fixed;inset:0;z-index:25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom));pointer-events:none}
@@ -179,22 +182,27 @@ body.is-touch .mobile-hint{display:inline !important}
 </div>
 
 <!-- ========== OVERLAYS ========== -->
-<div id="webgl-error" hidden>
-  <div class="err-card">
-    <div class="logo-wrap err-logo-wrap">
-      <img src="/logo.webp" alt="CROSS!" class="brand-logo-img err-logo-img" width="1996" height="788">
+<div id="webgl-error" class="error-screen" hidden>
+  <div class="menu-card err-card">
+    <div class="logo-wrap main-logo-wrap">
+      <img src="/logo.webp" alt="CROSS!" class="brand-logo-img main-logo-img" width="1996" height="788">
     </div>
-    <p>Sorry — your browser could not start WebGL, which CROSS! needs to run.</p>
-    <p>Try a recent Chrome, Edge, Firefox or Safari with hardware acceleration enabled.</p>
+    <h2 class="err-title">GRAPHICS ERROR</h2>
+    <p class="err-desc">Your browser could not initialize WebGL, which CROSS! requires for 3D graphics.</p>
+    <div class="err-hint-box">
+      <p class="err-hint">Try a recent Chrome, Edge, Firefox, or Safari with hardware acceleration enabled.</p>
+    </div>
+    <button class="btn primary big" onclick="window.location.reload()">RELOAD</button>
   </div>
 </div>
 
-<div id="app-error" hidden>
-  <div class="err-card">
-    <div class="logo-wrap err-logo-wrap">
-      <img src="/logo.webp" alt="CROSS!" class="brand-logo-img err-logo-img" width="1996" height="788">
+<div id="app-error" class="error-screen" hidden>
+  <div class="menu-card err-card">
+    <div class="logo-wrap main-logo-wrap">
+      <img src="/logo.webp" alt="CROSS!" class="brand-logo-img main-logo-img" width="1996" height="788">
     </div>
-    <p id="app-error-text">Something went wrong while starting the game.</p>
+    <h2 class="err-title">SOMETHING WENT WRONG</h2>
+    <p id="app-error-text" class="err-desc">An error occurred while loading the game.</p>
     <button id="btn-retry-boot" class="btn primary big">RETRY</button>
   </div>
 </div>
