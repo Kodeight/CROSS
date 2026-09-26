@@ -7,7 +7,7 @@ import { createDesertWorld } from './worlds/DesertWorld';
 import { createSnowWorld } from './worlds/SnowWorld';
 import { createNeonWorld } from './worlds/NeonWorld';
 import type { World } from './World';
-import type { PropFactory } from './environment/PropFactory';
+import type { PropFactory, PropBuilder } from './environment/PropFactory';
 import type { BuildingFactory } from './environment/BuildingFactory';
 import type { TreeFactory } from './environment/TreeFactory';
 
@@ -17,6 +17,99 @@ export class WorldManager {
 
   constructor(props: PropFactory, buildings: BuildingFactory, trees: TreeFactory, selectedId: string) {
     const obstacleSets = props.obstacleSets();
+
+    // World-specific decor dictionaries for all 20+ worlds
+    const decorSets: Record<string, PropBuilder[]> = {
+      volcano: [
+        (g) => buildings.volcanoCaldera(g, 26),
+        (g) => props.obsidianSpire(g),
+        (g) => props.magmaRock(g),
+        (g) => trees.magmaSpire(g),
+        (g) => props.magmaRock(g),
+      ],
+      forest: [
+        (g) => trees.glowMushroomTree(g),
+        (g) => props.glowMushroom(g),
+        (g) => props.magicRoot(g),
+        (g) => trees.pine(g, false),
+        (g) => props.glowMushroom(g),
+      ],
+      industrial: [
+        (g) => buildings.factoryWarehouse(g),
+        (g) => props.barrelStack(g),
+        (g) => props.pipeSection(g),
+        (g) => props.barrier(g),
+        (g) => props.barrelStack(g),
+      ],
+      temple: [
+        (g) => buildings.templeRuins(g),
+        (g) => props.ancientPillar(g),
+        (g) => props.stoneRelic(g),
+        (g) => props.ancientPillar(g),
+      ],
+      countryside: [
+        (g) => buildings.smallHouse(g),
+        (g) => buildings.fence(g),
+        (g) => props.hayBale(g),
+        (g) => trees.streetTree(g),
+        (g) => trees.bush(g),
+      ],
+      mountain: [
+        (g) => buildings.mountain(g, 0x4a7f93, 30),
+        (g) => trees.pine(g, true),
+        (g) => props.peakRock(g),
+        (g) => trees.pine(g, true),
+      ],
+      railway: [
+        (g) => props.signalLight(g),
+        (g) => props.barrier(g),
+        (g) => buildings.fence(g),
+        (g) => props.trashCan(g),
+      ],
+      pirate: [
+        (g) => props.rumBarrel(g),
+        (g) => props.pierPost(g),
+        (g) => props.boat(g),
+        (g) => buildings.fence(g),
+      ],
+      ocean: [
+        (g) => props.giantCoral(g),
+        (g) => props.buoy(g),
+        (g) => props.giantCoral(g),
+        (g) => props.boat(g),
+      ],
+      moon: [
+        (g) => buildings.mountain(g, 0x576574, 28),
+        (g) => props.craterRock(g),
+        (g) => props.holoPillar(0xced6e0)(g),
+        (g) => props.craterRock(g),
+      ],
+      sky: [
+        (g) => props.aetherObelisk(g),
+        (g) => buildings.tower(g),
+        (g) => trees.streetTree(g),
+        (g) => props.aetherObelisk(g),
+      ],
+      alien: [
+        (g) => props.alienTentacle(g),
+        (g) => props.plasmaGeode(g),
+        (g) => props.holoPillar(0xa55eea)(g),
+        (g) => props.alienTentacle(g),
+      ],
+      fantasy: [
+        (g) => props.bannerPillar(g),
+        (g) => trees.pine(g, false),
+        (g) => props.stoneRelic(g),
+        (g) => props.bannerPillar(g),
+      ],
+      flooded: [
+        (g) => props.buoy(g),
+        (g) => props.pierPost(g),
+        (g) => props.boat(g),
+        (g) => props.pierPost(g),
+      ],
+    };
+
     this.worlds = WORLDS.map((cfg) => {
       if (cfg.id === 'city') return createCityWorld(props, buildings, trees);
       if (cfg.id === 'jungle') return createJungleWorld(props, buildings, trees);
@@ -25,18 +118,19 @@ export class WorldManager {
       if (cfg.id === 'neon') return createNeonWorld(props, buildings, trees);
       if (cfg.id === 'beach') return createBeachWorld(props, buildings, trees);
 
-      // Generic data-driven instantiation for all new worlds (Volcano, Forest, Industrial, etc.)
       const obst = obstacleSets[cfg.id] ?? obstacleSets.city;
+      const dec = decorSets[cfg.id] ?? [
+        (g) => buildings.shop(g),
+        (g) => buildings.fence(g),
+        (g) => trees.streetTree(g),
+        (g) => props.crossSign(g),
+        (g) => props.lamp(g),
+      ];
+
       return {
         config: cfg,
         obstacles: obst,
-        decor: [
-          (g) => buildings.shop(g),
-          (g) => buildings.fence(g),
-          (g) => trees.streetTree(g),
-          (g) => props.crossSign(g),
-          (g) => props.lamp(g),
-        ],
+        decor: dec,
       };
     });
     this.current = this.byId(selectedId);

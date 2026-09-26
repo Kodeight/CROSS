@@ -79,6 +79,8 @@ export class GameRenderer {
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.06;
     container.appendChild(renderer.domElement);
     const inst = new GameRenderer(container, scene, renderer, hemi, dirLight, backLight);
     inst.onResize();
