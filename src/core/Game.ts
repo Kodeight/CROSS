@@ -187,9 +187,8 @@ export class Game implements LoopDelegate {
         requestAnimationFrame(() => {
           this.setState(GameState.MAIN_MENU);
           this.ui.setTouchControlsVisible(false, this.isTouch);
-          this.ui.hideLoading(() => {
-            this.pwaBottomPanel?.onLoaderFinished();
-          });
+          this.pwaBottomPanel?.onLoaderFinished();
+          this.ui.hideLoading();
         });
       });
       console.log('CROSS! Game initialized');

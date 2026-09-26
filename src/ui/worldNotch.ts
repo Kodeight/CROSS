@@ -80,11 +80,8 @@ export function updateWorldEnvironmentTheme(worldId: string): void {
     root.style.setProperty('--ground-g', String(g));
     root.style.setProperty('--ground-b', String(b));
 
-    const isAppReady = document.body && document.body.dataset.appReady === 'true';
-    if (isAppReady) {
-      document.body.style.backgroundColor = colorHex;
-      document.documentElement.style.backgroundColor = colorHex;
-    }
+    document.body.style.backgroundColor = colorHex;
+    document.documentElement.style.backgroundColor = colorHex;
     const game = document.getElementById('game');
     if (game) game.style.backgroundColor = colorHex;
   } catch { /* ignore */ }

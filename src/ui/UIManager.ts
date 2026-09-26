@@ -199,18 +199,12 @@ export class UIManager {
   hideLoading(onDone?: () => void): void {
     try {
       const l = el('loading');
-      l.style.transition = 'opacity .22s ease';
+      l.style.transition = 'opacity .2s ease';
       l.style.opacity = '0';
       window.setTimeout(() => {
         l.style.display = 'none';
-        try {
-          document.body.dataset.appReady = 'true';
-          const worldGround = document.documentElement.style.getPropertyValue('--panel-ground-color') || '#848886';
-          document.body.style.backgroundColor = worldGround;
-          document.documentElement.style.backgroundColor = worldGround;
-        } catch { /* ignore */ }
         onDone?.();
-      }, 240);
+      }, 200);
     } catch {
       onDone?.();
     }

@@ -229,7 +229,7 @@ export class PWABottomPanel {
     if (this.pathEl) {
       this.pathEl.setAttribute('fill', colorHex);
     }
-    if (typeof document !== 'undefined' && this.loaderFinished) {
+    if (typeof document !== 'undefined') {
       document.documentElement.style.setProperty('--panel-ground-color', colorHex);
       document.body.style.backgroundColor = colorHex;
       document.documentElement.style.backgroundColor = colorHex;
