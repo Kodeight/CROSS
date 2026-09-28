@@ -233,13 +233,17 @@ export class UIManager {
     }
   }
 
-  toast(msg: string, ms = 2600): void {
+  toast(msg: string, ms = 2800): void {
     const t = el('toast');
     t.textContent = msg;
     t.hidden = false;
+    t.classList.remove('toast-pop');
+    void t.offsetWidth; // force reflow for pop animation
+    t.classList.add('toast-pop');
     if (this.toastTimer) clearTimeout(this.toastTimer);
     this.toastTimer = window.setTimeout(() => {
       t.hidden = true;
+      t.classList.remove('toast-pop');
     }, ms);
   }
 

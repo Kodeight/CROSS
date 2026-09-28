@@ -18,6 +18,8 @@ import type { MissionSystem } from './MissionSystem';
 import type { ProgressionSystem } from './ProgressionSystem';
 import type { ParticleSystem } from './Particles';
 import type { PowerUpSystem } from './PowerUpSystem';
+import type { SuperpowerVFX } from './SuperpowerVFX';
+import type { FollowCamera } from '../renderer/Camera';
 import type { Lighting } from '../renderer/Lighting';
 import { collectibleForWorld } from '../config/collectibles.config';
 import { getPowerUpDef } from '../config/powerups.config';
@@ -45,6 +47,8 @@ export class GameManager {
   private ambientAcc = 0;
   private reducedMotion = false;
   private lowQuality = false;
+  vfx: SuperpowerVFX | null = null;
+  camera: FollowCamera | null = null;
 
   constructor(
     private readonly bus: EventBus,
@@ -63,6 +67,11 @@ export class GameManager {
     private readonly lighting: Lighting,
     private readonly cb: RunCallbacks,
   ) {}
+
+  setVfx(vfx: SuperpowerVFX, camera: FollowCamera): void {
+    this.vfx = vfx;
+    this.camera = camera;
+  }
 
   setReducedMotion(v: boolean): void {
     this.reducedMotion = v;
@@ -222,7 +231,7 @@ export class GameManager {
           if (Math.abs(dz) > 85) continue;
 
           col.taken = true;
-          this.coins.beginCollect(col.mesh);
+          this.coins.beginCollect(col.mesh, this.player.position, 340);
 
           const colDef = collectibleForWorld(lane.worldId || wid);
           const bonus = (isMult ? col.bonusCoins * 3 : col.bonusCoins) || 5;
@@ -233,12 +242,16 @@ export class GameManager {
           this.powerups.collect(colDef.powerType, true);
           const pDef = getPowerUpDef(colDef.powerType);
 
-          this.audio.unlock();
-          this.audio.fanfare();
+          if (this.vfx && this.camera) {
+            this.vfx.activate(pDef, this.player.position, this.camera, this.audio);
+          } else {
+            this.audio.superpower();
+          }
+
           vibrate([30, 50, 30]);
 
           // Visual explosion in collectible's signature glow color
-          this.particles.burst(px, py, 45, colDef.glowColor, 12, 340, 0.85, 450, this.lowQuality);
+          this.particles.burst(px, py, 45, colDef.glowColor, 18, 420, 0.95, 550, this.lowQuality);
 
           // Instant dramatic in-game toast feedback
           this.cb.onToast(`${pDef.symbol} ${pDef.name} ACTIVATED! (+${bonus} COINS)`);
@@ -318,9 +331,13 @@ export class GameManager {
       this.player.group.position.y = this.player.laneToY(targetLane);
       this.score.reachLane(targetLane);
       this.checkWorldTransition();
+      if (this.vfx) {
+        this.vfx.spawnSonicRing(this.player.position, 0x38e1ff, 10 * GAME_CONFIG.zoom, 45 * GAME_CONFIG.zoom, 60 * GAME_CONFIG.zoom);
+        this.vfx.spawnSonicRing(this.player.position, 0xfca71d, 15 * GAME_CONFIG.zoom, 55 * GAME_CONFIG.zoom, 75 * GAME_CONFIG.zoom);
+      }
       this.particles.burst(
         this.player.position.x, this.player.position.y, 40,
-        0x7ac74f, 16, 400, 1.0, 500, this.lowQuality,
+        0xfca71d, 20, 480, 1.0, 550, this.lowQuality,
       );
       this.cb.onHud();
     } catch { /* ignore */ }

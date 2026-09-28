@@ -396,19 +396,44 @@ export class WorldGenerator {
         break;
       }
       default: {
-        // High-tech Power Cell
-        const cell = new THREE.Mesh(
-          this.assets.cylinder(`col-cell:${worldId}`, 4.8 * ZOOM, 4.8 * ZOOM, 12 * ZOOM, 14),
-          this.assets.standard(`col-cell-mat:${worldId}`, colDef.color, { metalness: 0.6, roughness: 0.2, emissive: colDef.emissive }),
+        // High-tech Stylized Ionic Plasma Power Core
+        const core = new THREE.Mesh(
+          this.assets.sphere(`col-cell-core:${worldId}`, 4.5 * ZOOM, 14, 10),
+          this.assets.standard(`col-cell-mat:${worldId}`, colDef.color, {
+            metalness: 0.8,
+            roughness: 0.1,
+            emissive: colDef.glowColor,
+          }),
         );
-        cell.castShadow = true;
-        g.add(cell);
+        core.castShadow = true;
+        g.add(core);
+
+        // Anodized hexagonal chassis housing
+        const housing = new THREE.Mesh(
+          this.assets.cylinder(`col-cell-housing:${worldId}`, 5.5 * ZOOM, 5.5 * ZOOM, 11 * ZOOM, 6),
+          this.assets.standard('col-cell-chassis', 0x1e2430, { metalness: 0.9, roughness: 0.25 }),
+        );
+        housing.castShadow = true;
+        g.add(housing);
+
+        // Orbital energy flux ring
+        const fluxRing = new THREE.Mesh(
+          this.assets.torus(`col-cell-flux:${worldId}`, 7 * ZOOM, 0.9 * ZOOM, 8, 20),
+          this.assets.standard(`col-cell-flux-mat:${worldId}`, 0xfca71d, {
+            metalness: 0.95,
+            roughness: 0.1,
+            emissive: 0xfca71d,
+          }),
+        );
+        fluxRing.rotation.x = Math.PI / 4;
+        g.add(fluxRing);
+
         for (const s of [-1, 1]) {
           const cap = new THREE.Mesh(
-            this.assets.cylinder('col-cell-cap', 5.3 * ZOOM, 5.3 * ZOOM, 2.2 * ZOOM, 14),
-            this.assets.standard('col-cell-cap-mat', 0xdfe4ea, { metalness: 0.9, roughness: 0.25 }),
+            this.assets.cylinder('col-cell-cap', 6.2 * ZOOM, 6.2 * ZOOM, 2.0 * ZOOM, 6),
+            this.assets.standard('col-cell-cap-mat', 0x47aae0, { metalness: 0.9, roughness: 0.2, emissive: 0x0954a3 }),
           );
-          cap.position.y = s * 5.4 * ZOOM;
+          cap.position.z = s * 5.8 * ZOOM;
           g.add(cap);
         }
         break;

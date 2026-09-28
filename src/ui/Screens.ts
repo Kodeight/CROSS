@@ -119,6 +119,17 @@ export class SettingsScreen {
     set('set-difficulty', getDifficultySpec(s.difficulty).name, 'false');
     const explain = document.getElementById('difficulty-explain');
     if (explain) explain.textContent = getDifficultySpec(s.difficulty).description;
+
+    const mVol = Math.round((s.musicVolume ?? 0.8) * 100);
+    const sVol = Math.round((s.sfxVolume ?? 0.8) * 100);
+    const mInput = document.getElementById('set-music-vol') as HTMLInputElement | null;
+    const sInput = document.getElementById('set-sfx-vol') as HTMLInputElement | null;
+    const mVal = document.getElementById('set-music-vol-val');
+    const sVal = document.getElementById('set-sfx-vol-val');
+    if (mInput) mInput.value = String(mVol);
+    if (sInput) sInput.value = String(sVol);
+    if (mVal) mVal.textContent = `${mVol}%`;
+    if (sVal) sVal.textContent = `${sVol}%`;
   }
 
   bind(): void {
@@ -145,6 +156,35 @@ export class SettingsScreen {
       this.audio.click();
       this.onChanged('sfx');
     });
+
+    const mInput = document.getElementById('set-music-vol') as HTMLInputElement | null;
+    if (mInput && !(mInput as unknown as { _bound?: boolean })._bound) {
+      (mInput as unknown as { _bound?: boolean })._bound = true;
+      mInput.addEventListener('input', () => {
+        const val = Number(mInput.value) / 100;
+        this.save.data.settings.musicVolume = val;
+        this.save.save();
+        const mVal = document.getElementById('set-music-vol-val');
+        if (mVal) mVal.textContent = `${Math.round(val * 100)}%`;
+        this.audio.updateVolumes();
+      });
+    }
+
+    const sInput = document.getElementById('set-sfx-vol') as HTMLInputElement | null;
+    if (sInput && !(sInput as unknown as { _bound?: boolean })._bound) {
+      (sInput as unknown as { _bound?: boolean })._bound = true;
+      sInput.addEventListener('input', () => {
+        const val = Number(sInput.value) / 100;
+        this.save.data.settings.sfxVolume = val;
+        this.save.save();
+        const sVal = document.getElementById('set-sfx-vol-val');
+        if (sVal) sVal.textContent = `${Math.round(val * 100)}%`;
+        this.audio.updateVolumes();
+      });
+      sInput.addEventListener('change', () => {
+        this.audio.click();
+      });
+    }
     on('set-motion', () => {
       const s = this.save.data.settings;
       s.reducedMotion = !s.reducedMotion;

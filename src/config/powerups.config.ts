@@ -48,7 +48,7 @@ export const POWER_UPS: Record<PowerUpType, PowerUpDef> = {
     id: 'dash',
     name: 'SONIC DASH',
     symbol: '⚡',
-    color: 0x7ac74f,
+    color: 0xfca71d,
     durationMs: 2000,
     cooldownMs: 2500,
     description: 'Instant forward dash leaping across 3 lanes with invulnerability.',

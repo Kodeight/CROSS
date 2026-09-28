@@ -12,14 +12,13 @@ export class InputManager {
   private touchStartY = 0;
   private touchStartT = 0;
   private bound = false;
-  private tapTimer = 0;
   private lastTapT = 0;
   private lastTapX = 0;
   private lastTapY = 0;
   private touchInModal = false;
-  private static readonly TAP_MS = 300;
-  private static readonly TAP_DIST = 24;
-  private static readonly TAP_DELAY_MS = 280;
+  private swipeTriggered = false;
+  private static readonly TAP_MS = 280;
+  private static readonly TAP_DIST = 32;
 
   onAction(handler: (a: GameAction) => void): void {
     this.actionHandlers.push(handler);
@@ -105,12 +104,42 @@ export class InputManager {
           this.touchStartX = t.clientX;
           this.touchStartY = t.clientY;
           this.touchStartT = performance.now();
+          this.swipeTriggered = false;
         },
         { passive: true },
       );
+
+      game.addEventListener(
+        'touchmove',
+        (e) => {
+          if (this.touchInModal || this.swipeTriggered) return;
+          const t = e.changedTouches[0];
+          const dx = t.clientX - this.touchStartX;
+          const dy = t.clientY - this.touchStartY;
+          const adx = Math.abs(dx);
+          const ady = Math.abs(dy);
+
+          // Instantaneous swipe recognition as finger moves:
+          if (Math.max(adx, ady) >= 20) {
+            this.swipeTriggered = true;
+            this.lastTapT = 0;
+            if (adx > ady) {
+              this.emit(dx > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT');
+            } else {
+              this.emit(dy < 0 ? 'MOVE_FORWARD' : 'MOVE_BACK');
+            }
+          }
+        },
+        { passive: true },
+      );
+
       game.addEventListener('touchend', (e) => {
         if (this.touchInModal || this.startsInModal(e.target)) {
           this.touchInModal = false;
+          return;
+        }
+        if (this.swipeTriggered) {
+          this.swipeTriggered = false;
           return;
         }
         const t = e.changedTouches[0];
@@ -119,34 +148,28 @@ export class InputManager {
         const adx = Math.abs(dx);
         const ady = Math.abs(dy);
         const dt = performance.now() - this.touchStartT;
-        if (dt > 900) return;
-        if (Math.max(adx, ady) >= 24) {
+
+        // If swipe was fast and released before touchmove triggered:
+        if (Math.max(adx, ady) >= 16) {
           this.lastTapT = 0;
           if (adx > ady) this.emit(dx > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT');
           else this.emit(dy < 0 ? 'MOVE_FORWARD' : 'MOVE_BACK');
           return;
         }
-        if (Math.max(adx, ady) >= 12) {
-          this.lastTapT = 0;
-          return;
-        }
-        const now = performance.now();
-        const quick = now - this.lastTapT < InputManager.TAP_MS;
-        const near = Math.hypot(t.clientX - this.lastTapX, t.clientY - this.lastTapY) < InputManager.TAP_DIST;
-        if (quick && near) {
-          if (this.tapTimer) clearTimeout(this.tapTimer);
-          this.tapTimer = 0;
-          this.lastTapT = 0;
-          this.emit('JUMP');
-        } else {
+
+        // Clean tap: execute immediately with 0ms delay!
+        if (dt < 450) {
+          const now = performance.now();
+          const quick = now - this.lastTapT < InputManager.TAP_MS;
+          const near = Math.hypot(t.clientX - this.lastTapX, t.clientY - this.lastTapY) < InputManager.TAP_DIST;
           this.lastTapT = now;
           this.lastTapX = t.clientX;
           this.lastTapY = t.clientY;
-          if (this.tapTimer) clearTimeout(this.tapTimer);
-          this.tapTimer = window.setTimeout(() => {
-            this.tapTimer = 0;
+          if (quick && near) {
+            this.emit('JUMP');
+          } else {
             this.emit('MOVE_FORWARD');
-          }, InputManager.TAP_DELAY_MS);
+          }
         }
       });
     }

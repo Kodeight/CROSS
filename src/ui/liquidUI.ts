@@ -182,9 +182,9 @@ class LiquidUIManager {
     const menu = q('#menu .menu-card');
     if (menu) this.attachOne(menu, { preset: 'panel', borderRadius: 24, allowScroll: true });
     const play = q('#btn-play');
-    if (play) this.attachOne(play, { preset: 'primary', borderRadius: 14, press: { scale: 0.94, squish: 0.025 }, tint: { rgb: '122,199,79', opacity: 0.30 } });
+    if (play) this.attachOne(play, { preset: 'primary', borderRadius: 20, press: { scale: 0.96, squish: 0.02 }, tint: { rgb: '252,167,29', opacity: 0.35 } });
     // Game color identity per button, INSIDE the liquid material at clearly
-    // visible strength (NOT pale): violet/cyan/amber/coral + green primary.
+    // visible strength (NOT pale): violet/cyan/amber/coral + brand primary.
     const menuTints: Record<string, { rgb: string; opacity: number }> = {
       '#btn-chars': { rgb: '139,92,246', opacity: 0.32 },
       '#btn-worlds': { rgb: '34,211,238', opacity: 0.30 },
@@ -204,11 +204,11 @@ class LiquidUIManager {
     if (settings) this.attachOne(settings, { preset: 'panel', borderRadius: 22, allowScroll: true });
     const over = q('#gameover .over-card');
     if (over) this.attachOne(over, { preset: 'panel', borderRadius: 24 });
-    // Primary continues (resume / play again) stay green; secondary actions
+    // Primary continues (resume / play again) use brand warm orange-yellow; secondary actions
     // remain neutral.
     const actionTints: Record<string, { rgb: string; opacity: number }> = {
-      '#btn-resume': { rgb: '122,199,79', opacity: 0.28 },
-      '#btn-again': { rgb: '122,199,79', opacity: 0.28 },
+      '#btn-resume': { rgb: '252,167,29', opacity: 0.32 },
+      '#btn-again': { rgb: '252,167,29', opacity: 0.32 },
     };
     for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, .panel .modal-x, #app-error .btn')) {
       const key = b.id ? `#${b.id}` : '';

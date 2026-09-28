@@ -27,30 +27,37 @@ export default defineConfig({
       includeAssets: [
         'favicon/**/*',
         'favicon.svg',
+        'favicon.ico',
+        'apple-touch-icon.png',
+        'logo.webp',
+        'audio/**/*',
       ],
       manifest: {
-        name: 'CROSS!',
+        id: '/',
+        name: 'CROSS! — Don\'t Get Hit',
         short_name: 'CROSS!',
-        description: "Cross as far as you can. Don't get hit.",
+        description: "Cross as far as you can. Dodge traffic. Collect coins. Beat your best score.",
         start_url: '/',
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        theme_color: '#7AC74F',
+        theme_color: '#FFFDF5',
         background_color: '#FFFDF5',
         icons: [
           {
-            src: 'favicon/web-app-manifest-192x192.png',
+            src: 'web-app-manifest-192x192.png',
             sizes: '192x192',
             type: 'image/png',
+            purpose: 'any',
           },
           {
-            src: 'favicon/web-app-manifest-512x512.png',
+            src: 'web-app-manifest-512x512.png',
             sizes: '512x512',
             type: 'image/png',
+            purpose: 'any',
           },
           {
-            src: 'favicon/web-app-manifest-512x512.png',
+            src: 'web-app-manifest-512x512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
@@ -58,22 +65,74 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Core app-shell + runtime caching for fonts so the installed game
-        // launches offline after the first successful load.
-        globPatterns: ['**/*.{js,css,html,ico,png,woff2}'],
-        globIgnores: ['**/favicon*.svg'],
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        globPatterns: ['**/*.{js,css,html,ico,png,webp,ogg,wav,mp3,woff,woff2,webmanifest}'],
+        globIgnores: ['**/favicon-cross.zip', '**/*.zip', '**/logo-orig.webp', '**/favicon.svg'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
             options: {
-              cacheName: 'cross-fonts',
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gstatic-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|webp|gif)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cross-images-cache',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 60,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:ogg|mp3|wav)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cross-audio-cache',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 60,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
             },
           },
         ],
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
       },
     }),
   ],

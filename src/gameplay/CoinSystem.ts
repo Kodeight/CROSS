@@ -1,22 +1,30 @@
-/** Run coin tracking — wallet itself lives in SaveManager. */
-import type * as THREE from 'three';
+/**
+ * Run coin & superpower collectible tracking with juicy mobile-game animations:
+ * - Floating/bobbing idle with gentle rotation & glow pulse
+ * - Anticipation pop on collection
+ * - Smooth acceleration toward the player's root
+ * - Fluid scale dissipation without abrupt visibility cuts
+ */
+import * as THREE from 'three';
 
 export interface CoinAnim {
   mesh: THREE.Object3D;
   off: number;
+  baseZ: number;
 }
 
-interface CoinCollectAnim {
+interface ItemCollectAnim {
   mesh: THREE.Object3D;
   t: number;
+  maxTime: number;
+  startPos: THREE.Vector3;
+  targetPos?: THREE.Vector3;
 }
-
-const COLLECT_MS = 240;
 
 export class CoinSystem {
   runCoins = 0;
   readonly anims: CoinAnim[] = [];
-  private readonly collecting: CoinCollectAnim[] = [];
+  private readonly collecting: ItemCollectAnim[] = [];
 
   reset(): void {
     this.runCoins = 0;
@@ -30,32 +38,88 @@ export class CoinSystem {
   }
 
   track(mesh: THREE.Object3D): void {
-    this.anims.push({ mesh, off: Math.random() * 6.28 });
-    if (this.anims.length > 220) this.anims.splice(0, this.anims.length - 220);
+    this.anims.push({
+      mesh,
+      off: Math.random() * Math.PI * 2,
+      baseZ: mesh.position.z,
+    });
+    if (this.anims.length > 250) this.anims.splice(0, this.anims.length - 250);
   }
 
-  /** Start the subtle collect feedback: quick shrink + rise, then detach. */
-  beginCollect(mesh: THREE.Object3D): void {
+  /**
+   * Begins rich pickup sequence: anticipation pop -> suction toward player -> fade out.
+   */
+  beginCollect(mesh: THREE.Object3D, targetPos?: THREE.Vector3, durationMs = 280): void {
     if (!mesh.parent) return;
-    this.collecting.push({ mesh, t: 0 });
+    this.collecting.push({
+      mesh,
+      t: 0,
+      maxTime: durationMs,
+      startPos: mesh.position.clone(),
+      targetPos: targetPos ? targetPos.clone() : undefined,
+    });
   }
 
-  update(tMs: number, zoom: number, dtMs: number): void {
+  update(tMs: number, zoom: number, dtMs: number, playerPos?: THREE.Vector3): void {
+    // 1. Idle Floating, Bobbing & Proximity Pulse
     for (const c of this.anims) {
       if (!c.mesh.parent) continue;
       if (this.isCollecting(c.mesh)) continue;
-      // Slow smooth spin around the true vertical axis (world Z).
-      c.mesh.rotation.z = tMs / 500 + c.off;
-      c.mesh.position.z = 12 * zoom + Math.sin(tMs / 400 + c.off) * 0.5 * zoom;
+
+      // Smooth spin around Z
+      c.mesh.rotation.z = tMs / 450 + c.off;
+
+      // Proximity detection for subtle magnetic pull & pulse
+      let proxScale = 1.0;
+      if (playerPos) {
+        const dx = (c.mesh.parent.position.x + c.mesh.position.x) - playerPos.x;
+        const dy = (c.mesh.parent.position.y + c.mesh.position.y) - playerPos.y;
+        const distSq = dx * dx + dy * dy;
+        if (distSq < 140 * 140) {
+          proxScale = 1.0 + (1 - Math.sqrt(distSq) / 140) * 0.2;
+        }
+      }
+
+      // Smooth sine bobbing
+      const bob = Math.sin(tMs / 320 + c.off) * 1.5 * zoom;
+      c.mesh.position.z = 12 * zoom + bob;
+      
+      // Gentle breathing scale
+      const breath = 1.0 + Math.sin(tMs / 280 + c.off) * 0.05;
+      const s = breath * proxScale;
+      c.mesh.scale.set(s, s, s);
     }
+
+    // 2. Collection Animation: Anticipation Pop + Accelerate to Target + Shrink
     for (let i = this.collecting.length - 1; i >= 0; i--) {
       const a = this.collecting[i];
       a.t += Math.max(dtMs, 0);
-      const k = Math.min(a.t / COLLECT_MS, 1);
-      const s = 1.0 * (1 - k) + 0.05;
-      a.mesh.scale.setScalar(Math.max(s, 0.01));
-      a.mesh.position.z += Math.max(dtMs, 0) * 0.12;
-      a.mesh.rotation.z += Math.max(dtMs, 0) * 0.02;
+      const k = Math.min(a.t / a.maxTime, 1);
+
+      if (k < 0.2) {
+        // Phase 1: Quick anticipation scale-up (pop to 1.25x)
+        const popK = k / 0.2;
+        const s = 1.0 + Math.sin(popK * Math.PI) * 0.25;
+        a.mesh.scale.setScalar(s);
+        a.mesh.position.z += dtMs * 0.15 * zoom;
+      } else {
+        // Phase 2: Accelerate toward player + shrink to 0
+        const moveK = (k - 0.2) / 0.8;
+        const easeMove = moveK * moveK; // quadratic acceleration
+        const s = Math.max(0.01, (1 - moveK) * 1.2);
+        a.mesh.scale.setScalar(s);
+
+        if (a.targetPos && a.mesh.parent) {
+          // Lerp toward target in parent space
+          const targetInParent = a.targetPos.clone().sub(a.mesh.parent.position);
+          a.mesh.position.lerpVectors(a.startPos, targetInParent, easeMove);
+        } else {
+          a.mesh.position.z += dtMs * 0.25 * zoom;
+        }
+      }
+
+      a.mesh.rotation.z += dtMs * 0.04;
+
       if (k >= 1) {
         if (a.mesh.parent) a.mesh.parent.remove(a.mesh);
         this.collecting.splice(i, 1);

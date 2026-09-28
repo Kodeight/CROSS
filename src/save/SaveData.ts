@@ -5,6 +5,8 @@ import type { DifficultyLevel } from '../config/difficulty.config';
 export interface GameSettings {
   music: boolean;
   sfx: boolean;
+  musicVolume?: number;
+  sfxVolume?: number;
   reducedMotion: boolean;
   quality: 'AUTO' | 'LOW' | 'MEDIUM' | 'HIGH';
   difficulty: DifficultyLevel;
@@ -89,7 +91,7 @@ export function defaultSave(): SaveData {
     missions: {},
     achievements: {},
     dailyMissions: { date: '', completed: {}, progress: defaultDailyProgress() },
-    settings: { music: true, sfx: true, reducedMotion: false, quality: 'AUTO', difficulty: 'NORMAL' },
+    settings: { music: true, sfx: true, musicVolume: 0.8, sfxVolume: 0.8, reducedMotion: false, quality: 'AUTO', difficulty: 'NORMAL' },
     stats: { totalSteps: 0, gamesPlayed: 0, totalNearMiss: 0 },
     tutorialShown: false,
   };

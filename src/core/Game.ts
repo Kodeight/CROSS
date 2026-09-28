@@ -34,6 +34,7 @@ import { MissionSystem } from '../gameplay/MissionSystem';
 import { ProgressionSystem } from '../gameplay/ProgressionSystem';
 import { ParticleSystem } from '../gameplay/Particles';
 import { PowerUpSystem } from '../gameplay/PowerUpSystem';
+import { SuperpowerVFX } from '../gameplay/SuperpowerVFX';
 import { GameManager } from '../gameplay/GameManager';
 import { UIManager } from '../ui/UIManager';
 import { HUD } from '../ui/HUD';
@@ -79,6 +80,7 @@ export class Game implements LoopDelegate {
   private score = new ScoreSystem();
   private coins = new CoinSystem();
   private powerups!: PowerUpSystem;
+  private superpowerVfx!: SuperpowerVFX;
   private missions!: MissionSystem;
   private progression!: ProgressionSystem;
   private particles!: ParticleSystem;
@@ -235,7 +237,15 @@ export class Game implements LoopDelegate {
     this.missions = new MissionSystem(this.save, this.bus);
     this.progression = new ProgressionSystem(this.save, this.bus);
     this.particles = new ParticleSystem(scene, this.assets);
+    this.superpowerVfx = new SuperpowerVFX(scene);
     this.powerups = new PowerUpSystem(this.bus, this.audio, () => this.hud?.update());
+
+    this.bus.on('powerActivated', (def) => {
+      this.superpowerVfx.activate(def as import('../config/powerups.config').PowerUpDef, this.player.position, this.camera, this.audio);
+    });
+    this.bus.on('powerEnded', () => {
+      this.superpowerVfx.endPower(this.player.position);
+    });
 
     this.manager = new GameManager(
       this.bus, this.save, this.audio, this.player, this.lanes, this.worlds,
@@ -250,6 +260,7 @@ export class Game implements LoopDelegate {
         onNearMiss: () => this.ui.flashNearMiss(),
         onWorldIntro: (name, sub) => {
           this.pwaBottomPanel?.setWorld(this.worlds.current.config.id);
+          this.audio.startMusic('play', this.worlds.current.config.id);
           this.audio.fanfare();
           this.ui.showWorldIntro(name, sub, this.reducedMotion, () => this.bus.emit('worldIntroFinished'));
         },
@@ -259,6 +270,7 @@ export class Game implements LoopDelegate {
       },
     );
     this.manager.setReducedMotion(this.reducedMotion);
+    this.manager.setVfx(this.superpowerVfx, this.camera);
 
     // Authoritative occupancy: the target cell's lane reports what chunk
     // generation registered (Lane.occupied). Unknown/pruned lanes are free.
@@ -382,7 +394,7 @@ export class Game implements LoopDelegate {
   }
 
   private allWorlds(): import('../world/World').World[] {
-    return (this.worlds as unknown as { worlds: import('../world/World').World[] }).worlds ?? [];
+    return this.worlds.getAllWorlds();
   }
 
   private makeLane(index: number): void {
@@ -456,8 +468,9 @@ export class Game implements LoopDelegate {
       this.hud.update();
       this.audio.startMusic('menu');
     }
-    if (s === GameState.PLAYING) this.audio.startMusic('play');
-    if (s === GameState.GAME_OVER || s === GameState.PAUSED) this.audio.stopMusic();
+    if (s === GameState.PLAYING) this.audio.startMusic('play', this.worlds.current?.config?.id || this.save.data.selectedWorld);
+    if (s === GameState.PAUSED) this.audio.pauseMusic();
+    if (s === GameState.GAME_OVER) this.audio.stopMusic();
     if (s === GameState.CHARACTER_SELECT) this.charSelect.render();
     else this.charPreviews.close();
     if (s === GameState.WORLD_SELECT) this.worldSelect.render();
@@ -467,6 +480,7 @@ export class Game implements LoopDelegate {
 
   private newRun(): void {
     this.audio.click();
+    this.superpowerVfx.reset();
     this.manager.newRun(
       (i) => this.makeLane(i),
       () => this.rebuildPlayerMesh(),
@@ -590,7 +604,9 @@ export class Game implements LoopDelegate {
         const timeScale = this.powerups.isFreezeActive() ? 0 : this.powerups.timeScale();
         this.traffic.update(this.lanes.lanes, dt, DEBUG, timeScale);
         this.particles.update(dt);
-        this.coins.update(nowMs, GAME_CONFIG.zoom, dt);
+        this.superpowerVfx.update(dtMs, nowMs, this.player, this.camera, this.audio);
+        this.camera.setFovOffset(this.superpowerVfx.getDynamicFovOffset());
+        this.coins.update(nowMs, GAME_CONFIG.zoom, dt, this.player.position);
         this.generator.updateWater(nowMs);
         this.manager.collisionCheck((ms, scale) => this.time.slowMo(ms, scale));
         this.player.updateIdle(nowMs, this.reducedMotion);
@@ -609,7 +625,7 @@ export class Game implements LoopDelegate {
         this.traffic.update(this.lanes.lanes, this.reducedMotion ? 0 : dt * 0.35, false);
         this.manager.checkWorldTransition();
       }
-      this.coins.update(nowMs, GAME_CONFIG.zoom, dt);
+      this.coins.update(nowMs, GAME_CONFIG.zoom, dt, this.player.position);
       this.generator.updateWater(nowMs);
       this.particles.update(dt);
       this.player.updateIdle(nowMs, this.reducedMotion);
@@ -729,7 +745,7 @@ export class Game implements LoopDelegate {
   private onSettingsChanged(what: 'music' | 'sfx' | 'motion' | 'quality' | 'reset' | 'tutorial' | 'difficulty'): void {
     if (what === 'music') {
       if (this.save.data.settings.music) {
-        this.audio.startMusic(this.ui.state === GameState.PLAYING ? 'play' : 'menu');
+        this.audio.startMusic(this.ui.state === GameState.PLAYING ? 'play' : 'menu', this.worlds.current?.config?.id || this.save.data.selectedWorld);
       } else this.audio.stopMusic();
     } else if (what === 'motion') {
       this.reducedMotion = this.save.data.settings.reducedMotion || prefersReducedMotion();

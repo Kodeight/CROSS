@@ -61,6 +61,18 @@ export class FollowCamera {
     this.camera = new THREE.PerspectiveCamera(this.desktopFov, aspect, 0.5, 9000);
   }
 
+  private fovOffset = 0;
+
+  setFovOffset(offset: number): void {
+    if (this.reducedMotion) return;
+    if (Math.abs(this.fovOffset - offset) > 0.1) {
+      this.fovOffset = offset;
+      const baseFov = this.camera.aspect < 1 ? this.mobileFov : this.desktopFov;
+      this.camera.fov = baseFov + this.fovOffset;
+      this.camera.updateProjectionMatrix();
+    }
+  }
+
   setReducedMotion(v: boolean): void {
     this.reducedMotion = v;
   }
