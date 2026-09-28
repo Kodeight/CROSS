@@ -240,27 +240,76 @@ body.is-touch .mobile-hint{display:inline !important}
 
 <!-- Menu top-right utility -->
 
-<!-- Main menu (centered card over the world) -->
+<!-- Main menu (floating screenshot-matched menu overlay over live 3D world) -->
 <main id="menu" hidden>
-  <div class="menu-card">
+  <div class="menu-top-bar">
+    <div class="top-coin-pill">
+      <span class="coin-ico" aria-hidden="true"><span class="coin-ico-face"><span class="coin-ico-core"></span></span></span>
+      <span id="menu-top-coins">0</span>
+      <button class="top-coin-plus-btn" id="btn-top-add-coins" aria-label="Add Coins">+</button>
+    </div>
+    <div class="top-actions">
+      <button id="btn-top-stats" class="top-icon-btn" aria-label="Statistics">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 19h3v-8H5v8zm6 0h3V5h-3v14zm6 0h3v-4h-3v4z"/></svg>
+      </button>
+      <button id="btn-top-settings" class="top-icon-btn" aria-label="Settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="menu-card-stack">
     <div class="logo-wrap main-logo-wrap">
       <img src="/logo.webp" alt="CROSS!" class="brand-logo-img main-logo-img" width="1996" height="788">
     </div>
     <p class="tagline">Cross the world.<br>Don't get hit.</p>
+
     <div class="menu-stats">
-      <div class="stat"><span class="stat-label">BEST</span><span id="menu-best">0</span></div>
-      <div class="stat"><span class="stat-label">COINS</span><span id="menu-coins">0</span></div>
+      <div class="stat stat-best">
+        <span class="stat-ico">🏆</span>
+        <div class="stat-data">
+          <span class="stat-label">BEST</span>
+          <span id="menu-best">0</span>
+        </div>
+      </div>
+      <div class="stat stat-coins">
+        <span class="stat-ico">🪙</span>
+        <div class="stat-data">
+          <span class="stat-label">COINS</span>
+          <span id="menu-coins">0</span>
+        </div>
+      </div>
     </div>
-    <button id="btn-play" class="btn primary big"><span class="play-btn-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="margin-left:2px"><path d="M8 5.14v13.72a1 1 0 0 0 1.53.85l11-6.86a1 1 0 0 0 0-1.7l-11-6.86A1 1 0 0 0 8 5.14z"/></svg></span><span>PLAY</span></button>
-    <button id="btn-install" class="btn install" hidden>INSTALL CROSS!</button>
-    <p id="ios-install-hint" class="install-hint" hidden>On iPhone: Share <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="vertical-align:-2px"><path fill="currentColor" d="M12 3l4 4h-3v8h-2V7H8l4-4zm-7 14v2h14v-2H5z"/></svg> → Add to Home Screen to install CROSS!. <button id="btn-dismiss-install" class="link-btn">Dismiss</button></p>
-    <nav class="menu-row">
-      <button id="btn-chars" class="btn"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4 0-8 2-8 5v2h16v-2c0-3-4-5-8-5z"/></svg>CHARACTERS</button>
-      <button id="btn-worlds" class="btn"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm7 6h-3a15 15 0 0 0-1.3-3.6A8 8 0 0 1 19 8zM12 4a13 13 0 0 1 1.9 4h-3.8A13 13 0 0 1 12 4zM4.3 14H8a15 15 0 0 0 1 3.6A8 8 0 0 1 4.3 14zm1.4-6A8 8 0 0 1 9.3 4.4 15 15 0 0 0 8 8H5.7zM8 16H4.3a8 8 0 0 0 4.9 3.6A15 15 0 0 1 8 16zm4 5.9A13 13 0 0 1 10.1 16h3.8A13 13 0 0 1 12 21.9zm2.7-2.3A8 8 0 0 0 19.7 16H16a15 15 0 0 1-1.3 3.6zM16 14h3.7a8 8 0 0 0 0-6H16a15 15 0 0 1 .6 3 15 15 0 0 1-.6 3zm-4-2h-3.7a15 15 0 0 1-.6-3 15 15 0 0 1 .6-3H12a15 15 0 0 1 .6 3 15 15 0 0 1-.6 3z"/></svg>WORLDS</button>
-    </nav>
-    <button id="btn-missions" class="btn wide"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M6 2h12v2h4v3a5 5 0 0 1-5 5h-.6A6 6 0 0 1 13 15.9V19h4v2H7v-2h4v-3.1A6 6 0 0 1 7.6 12H7a5 5 0 0 1-5-5V4h4V2zm14 4h-2v3a3 3 0 0 0 2-2.8V6zM4 6v.2A3 3 0 0 0 6 9V6H4z"/></svg>MISSIONS</button>
-    <button id="btn-settings" class="btn wide"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 8.5A3.5 3.5 0 1 0 12 15.5 3.5 3.5 0 0 0 12 8.5zm0-5.2l1.2 2.1 2.3-.5 1 2.1 2.3.7-.3 2.4 1.6 1.8-1.6 1.8.3 2.4-2.3.7-1 2.1-2.3-.5L12 20l-1.2-2.1-2.3.5-1-2.1-2.3-.7.3-2.4L3.9 12l1.6-1.8-.3-2.4 2.3-.7 1-2.1 2.3.5z"/></svg>SETTINGS</button>
-    <p class="hint"><span class="desktop-hint">Swipe / Arrows · Esc pauses</span><span class="mobile-hint">Swipe anywhere to hop</span></p>
+
+    <button id="btn-play" class="btn btn-menu-play">
+      <span class="play-ico">▶</span>
+      <span class="play-lbl">PLAY</span>
+    </button>
+
+    <div class="menu-row">
+      <button id="btn-chars" class="btn btn-menu-chars">
+        <span class="btn-ico">👤</span>
+        <span class="btn-txt">CHARACTERS</span>
+        <span class="btn-arr">›</span>
+      </button>
+      <button id="btn-worlds" class="btn btn-menu-worlds">
+        <span class="btn-ico">🌍</span>
+        <span class="btn-txt">WORLDS</span>
+        <span class="btn-arr">›</span>
+      </button>
+    </div>
+
+    <button id="btn-missions" class="btn btn-menu-missions">
+      <span class="btn-ico">📋</span>
+      <span class="btn-txt">MISSIONS</span>
+      <span class="btn-arr">›</span>
+    </button>
+
+    <button id="btn-settings" class="btn btn-menu-settings">
+      <span class="btn-ico">⚙️</span>
+      <span class="btn-txt">SETTINGS</span>
+      <span class="btn-arr">›</span>
+    </button>
   </div>
 </main>
 

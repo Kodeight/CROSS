@@ -31,14 +31,23 @@ interface ActiveTrackState {
   isFadingOut: boolean;
 }
 
+interface ActiveAmbientState {
+  id: string;
+  gainNode: GainNode;
+  nodes: AudioNode[];
+  timerId?: number;
+}
+
 export class AudioManager {
   private ctx: AudioContext | null = null;
   private masterMusicGain: GainNode | null = null;
   private masterSfxGain: GainNode | null = null;
+  private masterAmbientGain: GainNode | null = null;
 
   // Track state
   private currentTrack: ActiveTrackState | null = null;
   private outgoingTracks: Set<ActiveTrackState> = new Set();
+  private currentAmbient: ActiveAmbientState | null = null;
   private isPaused: boolean = false;
   private pausedTrackId: string | null = null;
   private pausedOffset: number = 0;
@@ -82,6 +91,10 @@ export class AudioManager {
       this.masterSfxGain = this.ctx.createGain();
       this.masterSfxGain.connect(this.ctx.destination);
 
+      // Master Ambient bus (gentle atmospheric layer)
+      this.masterAmbientGain = this.ctx.createGain();
+      this.masterAmbientGain.connect(this.ctx.destination);
+
       this.updateVolumes();
 
       // Intelligent background preloading on boot
@@ -121,6 +134,13 @@ export class AudioManager {
       this.masterSfxGain.gain.cancelScheduledValues(now);
       this.masterSfxGain.gain.setValueAtTime(this.masterSfxGain.gain.value, now);
       this.masterSfxGain.gain.linearRampToValueAtTime(sTarget, now + 0.05);
+    }
+
+    if (this.masterAmbientGain) {
+      const aTarget = this.sfxEnabled ? this.sfxVolume * 0.28 : 0.0001;
+      this.masterAmbientGain.gain.cancelScheduledValues(now);
+      this.masterAmbientGain.gain.setValueAtTime(this.masterAmbientGain.gain.value, now);
+      this.masterAmbientGain.gain.linearRampToValueAtTime(aTarget, now + 0.1);
     }
   }
 
@@ -273,11 +293,14 @@ export class AudioManager {
 
   /**
    * Dynamic World Transition: smoothly crossfades into the target world's soundtrack
-   * during real-time gameplay traversal without any clicks, stalls or pops.
+   * and atmospheric ambient loop during real-time gameplay traversal.
    */
   public async transitionToWorld(worldId: string, fadeDurationSec = 1.0): Promise<void> {
     this.syncSettings();
     if (!this.ensure() || !this.ctx || !this.masterMusicGain) return;
+
+    // Transition ambient sound loop to match world theme
+    this.setWorldAmbient(worldId, fadeDurationSec);
 
     const trackId = worldId.toLowerCase();
     if (this.currentTrack && this.currentTrack.id === trackId && !this.currentTrack.isFadingOut) {
@@ -315,6 +338,197 @@ export class AudioManager {
       startedAt: now,
       pauseOffset: 0,
       isFadingOut: false,
+    };
+  }
+
+  /**
+   * Generates or fades in a procedural WebAudio ambient atmosphere matching the world type
+   * (e.g. city traffic/birds, desert wind, forest rustling, ocean waves, volcano rumble).
+   */
+  public setWorldAmbient(worldId: string, fadeDurationSec = 1.0): void {
+    if (!this.ensure() || !this.ctx || !this.masterAmbientGain) return;
+
+    const world = worldId.toLowerCase();
+    if (this.currentAmbient && this.currentAmbient.id === world) return;
+
+    const now = this.ctx.currentTime;
+
+    // Fade out previous ambient layer
+    if (this.currentAmbient) {
+      const prev = this.currentAmbient;
+      this.currentAmbient = null;
+      try {
+        prev.gainNode.gain.cancelScheduledValues(now);
+        prev.gainNode.gain.setValueAtTime(prev.gainNode.gain.value, now);
+        prev.gainNode.gain.linearRampToValueAtTime(0.0001, now + fadeDurationSec);
+        window.setTimeout(() => {
+          for (const n of prev.nodes) {
+            try {
+              if ('stop' in n && typeof (n as AudioScheduledSourceNode).stop === 'function') {
+                (n as AudioScheduledSourceNode).stop();
+              }
+              n.disconnect();
+            } catch { /* ignore */ }
+          }
+        }, Math.floor(fadeDurationSec * 1000 + 50));
+      } catch { /* ignore */ }
+    }
+
+    if (!this.sfxEnabled) return;
+
+    // Create new ambient generator
+    const ambGain = this.ctx.createGain();
+    ambGain.gain.setValueAtTime(0.0001, now);
+    ambGain.gain.linearRampToValueAtTime(1.0, now + fadeDurationSec);
+    ambGain.connect(this.masterAmbientGain);
+
+    const createdNodes: AudioNode[] = [];
+
+    try {
+      if (world === 'city' || world === 'industrial' || world === 'railway') {
+        // City / Industrial: Low road rumble + gentle filtered noise
+        const bufferSize = this.ctx.sampleRate * 2;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const whiteNoise = this.ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        whiteNoise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 240;
+
+        whiteNoise.connect(filter);
+        filter.connect(ambGain);
+        whiteNoise.start(0);
+
+        createdNodes.push(whiteNoise, filter);
+      } else if (world === 'desert' || world === 'mountain' || world === 'snow') {
+        // Desert / Mountain / Snow: Swirling wind breeze filter
+        const bufferSize = this.ctx.sampleRate * 2;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = world === 'snow' ? 550 : 380;
+        filter.Q.value = 2.5;
+
+        // Modulate wind filter frequency
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.22;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 160;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+
+        noise.connect(filter);
+        filter.connect(ambGain);
+
+        noise.start(0);
+        lfo.start(0);
+
+        createdNodes.push(noise, filter, lfo, lfoGain);
+      } else if (world === 'jungle' || world === 'forest' || world === 'countryside' || world === 'temple' || world === 'fantasy') {
+        // Nature / Forest: Gentle rustling breeze + high soft canopy air
+        const bufferSize = this.ctx.sampleRate * 2;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1200;
+        filter.Q.value = 1.2;
+
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+
+        createdNodes.push(noise, filter);
+      } else if (world === 'beach' || world === 'ocean' || world === 'flooded') {
+        // Ocean / Beach: Gentle surging wave noise
+        const bufferSize = this.ctx.sampleRate * 2;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.15;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 280;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+
+        noise.connect(filter);
+        filter.connect(ambGain);
+
+        noise.start(0);
+        lfo.start(0);
+
+        createdNodes.push(noise, filter, lfo, lfoGain);
+      } else if (world === 'volcano') {
+        // Volcano: Deep sub rumble
+        const bufferSize = this.ctx.sampleRate * 2;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 90;
+
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+
+        createdNodes.push(noise, filter);
+      } else {
+        // Cyber / Neon / Moon / Sky / Alien: Subtle metallic resonance hum
+        const osc = this.ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = world === 'neon' ? 110 : 75;
+
+        const oscGain = this.ctx.createGain();
+        oscGain.gain.value = 0.15;
+
+        osc.connect(oscGain);
+        oscGain.connect(ambGain);
+        osc.start(0);
+
+        createdNodes.push(osc, oscGain);
+      }
+    } catch { /* ignore audio graph initialization errors */ }
+
+    this.currentAmbient = {
+      id: world,
+      gainNode: ambGain,
+      nodes: createdNodes,
     };
   }
 

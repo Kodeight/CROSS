@@ -684,6 +684,9 @@ export class Game implements LoopDelegate {
     on('btn-chars2', () => openScreen(GameState.CHARACTER_SELECT));
     on('btn-missions', () => openScreen(GameState.MISSIONS));
     on('btn-settings', () => openScreen(GameState.SETTINGS));
+    on('btn-top-settings', () => openScreen(GameState.SETTINGS));
+    on('btn-top-stats', () => openScreen(GameState.MISSIONS));
+    on('btn-top-add-coins', () => openScreen(GameState.MISSIONS));
 
     for (const b of document.querySelectorAll('[data-back]')) {
       b.addEventListener('click', () => this.goBack());

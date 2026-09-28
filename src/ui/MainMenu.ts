@@ -12,5 +12,6 @@ export class MainMenu {
     };
     set('menu-best', fmtCount(this.save.data.bestScore));
     set('menu-coins', fmtCount(this.save.data.coins));
+    set('menu-top-coins', fmtCount(this.save.data.coins));
   }
 }
