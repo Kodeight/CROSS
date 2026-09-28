@@ -55,7 +55,6 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   user-select:none;
   -webkit-user-select:none;
   -webkit-user-drag:none;
-  filter:drop-shadow(0 6px 14px rgba(30,36,48,.16));
   transform:translateZ(0);
 }
 .load-logo-wrap{width:min(320px,78vw);margin-bottom:6px}
@@ -215,8 +214,8 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .stat{flex:1;background:#eef3e4;border-radius:14px;padding:10px}
 .stat-label{display:block;font-size:11px;letter-spacing:2px;font-weight:800;opacity:.6}
 .stat span:last-child{font-family:'Bungee';font-size:24px}
-.btn{font-family:'Nunito';font-weight:900;border:2px solid var(--ink);border-radius:14px;padding:12px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(30,36,48,.85);font-size:14px;letter-spacing:.5px;transition:transform .12s ease,box-shadow .12s ease}
-.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(30,36,48,.85)}
+.btn{font-family:'Nunito',system-ui,sans-serif;font-weight:900;border:2px solid var(--ink);border-radius:14px;padding:12px 14px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 4px 0 rgba(15,23,42,.85);font-size:14px;letter-spacing:.5px;transition:transform .12s ease,box-shadow .12s ease}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(15,23,42,.85)}
 .btn.primary{
   background:linear-gradient(180deg, #FFE853 0%, #FCA71D 55%, #EE8D09 100%);
   color:#0F2657;
@@ -291,8 +290,35 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 @media (prefers-reduced-motion:reduce){
   #btn-play{animation:none}
 }
-.btn.danger{background:#ffe1e1;color:#b3261e;margin-top:10px;width:100%}
-.btn.back{margin-top:12px;width:100%}
+.btn.danger{
+  background:linear-gradient(180deg, #EF4444 0%, #DC2626 100%);
+  color:#FFFFFF;
+  border:2px solid #991B1B;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 0 #7F1D1D;
+  margin-top:10px;
+  width:100%;
+}
+.btn.danger:active{
+  transform:translateY(2px);
+  box-shadow:0 2px 0 #7F1D1D;
+}
+.btn.back{
+  background:linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  color:#FFFFFF;
+  border:2.5px solid #0F172A;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.2), 0 5px 0 #070D18;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:12px;
+  width:100%;
+}
+.btn.back:active{
+  transform:translateY(3px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 0 #070D18;
+}
 .menu-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
 .menu-row .btn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:12px 4px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px}
 .menu-row .btn svg{flex:none}
@@ -463,8 +489,8 @@ body.is-touch .mobile-hint{display:inline !important}
 /* Modal header with top-right close: title left, X right, one row. */
 .modal-head{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex:none}
 .modal-head h2{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.modal-x{width:44px;height:44px;flex:none;border:2px solid var(--ink);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 rgba(30,36,48,.85);touch-action:manipulation}
-.modal-x:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(30,36,48,.85)}
+.modal-x{width:44px;height:44px;flex:none;border:2px solid #0F172A;border-radius:12px;background:linear-gradient(180deg, #1E293B 0%, #0F172A 100%);color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 0 #070D18;touch-action:manipulation;transition:transform .1s ease, box-shadow .1s ease}
+.modal-x:active{transform:translateY(2px);box-shadow:0 2px 0 #070D18}
 .modal-x svg{display:block}
 
 /* Masked panels: header/X stay fixed, only .panel-scroll scrolls. The old
