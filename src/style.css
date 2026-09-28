@@ -299,7 +299,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   line-height:1;
 }
 
-/* Screenshot-matched Main Menu Styles */
+/* Screenshot-matched Main Menu Styles — Perfectly centered above PWA bottom panel with safe-area insets */
 #menu {
   position: fixed;
   inset: 0;
@@ -308,18 +308,24 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: calc(12px + env(safe-area-inset-top)) 16px calc(130px + env(safe-area-inset-bottom));
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-left: calc(16px + env(safe-area-inset-left, 0px));
+  padding-right: calc(16px + env(safe-area-inset-right, 0px));
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .menu-top-bar {
-  width: min(390px, 94vw);
+  width: min(380px, 92vw);
   display: flex;
   align-items: center;
   justify-content: space-between;
   pointer-events: auto;
   z-index: 26;
+  flex-shrink: 0;
+  margin-bottom: 4px;
 }
 
 .top-coin-pill {
@@ -379,21 +385,27 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 }
 
 .menu-card-stack {
-  width: min(390px, 92vw);
+  width: min(380px, 92vw);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: clamp(6px, 1.2vh, 10px);
   align-items: center;
   pointer-events: auto;
   text-align: center;
-  margin-top: auto;
-  margin-bottom: 8px;
+  margin: auto 0;
+  max-height: 100%;
+}
+
+.main-logo-wrap {
+  width: min(280px, 80%);
+  margin: 0 auto 2px;
+  animation: logoFloat 3.8s ease-in-out infinite;
 }
 
 .tagline {
-  margin: -4px 0 8px;
+  margin: -4px 0 2px;
   font-weight: 900;
-  font-size: 15px;
+  font-size: clamp(13px, 3.5vw, 15px);
   color: #FFFFFF;
   letter-spacing: 0.5px;
   line-height: 1.25;
@@ -404,7 +416,6 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   display: flex;
   gap: 10px;
   width: 100%;
-  margin-bottom: 2px;
 }
 
 .stat {
@@ -412,7 +423,7 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   background: #192742;
   border: 2px solid rgba(255, 255, 255, 0.22);
   border-radius: 18px;
-  padding: 10px 14px;
+  padding: clamp(8px, 1.5vh, 10px) 14px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -423,6 +434,8 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .stat-ico {
   font-size: 22px;
   line-height: 1;
+  display: flex;
+  align-items: center;
 }
 
 .stat-data {
@@ -441,83 +454,88 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 
 #menu-best, #menu-coins {
   font-family: 'Bungee', cursive, sans-serif;
-  font-size: 22px;
+  font-size: clamp(18px, 4.5vw, 22px);
   color: #FFFFFF;
   line-height: 1;
   margin-top: 3px;
   display: block;
 }
 
-.btn-menu-chars {
+.menu-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Standardized Glossy Game Buttons — Uniform width, responsive height & centered layout */
+.btn-menu-chars, .btn-menu-worlds {
   flex: 1;
-  height: 48px;
+  width: 50%;
+  height: clamp(44px, 5.8vh, 50px);
   border-radius: 24px;
-  background: linear-gradient(180deg, #D6CEFF 0%, #B2A2FF 100%);
   border: 2.5px solid #0F2657;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.85), 0 5px 0 #0F2657;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.85), 0 5px 0 #0F2657;
   color: #0F2657;
   font-weight: 900;
-  font-size: 13px;
-  letter-spacing: 0.8px;
+  font-size: clamp(12px, 3.2vw, 14px);
+  letter-spacing: 1px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 18px;
   cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-menu-chars {
+  background: linear-gradient(180deg, #D6CEFF 0%, #B2A2FF 100%);
 }
 
 .btn-menu-worlds {
-  flex: 1;
-  height: 48px;
-  border-radius: 24px;
   background: linear-gradient(180deg, #A8EDFF 0%, #6BD2FF 100%);
-  border: 2.5px solid #0F2657;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.85), 0 5px 0 #0F2657;
-  color: #0F2657;
-  font-weight: 900;
-  font-size: 13px;
-  letter-spacing: 0.8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  cursor: pointer;
 }
 
 .btn-menu-missions {
   width: 100%;
-  height: 48px;
+  height: clamp(44px, 5.8vh, 50px);
   border-radius: 24px;
   background: linear-gradient(180deg, #FFF6D1 0%, #FFE57E 100%);
   border: 2.5px solid #0F2657;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.85), 0 5px 0 #0F2657;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.85), 0 5px 0 #0F2657;
   color: #0F2657;
   font-weight: 900;
-  font-size: 14px;
+  font-size: clamp(12px, 3.2vw, 14px);
   letter-spacing: 1px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 18px;
   cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .btn-menu-settings {
   width: 100%;
-  height: 48px;
+  height: clamp(44px, 5.8vh, 50px);
   border-radius: 24px;
   background: linear-gradient(180deg, #FFD8E8 0%, #FFB0D2 100%);
   border: 2.5px solid #0F2657;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.85), 0 5px 0 #0F2657;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.85), 0 5px 0 #0F2657;
   color: #0F2657;
   font-weight: 900;
-  font-size: 14px;
+  font-size: clamp(12px, 3.2vw, 14px);
   letter-spacing: 1px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 18px;
   cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.btn-menu-chars:active, .btn-menu-worlds:active, .btn-menu-missions:active, .btn-menu-settings:active {
+  transform: translateY(3px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 0 #0F2657;
 }
 
 .btn-ico {
@@ -587,8 +605,8 @@ body.is-touch .mobile-hint{display:inline !important}
    TODO: RESTORE AFTER PWA VIEWPORT ROOT-CAUSE FIX
    Original: background:rgba(30,36,48,.75);
    ============================================================ */
-.panel-screen{position:fixed;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;padding:16px;background:transparent}
-.panel{background:#FFFDF5;border-radius:22px;padding:20px;width:min(520px,calc(100vw - 32px));max-height:88vh;overflow:auto;overflow-x:hidden;box-shadow:var(--card-shadow);border:2px solid rgba(30,36,48,.1)}
+.panel-screen{position:fixed;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15, 23, 42, 0.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.panel{background:#FFFDF5;border-radius:26px;padding:22px;width:min(480px,calc(100vw - 32px));max-height:86vh;overflow:auto;overflow-x:hidden;box-shadow:0 10px 30px rgba(15, 38, 87, 0.35);border:2.5px solid #0F2657}
 /* Masked scroll panels: outer panel clips (overflow hidden + radius), the
    inner scroll container does the actual scrolling so the scrollbar can
    never escape the rounded boundary. Header + BACK stay fixed. */
@@ -599,16 +617,60 @@ body.is-touch .mobile-hint{display:inline !important}
 .panel-scroll::-webkit-scrollbar-thumb{background:var(--blue);border-radius:99px}
 .panel-scroll::-webkit-scrollbar-thumb:active{background:var(--blue-dark)}
 .panel-masked .btn.back{flex:none}
-.panel h2{font-family:'Bungee';margin:0 0 4px}
-.panel-sub{margin:0 0 12px;font-weight:700;opacity:.7}
-.panel .row{display:flex;align-items:center;justify-content:space-between;background:#f1eee2;border-radius:12px;padding:10px 12px;margin:8px 0;font-weight:800}
-.panel .row.volume-row{padding:8px 12px}
+.panel h2{font-family:'Bungee', cursive, sans-serif;color:#0F2657;margin:0 0 4px;font-size:20px;letter-spacing:1px}
+.panel-sub{margin:0 0 12px;font-weight:800;color:#475569}
+.panel .row{display:flex;align-items:center;justify-content:space-between;background:#F1EEE2;border-radius:16px;border:1.5px solid rgba(15,38,87,0.12);padding:10px 14px;margin:8px 0;font-weight:800;color:#0F2657}
+.panel .row.volume-row{padding:8px 14px}
 .vol-control{display:flex;align-items:center;gap:10px;flex:1;max-width:180px;justify-content:flex-end}
-.vol-slider{width:100px;height:8px;accent-color:var(--blue);cursor:pointer;touch-action:none}
-.vol-val{font-size:12px;font-weight:900;min-width:36px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
-.toggle{min-width:86px;border:none;border-radius:99px;padding:8px 12px;font-weight:900;cursor:pointer;background:var(--ink);color:#fff}
-.toggle[aria-pressed="false"]{background:#c9c4b4;color:var(--ink)}
-.panel.narrow{width:min(360px,calc(100vw - 32px));text-align:center;display:grid;gap:10px}
+.vol-slider{width:100px;height:8px;accent-color:#0954A3;cursor:pointer;touch-action:none}
+.vol-val{font-size:12px;font-weight:900;min-width:36px;text-align:right;font-variant-numeric:tabular-nums;color:#0F2657}
+.toggle{min-width:86px;border:2px solid #0F2657;border-radius:99px;padding:8px 14px;font-weight:900;font-size:13px;cursor:pointer;background:linear-gradient(180deg, #FFE853 0%, #FCA71D 100%);color:#0F2657;box-shadow:inset 0 1px 0 rgba(255,255,255,0.8), 0 3px 0 #0F2657;transition:transform 0.12s ease, box-shadow 0.12s ease}
+.toggle[aria-pressed="false"]{background:linear-gradient(180deg, #E2E8F0 0%, #CBD5E1 100%);color:#475569;box-shadow:inset 0 1px 0 rgba(255,255,255,0.8), 0 3px 0 #0F2657}
+.toggle:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 0 #0F2657}
+.panel.narrow{width:min(380px,calc(100vw - 32px));text-align:center;display:grid;gap:12px}
+
+.btn.danger{
+  background:linear-gradient(180deg, #FF8B94 0%, #E63946 100%);
+  color:#FFFFFF;
+  border:2.5px solid #0F2657;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,0.5), 0 5px 0 #0F2657;
+  border-radius:24px;
+  height:48px;
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:1px;
+  margin-top:10px;
+  width:100%;
+  cursor:pointer;
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn.danger:active{
+  transform:translateY(3px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 0 #0F2657;
+}
+.btn.back{
+  background:linear-gradient(180deg, #FF6B7A 0%, #E63946 100%);
+  color:#FFFFFF;
+  border:2.5px solid #0F2657;
+  box-shadow:inset 0 2px 0 rgba(255,255,255,0.5), 0 5px 0 #0F2657;
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:1px;
+  border-radius:24px;
+  height:48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:12px;
+  width:100%;
+  cursor:pointer;
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn.back:active{
+  transform:translateY(3px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), 0 2px 0 #0F2657;
+}
 #chars-grid,#worlds-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:stretch}
 .char-card{border:3px solid #e3ddc9;border-radius:16px;padding:12px;text-align:center;background:#ffffff;touch-action:pan-y;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;height:100%;box-shadow:0 4px 12px rgba(15,38,87,.06)}
 .char-card.selected{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue), 0 6px 16px rgba(9,84,163,.2)}
@@ -735,8 +797,8 @@ body.is-touch .mobile-hint{display:inline !important}
 /* Modal header with top-right close: title left, X right, one row. */
 .modal-head{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex:none}
 .modal-head h2{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.modal-x{width:44px;height:44px;flex:none;border:2px solid #0F172A;border-radius:12px;background:linear-gradient(180deg, #1E293B 0%, #0F172A 100%);color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 0 #070D18;touch-action:manipulation;transition:transform .1s ease, box-shadow .1s ease}
-.modal-x:active{transform:translateY(2px);box-shadow:0 2px 0 #070D18}
+.modal-x{width:40px;height:40px;flex:none;border:2.5px solid #0F2657;border-radius:14px;background:linear-gradient(180deg, #FF6B7A 0%, #E63946 100%);color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.5), 0 3.5px 0 #0F2657;touch-action:manipulation;transition:transform .12s ease, box-shadow .12s ease}
+.modal-x:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), 0 1.5px 0 #0F2657}
 .modal-x svg{display:block}
 
 /* Masked panels: header/X stay fixed, only .panel-scroll scrolls. The old
