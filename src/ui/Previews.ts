@@ -184,8 +184,12 @@ export class CharacterPreviewManager {
 
       // Perspective studio camera: comfortably frames full body, head, hat, and feet with 35% margin
       const cam = new THREE.PerspectiveCamera(34, W / H, 1, 1000);
-      cam.position.set(0, 115, 48);
-      cam.lookAt(0, 0, 16);
+      // Characters are built Z-up (x = left/right, y = forward, z = up).
+      // Three.js defaults to Y-up, which rolls this front view 180° (upside down).
+      cam.up.set(0, 0, 1);
+      // Zoomed out to show full body + pedestal with margin on small cards.
+      cam.position.set(0, 150, 62);
+      cam.lookAt(0, 0, 14);
 
       e.live = { renderer, scene: sc, camera: cam, model };
       e.canvas.classList.add('loaded');
