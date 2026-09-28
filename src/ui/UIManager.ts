@@ -339,11 +339,9 @@ export class UIManager {
     for (const id of ['menu', 'chars-screen', 'worlds-screen', 'missions-screen', 'settings-screen', 'pause-screen', 'gameover']) {
       el(id).hidden = !ids.includes(id);
     }
-    // Top HUD (coins left / world notch center / button right) is visible
-    // on the menu, the world intro, and during gameplay — one responsive
-    // architecture, only scale/spacing changes between breakpoints.
-    const hudVisible = this.state === GameState.MAIN_MENU
-      || this.state === GameState.WORLD_INTRO
+    // Top HUD (coins left / world notch center / pause button right) is visible ONLY during
+    // active gameplay (WORLD_INTRO, PLAYING, PAUSED) — Main Menu has its own dedicated top bar.
+    const hudVisible = this.state === GameState.WORLD_INTRO
       || this.state === GameState.PLAYING
       || this.state === GameState.PAUSED;
     el('hud').hidden = !hudVisible;

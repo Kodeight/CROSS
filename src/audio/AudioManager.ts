@@ -686,7 +686,13 @@ export class AudioManager {
       case 'death': this.tone(160, 0.35, 'sawtooth', 0.3, 0, 40); break;
       case 'unlock': [523, 659, 784, 1046].forEach((f, i) => this.tone(f, 0.12, 'square', 0.2, i * 0.08)); break;
       case 'gameover': [400, 350, 300, 220].forEach((f, i) => this.tone(f, 0.16, 'triangle', 0.22, i * 0.12)); break;
-      case 'fanfare': this.tone(660, 0.12, 'triangle', 0.2); this.tone(880, 0.16, 'triangle', 0.2, 0.1); break;
+      case 'fanfare':
+        // Soft, cheerful multi-harmonic 4-note ascending game chime
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+          this.tone(f, 0.22, 'sine', 0.18, i * 0.07, f * 1.05);
+          this.tone(f * 2, 0.18, 'triangle', 0.05, i * 0.07);
+        });
+        break;
       case 'superpower':
         // Ascending high-energy arpeggiated power surge
         [440, 554, 659, 880, 1108].forEach((f, i) => this.tone(f, 0.14, 'sawtooth', 0.22, i * 0.04, f * 1.25));
