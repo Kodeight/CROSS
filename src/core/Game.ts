@@ -490,7 +490,8 @@ export class Game implements LoopDelegate {
     this.setState(GameState.WORLD_INTRO);
     this.camera.beginIntro(this.player.position);
     const w = this.worlds.current.config;
-    this.audio.fanfare();
+    this.audio.startRun();
+    this.audio.restoreAmbient(0.8);
     this.ui.showWorldIntro(w.name, `CROSS! WORLD ${w.num}`, this.reducedMotion, () => {
       if (this.ui.state === GameState.WORLD_INTRO) this.setState(GameState.PLAYING);
     });

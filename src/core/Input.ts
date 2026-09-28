@@ -15,10 +15,12 @@ export class InputManager {
   private lastTapT = 0;
   private lastTapX = 0;
   private lastTapY = 0;
+  private pendingTapTimer: number | null = null;
+  private isSecondTapPending = false;
   private touchInModal = false;
   private swipeTriggered = false;
-  private static readonly TAP_MS = 280;
-  private static readonly TAP_DIST = 32;
+  private static readonly TAP_MS = 260;
+  private static readonly TAP_DIST = 42;
 
   onAction(handler: (a: GameAction) => void): void {
     this.actionHandlers.push(handler);
@@ -79,9 +81,11 @@ export class InputManager {
       } else if (k === 'ArrowDown' || k === 's' || k === 'S') {
         e.preventDefault();
         this.emit('MOVE_BACK');
-      } else if (k === ' ' || k === 'Spacebar') {
+      } else if (e.code === 'Space' || k === ' ' || k === 'Spacebar') {
         e.preventDefault();
-        this.emit('JUMP');
+        if (!e.repeat) {
+          this.emit('JUMP');
+        }
       } else if (k === 'e' || k === 'E' || k === 'f' || k === 'F' || k === 'q' || k === 'Q') {
         e.preventDefault();
         this.emit('USE_POWER');
@@ -105,6 +109,25 @@ export class InputManager {
           this.touchStartY = t.clientY;
           this.touchStartT = performance.now();
           this.swipeTriggered = false;
+
+          // Check if this touch down occurs during the double-tap window:
+          const now = performance.now();
+          if (this.pendingTapTimer !== null) {
+            const quick = now - this.lastTapT < InputManager.TAP_MS;
+            const near = Math.hypot(t.clientX - this.lastTapX, t.clientY - this.lastTapY) < InputManager.TAP_DIST;
+            if (quick && near) {
+              // Potential second tap is actively down: pause timer so no step can fire while finger is on screen!
+              window.clearTimeout(this.pendingTapTimer);
+              this.pendingTapTimer = null;
+              this.isSecondTapPending = true;
+            } else {
+              // Not part of double tap: flush pending step immediately before this new touch progresses
+              window.clearTimeout(this.pendingTapTimer);
+              this.pendingTapTimer = null;
+              this.isSecondTapPending = false;
+              this.emit('MOVE_FORWARD');
+            }
+          }
         },
         { passive: true },
       );
@@ -120,8 +143,14 @@ export class InputManager {
           const ady = Math.abs(dy);
 
           // Instantaneous swipe recognition as finger moves:
-          if (Math.max(adx, ady) >= 20) {
+          if (Math.max(adx, ady) >= 18) {
             this.swipeTriggered = true;
+            this.isSecondTapPending = false;
+            // Cancel any pending single-tap forward move so swipe takes immediate precedence!
+            if (this.pendingTapTimer !== null) {
+              window.clearTimeout(this.pendingTapTimer);
+              this.pendingTapTimer = null;
+            }
             this.lastTapT = 0;
             if (adx > ady) {
               this.emit(dx > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT');
@@ -136,10 +165,12 @@ export class InputManager {
       game.addEventListener('touchend', (e) => {
         if (this.touchInModal || this.startsInModal(e.target)) {
           this.touchInModal = false;
+          this.isSecondTapPending = false;
           return;
         }
         if (this.swipeTriggered) {
           this.swipeTriggered = false;
+          this.isSecondTapPending = false;
           return;
         }
         const t = e.changedTouches[0];
@@ -151,25 +182,52 @@ export class InputManager {
 
         // If swipe was fast and released before touchmove triggered:
         if (Math.max(adx, ady) >= 16) {
+          if (this.pendingTapTimer !== null) {
+            window.clearTimeout(this.pendingTapTimer);
+            this.pendingTapTimer = null;
+          }
+          this.isSecondTapPending = false;
           this.lastTapT = 0;
           if (adx > ady) this.emit(dx > 0 ? 'MOVE_RIGHT' : 'MOVE_LEFT');
           else this.emit(dy < 0 ? 'MOVE_FORWARD' : 'MOVE_BACK');
           return;
         }
 
-        // Clean tap: execute immediately with 0ms delay!
-        if (dt < 450) {
+        // Tap handling with double-tap detection window:
+        // A deliberate double-tap JUMPS immediately with ZERO unwanted movement step!
+        if (dt < 420) {
           const now = performance.now();
-          const quick = now - this.lastTapT < InputManager.TAP_MS;
+          const quick = now - this.lastTapT < InputManager.TAP_MS + 100;
           const near = Math.hypot(t.clientX - this.lastTapX, t.clientY - this.lastTapY) < InputManager.TAP_DIST;
-          this.lastTapT = now;
-          this.lastTapX = t.clientX;
-          this.lastTapY = t.clientY;
-          if (quick && near) {
+
+          if (this.isSecondTapPending || (this.pendingTapTimer !== null && quick && near)) {
+            // Second tap arrived within window! Execute ONLY JUMP, cancel pending step!
+            if (this.pendingTapTimer !== null) {
+              window.clearTimeout(this.pendingTapTimer);
+              this.pendingTapTimer = null;
+            }
+            this.isSecondTapPending = false;
+            this.lastTapT = 0;
             this.emit('JUMP');
           } else {
-            this.emit('MOVE_FORWARD');
+            // First tap: start the short double-tap detection window
+            if (this.pendingTapTimer !== null) {
+              window.clearTimeout(this.pendingTapTimer);
+              this.pendingTapTimer = null;
+            }
+            this.isSecondTapPending = false;
+            this.lastTapT = now;
+            this.lastTapX = t.clientX;
+            this.lastTapY = t.clientY;
+
+            // Wait briefly for potential 2nd tap; if none arrives, execute normal single step
+            this.pendingTapTimer = window.setTimeout(() => {
+              this.pendingTapTimer = null;
+              this.emit('MOVE_FORWARD');
+            }, 180);
           }
+        } else {
+          this.isSecondTapPending = false;
         }
       });
     }

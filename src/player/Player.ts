@@ -25,6 +25,7 @@ export class Player {
   moving = false;
   dying = false;
   squashAt = 0;
+  invulnerableUntil = 0;
   /** World-space character scale tuned for the elevated diorama camera. */
   static readonly SCALE = 1.3;
 
@@ -70,9 +71,15 @@ export class Player {
     this.moving = false;
     this.dying = false;
     this.squashAt = 0;
+    this.invulnerableUntil = 0;
+    this.group.visible = true;
     this.group.rotation.set(0, 0, 0);
     this.group.scale.setScalar(Player.SCALE);
     this.group.position.set(this.colToX(column), this.laneToY(lane), 0);
+  }
+
+  setInvulnerable(durationMs: number): void {
+    this.invulnerableUntil = performance.now() + durationMs;
   }
 
   /**
@@ -222,8 +229,15 @@ export class Player {
     if (this.dying) {
       this.group.rotation.z = Math.min(Math.PI / 2, this.group.rotation.z + 0.15);
       body.scale.set(1.25, 1.25, 0.35);
+      this.group.visible = true;
     } else {
       this.group.rotation.z = 0;
+      if (nowMs < this.invulnerableUntil) {
+        // High-frequency invulnerability flash (every 70ms)
+        this.group.visible = Math.floor(nowMs / 70) % 2 === 0;
+      } else {
+        this.group.visible = true;
+      }
     }
   }
 }

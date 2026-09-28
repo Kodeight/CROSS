@@ -485,6 +485,19 @@ export class SuperpowerVFX {
   }
 
   /**
+   * Specifically handles shield impact and shattering into radiant energy rings.
+   */
+  breakShield(playerPos: THREE.Vector3): void {
+    if (this.shieldMesh) this.shieldMesh.visible = false;
+    if (this.shieldInnerMesh) this.shieldInnerMesh.visible = false;
+    this.powerActive = false;
+    this.currentPower = null;
+    this.spawnSonicRing(playerPos, 0x38e1ff, 6 * ZOOM, 38 * ZOOM, 65 * ZOOM);
+    this.spawnSonicRing(playerPos, 0xffffff, 4 * ZOOM, 28 * ZOOM, 45 * ZOOM);
+    this.spawnSonicRing(playerPos, 0x0954a3, 10 * ZOOM, 45 * ZOOM, 55 * ZOOM);
+  }
+
+  /**
    * Ends the active superpower with a natural completion burst.
    */
   endPower(playerPos: THREE.Vector3): void {

@@ -43,6 +43,7 @@ export class GameManager {
   shake = 0;
   eventActive: string | null = null;
   eventUntilLane = 0;
+  private invulnerableUntil = 0;
   private lastNearAt = 0;
   private ambientAcc = 0;
   private reducedMotion = false;
@@ -114,6 +115,8 @@ export class GameManager {
     this.dying = false;
     this.shake = 0;
     this.eventActive = null;
+    this.invulnerableUntil = 0;
+    this.audio.restoreAmbient(0.8);
     rebuildPlayerMesh();
 
     this.lanes.clear();
@@ -162,6 +165,7 @@ export class GameManager {
         this.audio.unlock();
       }
       if (done.dir === 'forward' || done.dir === 'jump') {
+        this.audio.setAmbientTension(Math.min(1.0, this.player.lane / 120));
         if (this.score.reachLane(this.player.lane)) {
           this.checkWorldTransition();
           this.cb.onHud();
@@ -272,8 +276,10 @@ export class GameManager {
     if (!this.powerups.isMagnetActive()) return;
     const px = this.player.position.x;
     const py = this.player.position.y;
-    const pullRadius = 380;
-    const pullSpeed = (380 * dtMs) / 1000;
+    const pullRadius = 400;
+    // Proper delta-time scaling in seconds so coins smoothly glide to player
+    const dt = dtMs > 1 ? dtMs / 1000 : dtMs;
+    const pullSpeed = 480 * dt;
 
     for (const lane of this.lanes.lanes) {
       const laneY = lane.mesh.position.y;
@@ -290,9 +296,9 @@ export class GameManager {
           if (dist < pullRadius && dist > 1) {
             c.mesh.position.x += (dx / dist) * pullSpeed;
             c.mesh.position.y += (dy / dist) * pullSpeed;
-            if (dist < 40) {
+            if (dist < 42) {
               c.taken = true;
-              this.coins.beginCollect(c.mesh);
+              this.coins.beginCollect(c.mesh, this.player.position);
               this.coins.collect();
               this.audio.coin();
               this.score.addBonus(1);
@@ -313,7 +319,7 @@ export class GameManager {
           if (dist < pullRadius && dist > 1) {
             col.mesh.position.x += (dx / dist) * pullSpeed;
             col.mesh.position.y += (dy / dist) * pullSpeed;
-            if (dist < 40) {
+            if (dist < 42) {
               this.checkCollect();
             }
           }
@@ -370,6 +376,12 @@ export class GameManager {
     if (!lane || (lane.type !== 'car' && lane.type !== 'truck')) return;
     if (this.player.position.z > 10 * GAME_CONFIG.zoom) return;
 
+    // Check post-hit grace period (e.g. immediately after Shield break)
+    const now = performance.now();
+    if (now < this.invulnerableUntil) {
+      return;
+    }
+
     // 1. Ghost superpower: phase directly through traffic without harm
     if (this.powerups.isGhostActive()) {
       return;
@@ -386,13 +398,26 @@ export class GameManager {
 
       if (pxMax > vMin && pxMin < vMax) {
         // 2. Shield superpower: absorbs fatal collision!
+        // Player MUST survive this hit, shield is consumed, grace period protects against lingering vehicle!
         if (this.powerups.absorbCollision()) {
-          this.shake = 8;
-          this.audio.bump();
-          vibrate([30, 60]);
+          this.invulnerableUntil = performance.now() + 1600;
+          this.player.setInvulnerable(1600);
+
+          // Displace the colliding vehicle forward so it does not linger inside player
+          const pushDist = (lane.direction ? 1 : -1) * (half + 28 * GAME_CONFIG.zoom);
+          v.position.x += pushDist;
+          v.userData.prevDx = null;
+
+          this.shake = 12;
+          this.audio.shieldHit();
+          vibrate([40, 60, 40]);
+
+          if (this.vfx) {
+            this.vfx.breakShield(this.player.position);
+          }
           this.particles.burst(
-            this.player.position.x, this.player.position.y, 35,
-            0x38e1ff, 12, 280, 0.7, 300, this.lowQuality,
+            this.player.position.x, this.player.position.y, 45,
+            0x38e1ff, 18, 380, 0.9, 450, this.lowQuality,
           );
           this.cb.onToast('🛡️ FORCE SHIELD ABSORBED IMPACT!');
           this.cb.onHud();
@@ -424,6 +449,7 @@ export class GameManager {
     this.deathAt = performance.now();
     this.shake = 14;
     this.audio.death();
+    this.audio.duckAmbient(0.8);
     vibrate([40, 40, 40]);
     this.particles.burst(
       this.player.position.x, this.player.position.y, 20,

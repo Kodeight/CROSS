@@ -254,6 +254,12 @@ export class AudioManager {
     this.isPaused = false;
     this.pausedTrackId = null;
 
+    if (mode === 'play') {
+      this.setWorldAmbient(worldId, 0.8);
+    } else {
+      this.duckAmbient(0.5);
+    }
+
     // Smoothly crossfade out current track
     if (this.currentTrack) {
       this.fadeOutTrack(this.currentTrack, 0.75);
@@ -533,6 +539,49 @@ export class AudioManager {
   }
 
   /**
+   * Duck ambient audio during death or game-over to allow clean impact and resolution.
+   */
+  public duckAmbient(fadeDurationSec = 0.5): void {
+    if (!this.ctx || !this.currentAmbient) return;
+    const now = this.ctx.currentTime;
+    try {
+      this.currentAmbient.gainNode.gain.cancelScheduledValues(now);
+      this.currentAmbient.gainNode.gain.setValueAtTime(this.currentAmbient.gainNode.gain.value, now);
+      this.currentAmbient.gainNode.gain.linearRampToValueAtTime(0.0001, now + fadeDurationSec);
+    } catch { /* ignore */ }
+  }
+
+  /**
+   * Restore ambient audio smoothly on new run or game resumption.
+   */
+  public restoreAmbient(fadeDurationSec = 0.8): void {
+    if (!this.ctx || !this.currentAmbient || !this.sfxEnabled) return;
+    const now = this.ctx.currentTime;
+    try {
+      this.currentAmbient.gainNode.gain.cancelScheduledValues(now);
+      this.currentAmbient.gainNode.gain.setValueAtTime(this.currentAmbient.gainNode.gain.value, now);
+      this.currentAmbient.gainNode.gain.linearRampToValueAtTime(1.0, now + fadeDurationSec);
+    } catch { /* ignore */ }
+  }
+
+  /**
+   * Subtle ambient tension scaling as run progresses (0.0 to 1.0)
+   */
+  public setAmbientTension(tension0to1: number): void {
+    if (!this.ctx || !this.currentAmbient) return;
+    const t = Math.max(0, Math.min(1, tension0to1));
+    for (const node of this.currentAmbient.nodes) {
+      if ('frequency' in node && (node as BiquadFilterNode).frequency) {
+        try {
+          const filter = node as BiquadFilterNode;
+          const baseFreq = filter.type === 'lowpass' ? 240 : 450;
+          filter.frequency.setValueAtTime(baseFreq * (1.0 + t * 0.35), this.ctx.currentTime);
+        } catch { /* ignore */ }
+      }
+    }
+  }
+
+  /**
    * Pauses the active track, preserving playback position for seamless resumption.
    */
   public pauseMusic(): void {
@@ -685,13 +734,29 @@ export class AudioManager {
       case 'coin': this.tone(950, 0.08, 'sine', 0.25); this.tone(1420, 0.12, 'sine', 0.25, 0.06); break;
       case 'death': this.tone(160, 0.35, 'sawtooth', 0.3, 0, 40); break;
       case 'unlock': [523, 659, 784, 1046].forEach((f, i) => this.tone(f, 0.12, 'square', 0.2, i * 0.08)); break;
-      case 'gameover': [400, 350, 300, 220].forEach((f, i) => this.tone(f, 0.16, 'triangle', 0.22, i * 0.12)); break;
+      case 'gameover':
+        // Impact thud -> warm minor 7th resolving drop -> clean decay
+        this.tone(92, 0.18, 'sine', 0.38, 0, 38); // Impact thud
+        this.tone(311.13, 0.36, 'triangle', 0.20, 0.04, 261.63); // Eb4 -> C4
+        this.tone(207.65, 0.40, 'sine', 0.18, 0.05, 174.61); // Ab3 -> F3
+        this.tone(130.81, 0.48, 'sine', 0.24, 0.06, 110.00); // C3 -> A2 warm resolve
+        break;
       case 'fanfare':
-        // Soft, cheerful multi-harmonic 4-note ascending game chime
-        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
-          this.tone(f, 0.22, 'sine', 0.18, i * 0.07, f * 1.05);
-          this.tone(f * 2, 0.18, 'triangle', 0.05, i * 0.07);
-        });
+      case 'start_run':
+        // Modern, polished arcade launch cue:
+        // Anticipation riser + energetic launch chord (C5 + G5 + C6) + sub-kick weight
+        this.tone(140, 0.08, 'sine', 0.30, 0, 48); // Sub-bass punch
+        this.tone(360, 0.06, 'triangle', 0.16, 0, 720); // Quick rising sweep
+        this.tone(523.25, 0.22, 'sine', 0.24, 0.04); // Fundamental C5
+        this.tone(783.99, 0.24, 'triangle', 0.20, 0.05); // Fifth G5
+        this.tone(1046.50, 0.28, 'sine', 0.18, 0.06); // Octave C6 chime
+        break;
+      case 'shield_hit':
+        // Energy barrier deflection punch + glass/crystal shatter
+        this.tone(220, 0.10, 'sine', 0.35, 0, 75); // Deflection punch
+        this.tone(1860, 0.16, 'triangle', 0.25, 0.01, 1400); // Shard 1
+        this.tone(2420, 0.14, 'sine', 0.20, 0.02, 1700); // Shard 2
+        this.tone(940, 0.12, 'square', 0.10, 0.02, 450); // Electric dissipation
         break;
       case 'superpower':
         // Ascending high-energy arpeggiated power surge
@@ -775,6 +840,14 @@ export class AudioManager {
 
   fanfare(): void {
     void this.playSfx('fanfare', { volume: 0.9 });
+  }
+
+  startRun(): void {
+    void this.playSfx('start_run', { volume: 0.95 });
+  }
+
+  shieldHit(): void {
+    void this.playSfx('shield_hit', { volume: 1.0 });
   }
 
   superpower(): void {

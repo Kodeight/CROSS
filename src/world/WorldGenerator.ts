@@ -235,6 +235,10 @@ export class WorldGenerator {
    * World-specific signature 3D collectible items with distinct geometry,
    * materials, and animated energy base halos across ALL 20 worlds!
    */
+  /**
+   * World-specific signature 3D collectible items with distinct geometry,
+   * smooth rounded surfaces, beveled contours, and premium stylized game art!
+   */
   makeCollectibleMesh(worldId: string): THREE.Group {
     const g = new THREE.Group();
     const colDef = collectibleForWorld(worldId);
@@ -252,197 +256,332 @@ export class WorldGenerator {
     halo.position.z = -7 * ZOOM;
     g.add(halo);
 
-    switch (colDef.shape) {
-      case 'crystal': {
-        const R = 7 * ZOOM;
-        const H = 15 * ZOOM;
-        const top = new THREE.Mesh(
-          this.assets.cylinder(`col-cryst-top:${worldId}`, 0.1, R, H / 2, 6),
-          this.assets.standard(`col-mat:${worldId}`, colDef.color, { metalness: 0.4, roughness: 0.15, emissive: colDef.emissive }),
-        );
-        top.position.z = H / 4;
-        top.castShadow = true;
-        g.add(top);
-        const bot = new THREE.Mesh(
-          this.assets.cylinder(`col-cryst-bot:${worldId}`, R, 0.1, H / 2, 6),
-          this.assets.standard(`col-mat:${worldId}`, colDef.color, { metalness: 0.4, roughness: 0.15, emissive: colDef.emissive }),
-        );
-        bot.position.z = -H / 4;
-        bot.castShadow = true;
-        g.add(bot);
-        const core = new THREE.Mesh(
-          this.assets.sphere(`col-cryst-core:${worldId}`, 3.5 * ZOOM, 8, 6),
-          this.assets.standard(`col-cryst-core-mat:${worldId}`, colDef.glowColor, { metalness: 0.9, roughness: 0.1, emissive: colDef.glowColor }),
-        );
-        g.add(core);
-        break;
-      }
-      case 'pearl': {
-        const pearl = new THREE.Mesh(
-          this.assets.sphere('col-pearl', 6.5 * ZOOM, 16, 12),
-          this.assets.standard('col-pearl-mat', colDef.color, { metalness: 0.9, roughness: 0.1, emissive: colDef.emissive }),
-        );
-        pearl.castShadow = true;
-        g.add(pearl);
-        const ring = new THREE.Mesh(
-          this.assets.torus('col-pearl-goldring', 7 * ZOOM, 1.4 * ZOOM, 10, 24),
-          this.assets.standard('col-gold-mat', 0xffc93c, { metalness: 0.95, roughness: 0.2, emissive: 0x442a00 }),
-        );
-        ring.rotation.x = Math.PI / 2;
-        ring.castShadow = true;
-        g.add(ring);
-        break;
-      }
-      case 'leaf': {
-        const leaf = new THREE.Mesh(
-          this.assets.roundedBox(8 * ZOOM, 3.2 * ZOOM, 15 * ZOOM, 1.4 * ZOOM, 2),
-          this.assets.standard('col-leaf-mat', colDef.color, { metalness: 0.3, roughness: 0.2, emissive: colDef.emissive }),
-        );
-        leaf.rotation.y = Math.PI / 4;
-        leaf.castShadow = true;
-        g.add(leaf);
-        const dew = new THREE.Mesh(
-          this.assets.sphere('col-leaf-dew', 3.2 * ZOOM, 8, 6),
-          this.assets.standard('col-leaf-dew-mat', colDef.glowColor, { metalness: 0.9, roughness: 0.1, emissive: colDef.glowColor }),
-        );
-        g.add(dew);
-        break;
-      }
-      case 'gear': {
-        const R = 8 * ZOOM;
-        const T = 2.6 * ZOOM;
-        const gearBody = new THREE.Mesh(
-          this.assets.cylinder('col-gear-body', R, R, T, 16),
-          this.assets.standard('col-gear-mat', colDef.color, { metalness: 0.88, roughness: 0.25, emissive: colDef.emissive }),
-        );
-        gearBody.castShadow = true;
-        g.add(gearBody);
-        for (let i = 0; i < 6; i++) {
-          const a = (i / 6) * Math.PI * 2;
-          const tooth = new THREE.Mesh(
-            this.assets.box('col-gear-tooth', 3.5 * ZOOM, 2.8 * ZOOM, T),
-            this.assets.standard('col-gear-mat', colDef.color, { metalness: 0.88, roughness: 0.25, emissive: colDef.emissive }),
-          );
-          tooth.position.set(Math.cos(a) * (R + 1.4 * ZOOM), Math.sin(a) * (R + 1.4 * ZOOM), 0);
-          tooth.rotation.z = a;
-          tooth.castShadow = true;
-          g.add(tooth);
-        }
-        const bore = new THREE.Mesh(
-          this.assets.cylinder('col-gear-bore', 3.2 * ZOOM, 3.2 * ZOOM, T + 0.5 * ZOOM, 12),
-          this.assets.standard('col-gear-bore-mat', 0x2f3542, { metalness: 0.95, roughness: 0.4 }),
-        );
-        g.add(bore);
-        break;
-      }
-      case 'chip': {
-        const chip = new THREE.Mesh(
-          this.assets.roundedBox(12 * ZOOM, 12 * ZOOM, 2.4 * ZOOM, 1.2 * ZOOM, 2),
-          this.assets.standard('col-chip-base', 0x1e2430, { metalness: 0.85, roughness: 0.3 }),
-        );
-        chip.castShadow = true;
-        g.add(chip);
-        const core = new THREE.Mesh(
-          this.assets.box('col-chip-core', 7.5 * ZOOM, 7.5 * ZOOM, 3 * ZOOM),
-          this.assets.standard('col-chip-glow', colDef.color, { metalness: 0.7, roughness: 0.15, emissive: colDef.glowColor }),
-        );
-        g.add(core);
-        break;
-      }
-      case 'scarab': {
-        const scarab = new THREE.Mesh(
-          this.assets.sphere('col-scarab-body', 6.2 * ZOOM, 12, 8),
-          this.assets.standard('col-scarab-mat', colDef.color, { metalness: 0.95, roughness: 0.2, emissive: colDef.emissive }),
-        );
-        scarab.scale.set(1.3, 1, 0.65);
-        scarab.castShadow = true;
-        g.add(scarab);
-        const gem = new THREE.Mesh(
-          this.assets.sphere('col-scarab-jewel', 2.8 * ZOOM, 8, 6),
-          this.assets.standard('col-scarab-gem-mat', 0x1dd1a1, { metalness: 0.8, roughness: 0.15, emissive: 0x008844 }),
-        );
-        gem.position.z = 3 * ZOOM;
-        g.add(gem);
-        break;
-      }
-      case 'crown': {
-        const crown = new THREE.Mesh(
-          this.assets.cylinder('col-crown-base', 7 * ZOOM, 8.5 * ZOOM, 7 * ZOOM, 12),
-          this.assets.standard('col-crown-mat', 0xffd700, { metalness: 0.95, roughness: 0.2, emissive: 0x553300 }),
-        );
-        crown.castShadow = true;
-        g.add(crown);
-        const ruby = new THREE.Mesh(
-          this.assets.sphere('col-crown-ruby', 3 * ZOOM, 8, 6),
-          this.assets.standard('col-crown-ruby-mat', 0xff4757, { metalness: 0.85, roughness: 0.1, emissive: 0xff1122 }),
-        );
-        ruby.position.z = 4.5 * ZOOM;
-        g.add(ruby);
-        break;
-      }
-      case 'plasma':
-      case 'fragment': {
-        const orb = new THREE.Mesh(
-          this.assets.sphere(`col-orb:${worldId}`, 6.5 * ZOOM, 12, 10),
-          this.assets.standard(`col-orb-mat:${worldId}`, colDef.color, { metalness: 0.8, roughness: 0.1, emissive: colDef.glowColor }),
-        );
-        orb.castShadow = true;
-        g.add(orb);
-        for (let i = 0; i < 2; i++) {
-          const ring = new THREE.Mesh(
-            this.assets.torus(`col-plasma-ring:${i}`, (7.5 + i * 1.5) * ZOOM, 0.9 * ZOOM, 8, 20),
-            this.assets.standard(`col-plasma-ring-mat:${i}`, colDef.glowColor, { metalness: 0.95, roughness: 0.1, emissive: colDef.glowColor }),
-          );
-          ring.rotation.x = Math.PI / 3 + i * 0.8;
-          ring.rotation.y = i * 0.9;
-          g.add(ring);
-        }
-        break;
-      }
-      default: {
-        // High-tech Stylized Ionic Plasma Power Core
-        const core = new THREE.Mesh(
-          this.assets.sphere(`col-cell-core:${worldId}`, 4.5 * ZOOM, 14, 10),
-          this.assets.standard(`col-cell-mat:${worldId}`, colDef.color, {
-            metalness: 0.8,
-            roughness: 0.1,
-            emissive: colDef.glowColor,
-          }),
-        );
-        core.castShadow = true;
-        g.add(core);
+    const powerType = colDef.powerType;
 
-        // Anodized hexagonal chassis housing
-        const housing = new THREE.Mesh(
-          this.assets.cylinder(`col-cell-housing:${worldId}`, 5.5 * ZOOM, 5.5 * ZOOM, 11 * ZOOM, 6),
-          this.assets.standard('col-cell-chassis', 0x1e2430, { metalness: 0.9, roughness: 0.25 }),
-        );
-        housing.castShadow = true;
-        g.add(housing);
+    if (powerType === 'shield' || powerType === 'fire_shield') {
+      // --- PREMIUM 3D SHIELD COLLECTIBLE ---
+      // Smooth heraldic heater shield with dimensional beveled rim, vibrant plate, and golden emblem crest
+      const shieldGroup = new THREE.Group();
 
-        // Orbital energy flux ring
-        const fluxRing = new THREE.Mesh(
-          this.assets.torus(`col-cell-flux:${worldId}`, 7 * ZOOM, 0.9 * ZOOM, 8, 20),
-          this.assets.standard(`col-cell-flux-mat:${worldId}`, 0xfca71d, {
-            metalness: 0.95,
-            roughness: 0.1,
-            emissive: 0xfca71d,
-          }),
-        );
-        fluxRing.rotation.x = Math.PI / 4;
-        g.add(fluxRing);
+      const shieldShape = new THREE.Shape();
+      const sw = 6.2 * ZOOM;
+      const sh = 7.5 * ZOOM;
+      shieldShape.moveTo(-sw, sh);
+      shieldShape.lineTo(sw, sh);
+      shieldShape.quadraticCurveTo(sw * 1.05, 0, 0, -sh * 1.15);
+      shieldShape.quadraticCurveTo(-sw * 1.05, 0, -sw, sh);
 
-        for (const s of [-1, 1]) {
-          const cap = new THREE.Mesh(
-            this.assets.cylinder('col-cell-cap', 6.2 * ZOOM, 6.2 * ZOOM, 2.0 * ZOOM, 6),
-            this.assets.standard('col-cell-cap-mat', 0x47aae0, { metalness: 0.9, roughness: 0.2, emissive: 0x0954a3 }),
-          );
-          cap.position.z = s * 5.8 * ZOOM;
-          g.add(cap);
-        }
-        break;
+      const shieldGeo = new THREE.ExtrudeGeometry(shieldShape, {
+        depth: 1.4 * ZOOM,
+        bevelEnabled: true,
+        bevelThickness: 1.1 * ZOOM,
+        bevelSize: 1.0 * ZOOM,
+        bevelSegments: 3,
+      });
+      shieldGeo.computeVertexNormals();
+
+      const shieldMat = this.assets.standard(
+        `col-shield-plate:${worldId}`,
+        colDef.color,
+        { metalness: 0.45, roughness: 0.2, emissive: colDef.emissive },
+      );
+      const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+      shieldMesh.castShadow = true;
+      shieldGroup.add(shieldMesh);
+
+      // Golden raised heraldic rim/border
+      const rimMat = this.assets.standard('col-gold-rim', 0xffd700, {
+        metalness: 0.9,
+        roughness: 0.18,
+        emissive: 0x442a00,
+      });
+
+      // Central dimensional golden crest cross / star
+      const crossH = new THREE.Mesh(
+        this.assets.box('col-shield-cross-h', 6 * ZOOM, 1.8 * ZOOM, 2.2 * ZOOM),
+        rimMat,
+      );
+      crossH.position.set(0, 1 * ZOOM, 1.4 * ZOOM);
+      crossH.castShadow = true;
+      shieldGroup.add(crossH);
+
+      const crossV = new THREE.Mesh(
+        this.assets.box('col-shield-cross-v', 1.8 * ZOOM, 8 * ZOOM, 2.2 * ZOOM),
+        rimMat,
+      );
+      crossV.position.set(0, 1 * ZOOM, 1.4 * ZOOM);
+      crossV.castShadow = true;
+      shieldGroup.add(crossV);
+
+      // Central glowing power diamond gem
+      const gem = new THREE.Mesh(
+        this.assets.sphere(`col-shield-gem:${worldId}`, 2.2 * ZOOM, 8, 6),
+        this.assets.standard(`col-shield-gem-mat:${worldId}`, colDef.glowColor, {
+          metalness: 0.95,
+          roughness: 0.1,
+          emissive: colDef.glowColor,
+        }),
+      );
+      gem.position.set(0, 1 * ZOOM, 2.5 * ZOOM);
+      shieldGroup.add(gem);
+
+      shieldGroup.rotation.x = Math.PI / 8; // Slanted upright angle
+      g.add(shieldGroup);
+
+    } else if (powerType === 'magnet') {
+      // --- PREMIUM 3D COIN MAGNET COLLECTIBLE ---
+      // Authentic curved horseshoe magnet with red enamel, chrome tips, and floating golden coin
+      const magnetGroup = new THREE.Group();
+
+      // Curved U-arch body
+      const arch = new THREE.Mesh(
+        this.assets.torus('col-magnet-arch', 6.5 * ZOOM, 2.0 * ZOOM, 14, 24),
+        this.assets.standard('col-magnet-body', 0xe74c3c, {
+          metalness: 0.35,
+          roughness: 0.18,
+          emissive: 0x330805,
+        }),
+      );
+      arch.rotation.x = Math.PI / 2;
+      magnetGroup.add(arch);
+
+      // Twin straight legs
+      const legMat = this.assets.standard('col-magnet-body', 0xe74c3c, {
+        metalness: 0.35,
+        roughness: 0.18,
+        emissive: 0x330805,
+      });
+      const chromeMat = this.assets.standard('col-magnet-chrome', 0xf1f2f6, {
+        metalness: 0.95,
+        roughness: 0.12,
+        emissive: 0x333333,
+      });
+
+      for (const s of [-1, 1]) {
+        const leg = new THREE.Mesh(
+          this.assets.cylinder('col-magnet-leg', 2.0 * ZOOM, 2.0 * ZOOM, 5 * ZOOM, 14),
+          legMat,
+        );
+        leg.position.set(s * 6.5 * ZOOM, -2.5 * ZOOM, 0);
+        leg.rotation.x = Math.PI / 2;
+        leg.castShadow = true;
+        magnetGroup.add(leg);
+
+        // Metallic silver pole tip
+        const poleTip = new THREE.Mesh(
+          this.assets.cylinder('col-magnet-pole', 2.1 * ZOOM, 2.1 * ZOOM, 2.5 * ZOOM, 14),
+          chromeMat,
+        );
+        poleTip.position.set(s * 6.5 * ZOOM, -5.5 * ZOOM, 0);
+        poleTip.rotation.x = Math.PI / 2;
+        poleTip.castShadow = true;
+        magnetGroup.add(poleTip);
       }
+
+      // Floating golden mini-coin magnetically levitating between the poles
+      const levCoin = new THREE.Mesh(
+        this.assets.cylinder('col-magnet-coin', 3.2 * ZOOM, 3.2 * ZOOM, 1.2 * ZOOM, 16),
+        this.assets.standard('col-magnet-gold', 0xffd700, {
+          metalness: 0.95,
+          roughness: 0.15,
+          emissive: 0x553300,
+        }),
+      );
+      levCoin.position.set(0, -5.5 * ZOOM, 0);
+      levCoin.rotation.x = Math.PI / 4;
+      magnetGroup.add(levCoin);
+
+      magnetGroup.rotation.x = -Math.PI / 4;
+      g.add(magnetGroup);
+
+    } else if (powerType === 'dash') {
+      // --- PREMIUM 3D SONIC DASH SPEED POD ---
+      // Aerodynamic glowing energy capsule with twin orbital speed rings & forward chevron
+      const dashGroup = new THREE.Group();
+
+      const core = new THREE.Mesh(
+        this.assets.sphere(`col-dash-core:${worldId}`, 5.5 * ZOOM, 16, 12),
+        this.assets.standard(`col-dash-core-mat:${worldId}`, colDef.color, {
+          metalness: 0.85,
+          roughness: 0.12,
+          emissive: colDef.glowColor,
+        }),
+      );
+      core.scale.set(1, 1.4, 0.9);
+      core.castShadow = true;
+      dashGroup.add(core);
+
+      // Orbital high-velocity warp rings
+      const ring1 = new THREE.Mesh(
+        this.assets.torus('col-dash-ring1', 8.2 * ZOOM, 1.1 * ZOOM, 10, 24),
+        this.assets.standard('col-dash-ring-mat', 0xffa502, {
+          metalness: 0.9,
+          roughness: 0.15,
+          emissive: 0xffa502,
+        }),
+      );
+      ring1.rotation.x = Math.PI / 3;
+      dashGroup.add(ring1);
+
+      const ring2 = new THREE.Mesh(
+        this.assets.torus('col-dash-ring2', 7.0 * ZOOM, 0.9 * ZOOM, 8, 20),
+        this.assets.standard('col-dash-ring-cyan', 0x38e1ff, {
+          metalness: 0.95,
+          roughness: 0.1,
+          emissive: 0x00f0ff,
+        }),
+      );
+      ring2.rotation.y = Math.PI / 3;
+      dashGroup.add(ring2);
+
+      g.add(dashGroup);
+
+    } else if (powerType === 'freeze') {
+      // --- PREMIUM 3D FROST FREEZE PERMAFROST PRISM ---
+      // Multi-faceted crystalline snowflake with beveled surfaces & floating frost shards
+      const freezeGroup = new THREE.Group();
+
+      const prism = new THREE.Mesh(
+        this.assets.sphere('col-freeze-octa', 6.5 * ZOOM, 8, 6),
+        this.assets.standard('col-freeze-ice', 0xa8d8ea, {
+          metalness: 0.3,
+          roughness: 0.08,
+          emissive: 0x004466,
+        }),
+      );
+      prism.scale.set(1, 1, 1.6);
+      prism.castShadow = true;
+      freezeGroup.add(prism);
+
+      // Glowing frost core
+      const frostCore = new THREE.Mesh(
+        this.assets.sphere('col-freeze-core', 3.5 * ZOOM, 8, 6),
+        this.assets.standard('col-freeze-core-mat', 0xdff9fb, {
+          metalness: 0.9,
+          roughness: 0.1,
+          emissive: 0x38e1ff,
+        }),
+      );
+      freezeGroup.add(frostCore);
+
+      // 4 orbital satellite ice needles
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2;
+        const shard = new THREE.Mesh(
+          this.assets.sphere(`col-ice-shard:${i}`, 1.8 * ZOOM, 6, 4),
+          this.assets.standard('col-freeze-ice', 0xa8d8ea, { metalness: 0.3, roughness: 0.08, emissive: 0x004466 }),
+        );
+        shard.position.set(Math.cos(a) * 8.5 * ZOOM, Math.sin(a) * 8.5 * ZOOM, 0);
+        shard.scale.set(1, 1, 2);
+        freezeGroup.add(shard);
+      }
+
+      g.add(freezeGroup);
+
+    } else if (powerType === 'ghost') {
+      // --- PREMIUM 3D PHASE GHOST SPIRIT ORB ---
+      // Spectral translucent wisp with glowing ethereal wisp star
+      const ghostGroup = new THREE.Group();
+
+      const wisp = new THREE.Mesh(
+        this.assets.sphere('col-ghost-outer', 6.5 * ZOOM, 16, 12),
+        this.assets.standard('col-ghost-outer-mat', colDef.color, {
+          metalness: 0.2,
+          roughness: 0.1,
+          emissive: colDef.glowColor,
+        }),
+      );
+      wisp.scale.set(0.9, 1.1, 1.3);
+      wisp.castShadow = true;
+      ghostGroup.add(wisp);
+
+      const auraTorus = new THREE.Mesh(
+        this.assets.torus('col-ghost-torus', 8 * ZOOM, 1.0 * ZOOM, 10, 24),
+        this.assets.standard('col-ghost-torus-mat', colDef.glowColor, {
+          metalness: 0.8,
+          roughness: 0.2,
+          emissive: colDef.glowColor,
+        }),
+      );
+      auraTorus.rotation.x = Math.PI / 4;
+      ghostGroup.add(auraTorus);
+
+      g.add(ghostGroup);
+
+    } else if (powerType === 'time_warp') {
+      // --- PREMIUM 3D QUANTUM CHRONOMETER GYROSCOPE ---
+      // Twin golden gimbal rings orbiting around a radiant pulsing chrono-sphere
+      const timeGroup = new THREE.Group();
+
+      const chronoSphere = new THREE.Mesh(
+        this.assets.sphere('col-time-sphere', 4.5 * ZOOM, 14, 10),
+        this.assets.standard('col-time-sphere-mat', colDef.color, {
+          metalness: 0.8,
+          roughness: 0.15,
+          emissive: colDef.glowColor,
+        }),
+      );
+      timeGroup.add(chronoSphere);
+
+      const ringOuter = new THREE.Mesh(
+        this.assets.torus('col-time-ring-outer', 8.2 * ZOOM, 1.1 * ZOOM, 10, 28),
+        this.assets.standard('col-time-brass', 0xffd700, {
+          metalness: 0.9,
+          roughness: 0.2,
+          emissive: 0x443300,
+        }),
+      );
+      ringOuter.rotation.x = Math.PI / 3;
+      timeGroup.add(ringOuter);
+
+      const ringInner = new THREE.Mesh(
+        this.assets.torus('col-time-ring-inner', 6.2 * ZOOM, 0.9 * ZOOM, 8, 22),
+        this.assets.standard('col-time-magenta', 0xff3fb4, {
+          metalness: 0.85,
+          roughness: 0.15,
+          emissive: 0xff3fb4,
+        }),
+      );
+      ringInner.rotation.y = Math.PI / 3;
+      timeGroup.add(ringInner);
+
+      g.add(timeGroup);
+
+    } else {
+      // --- PREMIUM 3D WINGED DOUBLE HOP SPHERE ---
+      // Glowing sphere flanked by stylized golden wings
+      const jumpGroup = new THREE.Group();
+
+      const jumpCore = new THREE.Mesh(
+        this.assets.sphere(`col-jump-core:${worldId}`, 5.5 * ZOOM, 16, 12),
+        this.assets.standard(`col-jump-core-mat:${worldId}`, colDef.color, {
+          metalness: 0.6,
+          roughness: 0.2,
+          emissive: colDef.glowColor,
+        }),
+      );
+      jumpCore.castShadow = true;
+      jumpGroup.add(jumpCore);
+
+      const wingMat = this.assets.standard('col-jump-wing', 0xffffff, {
+        metalness: 0.3,
+        roughness: 0.2,
+        emissive: 0x444444,
+      });
+
+      for (const s of [-1, 1]) {
+        const wing = new THREE.Mesh(
+          this.assets.roundedBox(5 * ZOOM, 2.5 * ZOOM, 1.5 * ZOOM, 0.6 * ZOOM, 2),
+          wingMat,
+        );
+        wing.position.set(s * 6.5 * ZOOM, 1.5 * ZOOM, 0);
+        wing.rotation.z = s * 0.35;
+        jumpGroup.add(wing);
+      }
+
+      g.add(jumpGroup);
     }
+
     return g;
   }
 
