@@ -13,6 +13,56 @@ import type { AudioManager } from '../audio/AudioManager';
 import type { QualityLevel } from '../config/game.config';
 import { liquidUI } from './liquidUI';
 
+const COIN_HTML = '<span class="coin-ico sm" aria-hidden="true"><span class="coin-ico-face"><span class="coin-ico-core"></span></span></span>';
+
+function createMissionCard(
+  title: string,
+  desc: string,
+  progressRatioStr: string,
+  currentVal: number,
+  targetVal: number,
+  rewardVal: number,
+  isDone: boolean,
+  isLocked: boolean,
+  categoryTag?: string,
+  tierTag?: string
+): HTMLElement {
+  const card = document.createElement('div');
+  card.className = `m-card${isDone ? ' done' : ''}${isLocked ? ' locked' : ''}`;
+
+  const pct = isDone ? 100 : targetVal > 0 ? Math.min(100, Math.max(0, Math.round((currentVal / targetVal) * 100))) : 0;
+
+  let badgeHtml = '';
+  if (isDone) {
+    badgeHtml = `<div class="m-done-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> DONE</div>`;
+  } else if (isLocked) {
+    badgeHtml = `<div class="m-locked-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> LOCKED</div>`;
+  } else {
+    badgeHtml = `<div class="m-reward-pill">${COIN_HTML}<span class="m-reward-val">+${rewardVal}</span></div>`;
+  }
+
+  card.innerHTML = `
+    <div class="m-card-top">
+      <div class="m-details">
+        <div class="m-title">${title}</div>
+        <div class="m-sub">${desc}</div>
+        ${categoryTag ? `<div class="m-tags"><span class="m-world-tag">${categoryTag.toUpperCase()}</span>${tierTag ? `<span class="m-tier-tag tier-${tierTag}">${tierTag.toUpperCase()}</span>` : ''}</div>` : ''}
+      </div>
+      ${badgeHtml}
+    </div>
+    <div class="m-card-bottom">
+      <div class="m-prog-track">
+        <div class="m-prog-bar${isDone ? ' bar-done' : ''}" style="width: ${pct}%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:900;color:#8a8f99;margin-top:2px;">
+        <span>${isDone ? 'COMPLETED' : progressRatioStr}</span>
+        <span>${pct}%</span>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
 export class MissionsScreen {
   constructor(private readonly save: SaveManager) {}
 
@@ -21,42 +71,49 @@ export class MissionsScreen {
     if (ml) {
       ml.innerHTML = '';
       const run = { maxLane, nearMiss };
-      // §53 — show global missions + missions for the active (or selected) world.
       const worldId = activeWorldId ?? this.save.data.selectedWorld;
       for (const m of MISSIONS) {
         if (m.worldId && m.worldId !== worldId) continue;
         const done = !!this.save.data.missions[m.id];
         const locked = !done && (m.requires?.some((id) => !this.save.data.missions[id]) ?? false);
-        const div = document.createElement('div');
-        div.className = 'mission' + (done ? ' done' : '') + (locked ? ' locked' : '');
-        if (m.tier) div.classList.add(`tier-${m.tier}`);
-        const l = document.createElement('span');
-        l.textContent = (m.worldId ? `[${m.worldId.toUpperCase()}] ` : '') + m.name;
-        div.appendChild(l);
-        const r = document.createElement('strong');
-        r.textContent = done ? `DONE +${m.reward}` : locked ? 'LOCKED' : m.progress(run, this.save.data.totalCoins);
-        div.appendChild(r);
-        ml.appendChild(div);
+        const progressStr = done ? `DONE +${m.reward}` : locked ? 'LOCKED' : m.progress(run, this.save.data.totalCoins);
+
+        const card = createMissionCard(
+          (m.worldId ? `[${m.worldId.toUpperCase()}] ` : '') + m.name,
+          m.worldId ? `World Mission (${m.worldId})` : 'Global Milestone',
+          progressStr,
+          done ? 100 : 0,
+          100,
+          m.reward,
+          done,
+          locked,
+          m.worldId || 'global',
+          m.tier ? `tier-${m.tier}` : undefined
+        );
+        ml.appendChild(card);
       }
     }
+
     const al = document.getElementById('ach-list');
     if (al) {
       al.innerHTML = '';
       for (const a of ACHIEVEMENTS) {
         const done = !!this.save.data.achievements[a.id];
-        const div = document.createElement('div');
-        div.className = 'ach' + (done ? ' done' : '');
-        const l = document.createElement('span');
-        l.textContent = a.name;
-        div.appendChild(l);
-        const r = document.createElement('strong');
-        r.textContent = done ? 'DONE' : '—';
-        div.appendChild(r);
-        al.appendChild(div);
+        const card = createMissionCard(
+          a.name,
+          'Achievement Milestone',
+          done ? 'COMPLETED' : 'IN PROGRESS',
+          done ? 1 : 0,
+          1,
+          250,
+          done,
+          false,
+          'achievement'
+        );
+        al.appendChild(card);
       }
     }
-    // Daily missions: deterministic rotation for today, evaluated against
-    // the stored daily bucket plus the current run state.
+
     try {
       const timer = document.getElementById('daily-timer');
       if (timer) timer.textContent = getDailyResetCountdown();
@@ -74,20 +131,31 @@ export class MissionsScreen {
           for (const dm of active) {
             const done = !!daily.completed[dm.id];
             let label = '';
+            let cur = 0;
+            let target = 1;
             try {
-              label = dm.getProgress(daily.progress, runState, completedCount).formatted;
+              const res = dm.getProgress(daily.progress, runState, completedCount);
+              label = res.formatted;
+              cur = res.current;
+              target = res.target;
             } catch {
               label = done ? 'DONE' : '—';
+              cur = done ? 1 : 0;
+              target = 1;
             }
-            const div = document.createElement('div');
-            div.className = 'mission' + (done ? ' done' : '');
-            const l = document.createElement('span');
-            l.textContent = dm.title;
-            div.appendChild(l);
-            const r = document.createElement('strong');
-            r.textContent = done ? `DONE +${dm.reward}` : `${label} · +${dm.reward}`;
-            div.appendChild(r);
-            dl.appendChild(div);
+
+            const card = createMissionCard(
+              dm.title,
+              dm.title,
+              label,
+              cur,
+              target,
+              dm.reward,
+              done,
+              false,
+              'daily'
+            );
+            dl.appendChild(card);
           }
         }
       }
