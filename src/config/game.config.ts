@@ -1,7 +1,8 @@
 /** Global game tuning. Single source of truth — no magic numbers in systems. */
 
-/** Production coin economy: characters/worlds cost coins (see characters/worlds configs). */
-export const TESTING_MODE = false;
+/** Production / Testing mode flag. When true: all characters & worlds are FREE. */
+const urlTestParam = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('test') : null;
+export const TESTING_MODE = urlTestParam !== null ? urlTestParam === '1' || urlTestParam === 'true' : true;
 
 export const GAME_CONFIG = {
   positionWidth: 42,

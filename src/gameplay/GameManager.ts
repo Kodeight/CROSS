@@ -86,6 +86,131 @@ export class GameManager {
     return this.score.score;
   }
 
+  private activeDash: {
+    startX: number;
+    startY: number;
+    targetX: number;
+    targetY: number;
+    targetLane: number;
+    targetCol: number;
+    startTime: number;
+    duration: number;
+  } | null = null;
+
+  isSafeCell(laneIndex: number, colIndex: number): boolean {
+    const lane = this.lanes.laneAt(laneIndex);
+    if (!lane) return false;
+    if (colIndex < 0 || colIndex >= GAME_CONFIG.columns) return false;
+    if (lane.occupied && lane.occupied[colIndex]) return false;
+    if (lane.type === 'car' || lane.type === 'truck') {
+      const colX = this.player.colToX(colIndex);
+      for (const v of lane.vehicles) {
+        const len = (v.userData.length as number | undefined) ?? 60;
+        const half = ((len * GAME_CONFIG.zoom) / 2) + 24 * GAME_CONFIG.zoom;
+        if (Math.abs(v.position.x - colX) < half) return false;
+      }
+    }
+    return true;
+  }
+
+  findNearestSafePosition(targetLane: number, targetCol: number): { lane: number; col: number } {
+    if (this.isSafeCell(targetLane, targetCol)) {
+      const ln = this.lanes.laneAt(targetLane);
+      if (ln && ln.type === 'field') return { lane: targetLane, col: targetCol };
+    }
+
+    // Prefer calm field lanes first
+    for (let r = 0; r <= 8; r++) {
+      for (let dl = 0; dl <= r; dl++) {
+        for (const dc of [0, -1, 1, -2, 2, -3, 3]) {
+          const l = targetLane + dl;
+          const c = Math.max(1, Math.min(GAME_CONFIG.columns - 2, targetCol + dc));
+          const ln = this.lanes.laneAt(l);
+          if (ln && ln.type === 'field' && !ln.occupied[c]) {
+            return { lane: l, col: c };
+          }
+        }
+      }
+    }
+
+    // Fallback: search backwards for safety
+    for (let l = targetLane; l >= Math.max(0, targetLane - 12); l--) {
+      const ln = this.lanes.laneAt(l);
+      if (ln && ln.type === 'field' && !ln.occupied[targetCol]) {
+        return { lane: l, col: targetCol };
+      }
+    }
+
+    return { lane: targetLane, col: Math.floor(GAME_CONFIG.columns / 2) };
+  }
+
+  /** Sonic Dash ability: smoothly leaps the player forward 3 safe lanes */
+  triggerSonicDash(): void {
+    try {
+      const startLane = this.player.lane;
+      const targetLaneCandidate = startLane + 3;
+      const targetColCandidate = this.player.column;
+      const safe = this.findNearestSafePosition(targetLaneCandidate, targetColCandidate);
+
+      // Grant safety invulnerability while dashing and shortly upon arrival
+      this.invulnerableUntil = performance.now() + 1400;
+      this.player.setInvulnerable(1400);
+
+      this.activeDash = {
+        startX: this.player.position.x,
+        startY: this.player.position.y,
+        targetX: this.player.colToX(safe.col),
+        targetY: this.player.laneToY(safe.lane),
+        targetLane: safe.lane,
+        targetCol: safe.col,
+        startTime: performance.now(),
+        duration: this.reducedMotion ? 120 : 280,
+      };
+
+      if (this.vfx) {
+        this.vfx.spawnSonicRing(this.player.position, 0x38e1ff, 10 * GAME_CONFIG.zoom, 45 * GAME_CONFIG.zoom, 60 * GAME_CONFIG.zoom);
+        this.vfx.spawnSonicRing(this.player.position, 0xfca71d, 15 * GAME_CONFIG.zoom, 55 * GAME_CONFIG.zoom, 75 * GAME_CONFIG.zoom);
+      }
+      this.particles.burst(
+        this.player.position.x, this.player.position.y, 40,
+        0xfca71d, 20, 480, 1.0, 550, this.lowQuality,
+      );
+      this.audio.superpower();
+      this.cb.onHud();
+    } catch { /* ignore */ }
+  }
+
+  updateDash(now: number): boolean {
+    if (!this.activeDash) return false;
+    const d = this.activeDash;
+    const p = Math.min((now - d.startTime) / d.duration, 1.0);
+    const ease = 1 - Math.pow(1 - p, 3);
+
+    this.player.position.x = d.startX + (d.targetX - d.startX) * ease;
+    this.player.position.y = d.startY + (d.targetY - d.startY) * ease;
+    this.player.position.z = Math.sin(p * Math.PI) * (16 * GAME_CONFIG.zoom);
+
+    if (!this.reducedMotion && p < 1.0) {
+      this.particles.burst(
+        this.player.position.x, this.player.position.y, 2,
+        0x38e1ff, 4, 80, 0.4, 120, this.lowQuality
+      );
+    }
+
+    if (p >= 1.0) {
+      this.player.lane = d.targetLane;
+      this.player.column = d.targetCol;
+      this.player.position.set(d.targetX, d.targetY, 0);
+      this.score.reachLane(d.targetLane);
+      this.checkWorldTransition();
+      this.cb.onHud();
+      this.audio.land();
+      this.activeDash = null;
+      return false;
+    }
+    return true;
+  }
+
   /**
    * Start a run: fresh start at the selected world, or continue the journey
    * near the saved checkpoint (same world, a few lanes back, re-validated
@@ -115,24 +240,24 @@ export class GameManager {
     this.dying = false;
     this.shake = 0;
     this.eventActive = null;
+    this.activeDash = null;
     this.invulnerableUntil = 0;
     this.audio.restoreAmbient(0.8);
     rebuildPlayerMesh();
 
     this.lanes.clear();
-    this.player.reset(startLane, center);
 
     const initialBuffer = startLane + 200;
     for (let i = startLane - 45; i <= initialBuffer; i++) makeLane(i);
 
-    let spawn = startLane;
-    for (let l = startLane; l >= Math.max(0, startLane - 12); l--) {
-      const ln = this.lanes.laneAt(l);
-      if (ln && ln.type === 'field' && !ln.occupied[center]) { spawn = l; break; }
-    }
-    this.score.reset(spawn);
-    this.player.reset(spawn, center);
-    const w = this.worlds.worldForLane(spawn, base);
+    // Guarantee spawning on a safe, verified field tile
+    const safeSpawn = this.findNearestSafePosition(startLane, center);
+    const spawnLane = safeSpawn.lane;
+    const spawnCol = safeSpawn.col;
+
+    this.score.reset(spawnLane);
+    this.player.reset(spawnLane, spawnCol);
+    const w = this.worlds.worldForLane(spawnLane, base);
     this.progression.unlockWorldByProgression(w.id);
     this.worlds.setCurrent(this.worlds.byId(w.id));
     this.lighting.setWorld(w, true);
@@ -145,6 +270,8 @@ export class GameManager {
   }
 
   stepPlayer(nowMs: number): void {
+    if (this.updateDash(nowMs)) return;
+
     const done = this.player.step(nowMs, this.reducedMotion);
     if (done) {
       this.runSteps++;
@@ -326,27 +453,6 @@ export class GameManager {
         }
       }
     }
-  }
-
-  /** Sonic Dash ability: instantly propels the player forward 3 safe lanes */
-  triggerSonicDash(): void {
-    try {
-      const startLane = this.player.lane;
-      const targetLane = startLane + 3;
-      this.player.lane = targetLane;
-      this.player.group.position.y = this.player.laneToY(targetLane);
-      this.score.reachLane(targetLane);
-      this.checkWorldTransition();
-      if (this.vfx) {
-        this.vfx.spawnSonicRing(this.player.position, 0x38e1ff, 10 * GAME_CONFIG.zoom, 45 * GAME_CONFIG.zoom, 60 * GAME_CONFIG.zoom);
-        this.vfx.spawnSonicRing(this.player.position, 0xfca71d, 15 * GAME_CONFIG.zoom, 55 * GAME_CONFIG.zoom, 75 * GAME_CONFIG.zoom);
-      }
-      this.particles.burst(
-        this.player.position.x, this.player.position.y, 40,
-        0xfca71d, 20, 480, 1.0, 550, this.lowQuality,
-      );
-      this.cb.onHud();
-    } catch { /* ignore */ }
   }
 
   nearMiss(): void {

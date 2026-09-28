@@ -588,7 +588,10 @@ export class Game implements LoopDelegate {
         if (nowMs - this.manager.deathAt > 1000) this.doGameOver();
       } else {
         this.powerups.update(nowMs);
-        this.manager.stepPlayer(nowMs);
+        const dashing = this.manager.updateDash(nowMs);
+        if (!dashing) {
+          this.manager.stepPlayer(nowMs);
+        }
         this.manager.checkCollect();
         this.manager.updateMagnet(nowMs, dt);
         this.lanes.maintain(this.player.lane, (i: number) => {

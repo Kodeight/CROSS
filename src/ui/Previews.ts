@@ -143,11 +143,14 @@ export class CharacterPreviewManager {
       rimLight.position.set(0, -90, 70);
       sc.add(rimLight);
 
-      // Studio Pedestal:
+      // Studio Pedestal (flat in XY diorama plane):
       const podiumGroup = new THREE.Group();
+      podiumGroup.position.set(0, 0, -1.0);
+      podiumGroup.rotation.x = Math.PI / 2;
+
       // Upper gold trim bevel
       const rim = new THREE.Mesh(
-        new THREE.CylinderGeometry(20, 20.5, 1.5, 28),
+        new THREE.CylinderGeometry(22, 22.5, 1.5, 28),
         new THREE.MeshStandardMaterial({ color: 0xFCA71D, metalness: 0.6, roughness: 0.3, flatShading: true }),
       );
       rim.position.y = -0.75;
@@ -155,7 +158,7 @@ export class CharacterPreviewManager {
 
       // Pedestal body
       const base = new THREE.Mesh(
-        new THREE.CylinderGeometry(20.5, 23, 6, 28),
+        new THREE.CylinderGeometry(22.5, 25, 6, 28),
         new THREE.MeshStandardMaterial({ color: 0x0F2657, roughness: 0.5, metalness: 0.2, flatShading: true }),
       );
       base.position.y = -4.5;
@@ -164,7 +167,7 @@ export class CharacterPreviewManager {
 
       // Pedestal top surface disk
       const topDisk = new THREE.Mesh(
-        new THREE.CylinderGeometry(19.8, 19.8, 0.5, 28),
+        new THREE.CylinderGeometry(21.8, 21.8, 0.5, 28),
         new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.6 }),
       );
       topDisk.position.y = 0.05;
@@ -175,14 +178,14 @@ export class CharacterPreviewManager {
 
       // Character Model
       const model = this.factory.create(e.id);
-      model.position.set(0, 0, 0.5);
-      model.rotation.z = 0.5; // Initial welcoming dynamic angle
+      model.position.set(0, 0, 0);
+      model.rotation.z = 0.35; // Welcoming 3/4 front angle
       sc.add(model);
 
-      // Perspective studio camera centered on character with full-body breathing room
-      const cam = new THREE.PerspectiveCamera(32, W / H, 1, 1000);
-      cam.position.set(0, 72, 68);
-      cam.lookAt(0, 0, 8);
+      // Perspective studio camera: comfortably frames full body, head, hat, and feet with 35% margin
+      const cam = new THREE.PerspectiveCamera(34, W / H, 1, 1000);
+      cam.position.set(0, 115, 48);
+      cam.lookAt(0, 0, 16);
 
       e.live = { renderer, scene: sc, camera: cam, model };
       e.canvas.classList.add('loaded');

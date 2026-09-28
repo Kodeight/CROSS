@@ -22,6 +22,8 @@ const PW = GAME_CONFIG.positionWidth;
 const COLS = GAME_CONFIG.columns;
 const ZOOM = GAME_CONFIG.zoom;
 const BOARD = PW * ZOOM * COLS;
+/** Extra wide diorama ground width (6500+) so terrain completely covers viewport on any aspect ratio */
+const TERRAIN_BOARD = Math.max(BOARD * 4.5, 6800);
 
 export interface WaterAnim {
   mesh: THREE.Object3D;
@@ -78,7 +80,7 @@ export class WorldGenerator {
 
   private slab(color: number, h = 3): THREE.Mesh {
     const m = new THREE.Mesh(
-      this.assets.box(`gen-slab:${h}`, BOARD, PW * ZOOM, h * ZOOM),
+      this.assets.box(`gen-slab:${h}`, TERRAIN_BOARD, PW * ZOOM, h * ZOOM),
       this.mat(color),
     );
     m.receiveShadow = true;
@@ -116,14 +118,14 @@ export class WorldGenerator {
 
     if (variant === 'bridge') {
       const plank = new THREE.Mesh(
-        this.assets.box('gen-bridge', BOARD * 0.85, PW * ZOOM * 0.9, 4 * ZOOM),
+        this.assets.box('gen-bridge', TERRAIN_BOARD, PW * ZOOM * 0.9, 4 * ZOOM),
         this.assets.standard('bridge-wood', 0x5a3d28, { roughness: 0.8 }),
       );
       plank.receiveShadow = true;
       plank.castShadow = true;
       g.add(plank);
       const water = new THREE.Mesh(
-        this.assets.box('bridge-water', BOARD, PW * ZOOM, 1.5 * ZOOM),
+        this.assets.box('bridge-water', TERRAIN_BOARD, PW * ZOOM, 1.5 * ZOOM),
         this.mat(world.id === 'volcano' ? 0xff3811 : 0x2d68c4, 60),
       );
       water.position.z = -2.5 * ZOOM;
@@ -134,7 +136,7 @@ export class WorldGenerator {
 
     if (variant === 'boardwalk') {
       const b = new THREE.Mesh(
-        this.assets.box('gen-boardwalk', BOARD, PW * ZOOM, 3.5 * ZOOM),
+        this.assets.box('gen-boardwalk', TERRAIN_BOARD, PW * ZOOM, 3.5 * ZOOM),
         this.assets.standard('boardwalk-wood', 0xc2a679, { roughness: 0.7 }),
       );
       b.receiveShadow = true;
@@ -144,7 +146,7 @@ export class WorldGenerator {
 
     if (variant === 'ice') {
       const ice = new THREE.Mesh(
-        this.assets.box('gen-ice', BOARD, PW * ZOOM, 2.5 * ZOOM),
+        this.assets.box('gen-ice', TERRAIN_BOARD, PW * ZOOM, 2.5 * ZOOM),
         this.mat(0xd6eaf8, 90),
       );
       ice.receiveShadow = true;
@@ -160,10 +162,10 @@ export class WorldGenerator {
     const roadColor = world.road;
     g.add(this.slab(roadColor, 2.8));
 
-    // Sidewalk curb edges
+    // Sidewalk curb edges spanning full terrain width
     for (const s of [-1, 1]) {
       const curb = new THREE.Mesh(
-        this.assets.box(`road-curb:${world.id}`, BOARD, 1.8 * ZOOM, 3.4 * ZOOM),
+        this.assets.box(`road-curb:${world.id}`, TERRAIN_BOARD, 1.8 * ZOOM, 3.4 * ZOOM),
         this.mat(world.walk, 20),
       );
       curb.position.y = s * ((PW * ZOOM) / 2 - 0.9 * ZOOM);
