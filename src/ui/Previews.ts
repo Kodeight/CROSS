@@ -102,34 +102,88 @@ export class CharacterPreviewManager {
     this.rafId = requestAnimationFrame(loop);
   }
 
-  /** Create the GL context for a card that scrolled into view. */
+  /** Create the GL context for a card that scrolled into view with dedicated studio lighting. */
   private ensure(e: CharEntry): void {
     if (e.live || e.failed) return;
     try {
       const renderer = new THREE.WebGLRenderer({ canvas: e.canvas, alpha: true, antialias: true });
-      renderer.setPixelRatio(1);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       const W = e.canvas.clientWidth || 220;
       const H = e.canvas.clientHeight || 150;
       renderer.setSize(W, H, false);
       renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
       const sc = new THREE.Scene();
-      sc.add(new THREE.HemisphereLight(0xffffff, 0x88aa66, 0.95));
-      const dl = new THREE.DirectionalLight(0xffffff, 0.75);
-      dl.position.set(60, -40, 120);
-      sc.add(dl);
-      const ground = new THREE.Mesh(
-        new THREE.CylinderGeometry(20, 18, 4, 20),
-        new THREE.MeshPhongMaterial({ color: 0x3b82f6, flatShading: true }),
+      sc.background = null;
+
+      // Studio Lighting Hierarchy:
+      // 1. Hemisphere ambient fill
+      const hemi = new THREE.HemisphereLight(0xffffff, 0x333d4d, 0.9);
+      sc.add(hemi);
+
+      // 2. Key Studio Light (warm direct illumination)
+      const keyLight = new THREE.DirectionalLight(0xfff8ee, 1.0);
+      keyLight.position.set(45, 65, 90);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.width = 512;
+      keyLight.shadow.mapSize.height = 512;
+      keyLight.shadow.camera.near = 10;
+      keyLight.shadow.camera.far = 250;
+      keyLight.shadow.bias = -0.001;
+      sc.add(keyLight);
+
+      // 3. Fill Light (cool soft opposing tone)
+      const fillLight = new THREE.DirectionalLight(0xd0e4ff, 0.45);
+      fillLight.position.set(-60, -30, 60);
+      sc.add(fillLight);
+
+      // 4. Rim / Silhouette Backlight
+      const rimLight = new THREE.DirectionalLight(0xffffff, 0.65);
+      rimLight.position.set(0, -90, 70);
+      sc.add(rimLight);
+
+      // Studio Pedestal:
+      const podiumGroup = new THREE.Group();
+      // Upper gold trim bevel
+      const rim = new THREE.Mesh(
+        new THREE.CylinderGeometry(20, 20.5, 1.5, 28),
+        new THREE.MeshStandardMaterial({ color: 0xFCA71D, metalness: 0.6, roughness: 0.3, flatShading: true }),
       );
-      ground.position.z = -2;
-      ground.receiveShadow = true;
-      sc.add(ground);
+      rim.position.y = -0.75;
+      podiumGroup.add(rim);
+
+      // Pedestal body
+      const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(20.5, 23, 6, 28),
+        new THREE.MeshStandardMaterial({ color: 0x0F2657, roughness: 0.5, metalness: 0.2, flatShading: true }),
+      );
+      base.position.y = -4.5;
+      base.receiveShadow = true;
+      podiumGroup.add(base);
+
+      // Pedestal top surface disk
+      const topDisk = new THREE.Mesh(
+        new THREE.CylinderGeometry(19.8, 19.8, 0.5, 28),
+        new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.6 }),
+      );
+      topDisk.position.y = 0.05;
+      topDisk.receiveShadow = true;
+      podiumGroup.add(topDisk);
+
+      sc.add(podiumGroup);
+
+      // Character Model
       const model = this.factory.create(e.id);
-      model.rotation.z = 0.6;
+      model.position.set(0, 0, 0.5);
+      model.rotation.z = 0.5; // Initial welcoming dynamic angle
       sc.add(model);
-      const cam = new THREE.PerspectiveCamera(32, W / H, 1, 2000);
-      cam.position.set(95, -125, 95);
-      cam.lookAt(0, 0, 26);
+
+      // Perspective studio camera centered on character
+      const cam = new THREE.PerspectiveCamera(36, W / H, 1, 1000);
+      cam.position.set(0, 52, 44);
+      cam.lookAt(0, 0, 16);
+
       e.live = { renderer, scene: sc, camera: cam, model };
       e.canvas.classList.add('loaded');
 

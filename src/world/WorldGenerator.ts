@@ -45,6 +45,8 @@ export class WorldGenerator {
     speedMul: number;
     densityBonus: number;
     minGapFactor: number;
+    powerSpawnChance: number;
+    obstacleDensityMul: number;
   } {
     const spec = getDifficultySpec(difficultyLevel);
     const progressionScale = 1.0 + Math.min(lane * 0.006, 0.7);
@@ -53,6 +55,8 @@ export class WorldGenerator {
       speedMul,
       densityBonus: spec.trafficDensityBonus,
       minGapFactor: spec.minGapFactor,
+      powerSpawnChance: spec.powerSpawnChance,
+      obstacleDensityMul: spec.obstacleDensityMul,
     };
   }
 
@@ -569,6 +573,7 @@ export class WorldGenerator {
       this.consecutiveRoads = 0;
 
       if (type === 'forest') {
+        const dif = this.difficultyFor(index, world, opts.difficulty);
         const builders: PropBuilder[] =
           world.id === 'beach' && def.beachObstacles
             ? def.beachObstacles[Math.max(0, Math.min(4, district))]
@@ -577,7 +582,8 @@ export class WorldGenerator {
         const jmp: Record<number, boolean> = {};
         const center = Math.floor(COLS / 2);
         const spawnClear = index >= GAME_CONFIG.startLane && index <= GAME_CONFIG.startLane + 3;
-        const count = 4 + (Math.random() < 0.4 ? 1 : 0);
+        const baseCount = 4 + (Math.random() < 0.4 ? 1 : 0);
+        const count = Math.min(COLS - 3, Math.max(2, Math.round(baseCount * dif.obstacleDensityMul)));
         for (let k = 0; k < count; k++) {
           let pos = -1;
           let guard = 0;
@@ -623,7 +629,7 @@ export class WorldGenerator {
       const spawnKinds = pool.length ? pool : kinds;
 
       const baseCars = type === 'car' ? 3 : 2;
-      const targetCars = Math.max(1, Math.min(5, baseCars + dif.densityBonus));
+      const targetCars = Math.max(1, Math.min(6, baseCars + dif.densityBonus));
       const used = new Set<number>();
       const list: THREE.Group[] = [];
       const placed: Array<{ x: number; half: number }> = [];
@@ -686,6 +692,7 @@ export class WorldGenerator {
 
     // Coins & World Superpower Collectibles placement on safe lanes
     if ((type === 'field' || type === 'forest') && index > 2 && Math.random() < 0.48) {
+      const dif = this.difficultyFor(index, world, opts.difficulty);
       const r = Math.random();
       const cols: number[] = [];
       const start = Math.floor(Math.random() * COLS);
@@ -700,8 +707,8 @@ export class WorldGenerator {
         if (lane.occupied[col]) continue;
         if (lane.coins.some((c: { col: number }) => c.col === col)) continue;
 
-        // Spawn signature superpower collectible ~30% of the time, else standard gold coin
-        const isCollectible = Math.random() < 0.32;
+        // Spawn signature superpower collectible based on difficulty's powerSpawnChance
+        const isCollectible = Math.random() < dif.powerSpawnChance;
         if (isCollectible) {
           const colDef = collectibleForWorld(world.id);
           const mesh = this.makeCollectibleMesh(world.id);
@@ -735,7 +742,7 @@ export class WorldGenerator {
     if (index <= 4 && lane.type !== 'field') return false;
 
     const spec = getDifficultySpec(difficultyLevel);
-    const maxConsecutive = world.id === 'neon' ? (spec.id === 'EASY' ? 1 : 2) : (spec.id === 'EASY' ? 2 : spec.id === 'EXTREME' ? 4 : 3);
+    const maxConsecutive = spec.maxConsecutiveRoads;
     if ((lane.type === 'car' || lane.type === 'truck') && this.consecutiveRoads > maxConsecutive) {
       return false;
     }

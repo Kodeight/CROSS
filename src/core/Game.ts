@@ -260,7 +260,7 @@ export class Game implements LoopDelegate {
         onNearMiss: () => this.ui.flashNearMiss(),
         onWorldIntro: (name, sub) => {
           this.pwaBottomPanel?.setWorld(this.worlds.current.config.id);
-          this.audio.startMusic('play', this.worlds.current.config.id);
+          this.audio.transitionToWorld(this.worlds.current.config.id);
           this.audio.fanfare();
           this.ui.showWorldIntro(name, sub, this.reducedMotion, () => this.bus.emit('worldIntroFinished'));
         },

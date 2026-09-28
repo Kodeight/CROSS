@@ -1,7 +1,7 @@
 /** §9/§17 — explicit character types. Convention: x = left/right, y = forward (+y travel), z = up. */
 import type * as THREE from 'three';
 
-export type IdleKind = 'bob' | 'breathe' | 'tail' | 'mech';
+export type IdleKind = 'bob' | 'breathe' | 'tail' | 'mech' | 'ears';
 
 export interface CharacterUserData {
   charId: string;

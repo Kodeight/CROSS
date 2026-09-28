@@ -55,14 +55,14 @@ export class HUD {
     if (active) {
       this.powerBtn.hidden = false;
       this.powerBtn.classList.add('power-active');
-      const prog = Math.ceil(this.powerups.getActiveProgress(now) * 100);
+      const remainingSec = Math.max(1, Math.ceil((this.powerups.activeEndsAt - now) / 1000));
       if (this.powerSym) this.powerSym.textContent = active.symbol;
-      if (this.powerTxt) this.powerTxt.textContent = `${active.name} · ${prog}%`;
+      if (this.powerTxt) this.powerTxt.textContent = `${active.name.toUpperCase()} · ${remainingSec}s`;
     } else if (ready) {
       this.powerBtn.hidden = false;
       this.powerBtn.classList.remove('power-active');
       if (this.powerSym) this.powerSym.textContent = ready.symbol;
-      if (this.powerTxt) this.powerTxt.textContent = `${ready.name} (TAP/SPACE)`;
+      if (this.powerTxt) this.powerTxt.textContent = `${ready.name.toUpperCase()} (TAP/SPACE)`;
     } else {
       this.powerBtn.hidden = true;
       this.powerBtn.classList.remove('power-active');

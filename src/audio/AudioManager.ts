@@ -236,7 +236,7 @@ export class AudioManager {
 
     // Smoothly crossfade out current track
     if (this.currentTrack) {
-      this.fadeOutTrack(this.currentTrack, 0.7);
+      this.fadeOutTrack(this.currentTrack, 0.75);
       this.currentTrack = null;
     }
 
@@ -248,8 +248,55 @@ export class AudioManager {
     const now = this.ctx.currentTime;
     const trackGain = this.ctx.createGain();
     trackGain.gain.setValueAtTime(0.0001, now);
-    // Smooth fade in over 650ms
-    trackGain.gain.linearRampToValueAtTime(1.0, now + 0.65);
+    // Smooth fade in over 700ms
+    trackGain.gain.linearRampToValueAtTime(1.0, now + 0.7);
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    source.connect(trackGain);
+    trackGain.connect(this.masterMusicGain);
+
+    source.start(0);
+
+    this.currentTrack = {
+      id: trackId,
+      source,
+      gainNode: trackGain,
+      buffer,
+      startedAt: now,
+      pauseOffset: 0,
+      isFadingOut: false,
+    };
+  }
+
+  /**
+   * Dynamic World Transition: smoothly crossfades into the target world's soundtrack
+   * during real-time gameplay traversal without any clicks, stalls or pops.
+   */
+  public async transitionToWorld(worldId: string, fadeDurationSec = 1.0): Promise<void> {
+    this.syncSettings();
+    if (!this.ensure() || !this.ctx || !this.masterMusicGain) return;
+
+    const trackId = worldId.toLowerCase();
+    if (this.currentTrack && this.currentTrack.id === trackId && !this.currentTrack.isFadingOut) {
+      return;
+    }
+
+    // Crossfade out outgoing track
+    if (this.currentTrack) {
+      this.fadeOutTrack(this.currentTrack, fadeDurationSec);
+      this.currentTrack = null;
+    }
+
+    const buffer = await this.loadMusicBuffer(trackId);
+    if (!buffer || !this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const trackGain = this.ctx.createGain();
+    trackGain.gain.setValueAtTime(0.0001, now);
+    trackGain.gain.linearRampToValueAtTime(1.0, now + fadeDurationSec);
 
     const source = this.ctx.createBufferSource();
     source.buffer = buffer;

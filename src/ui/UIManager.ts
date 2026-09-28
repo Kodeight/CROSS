@@ -233,17 +233,67 @@ export class UIManager {
     }
   }
 
-  toast(msg: string, ms = 2800): void {
+  toast(msg: string, ms = 2000): void {
     const t = el('toast');
-    t.textContent = msg;
-    t.hidden = false;
-    t.classList.remove('toast-pop');
-    void t.offsetWidth; // force reflow for pop animation
-    t.classList.add('toast-pop');
+    const titleEl = document.getElementById('toast-title') || t;
+    const subEl = document.getElementById('toast-sub');
+
+    // Parse message into clean primary title and optional subline
+    let clean = msg.trim();
+    // Strip initial emoji or icon if present
+    const emojiMatch = clean.match(/^([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|⚡|🛡️|❄️|🚀|🪙)\s*/u);
+    if (emojiMatch) {
+      clean = clean.slice(emojiMatch[0].length).trim();
+    }
+
+    let titleText = clean.toUpperCase();
+    let subText = '';
+
+    const bonusMatch = clean.match(/^(.*?)\s*ACTIVATED!\s*\(\+?(\d+)\s*COINS\)/i);
+    if (bonusMatch) {
+      titleText = bonusMatch[1].toUpperCase();
+      subText = `+${bonusMatch[2]} COINS`;
+    } else {
+      const actMatch = clean.match(/^(.*?)\s*ACTIVATED!/i);
+      if (actMatch) {
+        titleText = actMatch[1].toUpperCase();
+        subText = 'ACTIVATED';
+      } else {
+        const unlockMatch = clean.match(/^(.*?)\s*map unlocked in store!/i);
+        if (unlockMatch) {
+          titleText = unlockMatch[1].toUpperCase();
+          subText = 'UNLOCKED IN STORE';
+        }
+      }
+    }
+
+    if (subEl) {
+      titleEl.textContent = titleText;
+      if (subText) {
+        subEl.textContent = subText;
+        subEl.hidden = false;
+      } else {
+        subEl.hidden = true;
+      }
+    } else {
+      t.textContent = titleText;
+    }
+
     if (this.toastTimer) clearTimeout(this.toastTimer);
+
+    t.hidden = false;
+    t.classList.remove('toast-out');
+    t.classList.remove('toast-pop');
+    void t.offsetWidth; // Force reflow for GPU animation restart
+    t.classList.add('toast-pop');
+
     this.toastTimer = window.setTimeout(() => {
-      t.hidden = true;
       t.classList.remove('toast-pop');
+      t.classList.add('toast-out');
+      window.setTimeout(() => {
+        t.hidden = true;
+        t.classList.remove('toast-out');
+      }, 280);
     }, ms);
   }
 

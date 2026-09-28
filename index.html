@@ -73,18 +73,18 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .logo-wrap{display:flex;align-items:center;justify-content:center;width:100%;margin:0 auto;position:relative;background:transparent}
 .brand-logo-img{
   display:block;
+  width:100%;
   max-width:100%;
   height:auto;
   object-fit:contain;
-  background-color:transparent;
-  background-image:url("data:image/webp;base64,UklGRoQDAABXRUJQVlA4WAoAAAAQAAAALwAAEgAAQUxQSOsBAAANoGvbtmnban1e27Zt2/bNbBvZTf0Btm3bN7Nt85kHsweHnxARExDIuEiusbfaqjkKJjOdCURmw+SE5WRYxHQJp6LYeHOCHWau+Uc4FRkQkXy9AYQBQ4liOf56/zdzIIqqya9NnpK5Er7/agDTeGg3EhCRvA1q5XrZvmPexJjde1fnwcJZaz6sN7uZk0OWdwsL9iufcDd7V+Ct7OKz+gJVADt7hVGDiBJm3a8twc5apME8IHsDiM7yHvdYCNGSbQEqGSWAghNIdjAoj6OFhHjn7lOJlmQhFCMEUtogFIwjCgYH86bIUqIkRTDBMiDLAJYsDDjIBng1hCghk9JyUMSgFALHAKBIMATetsVCJjUrgIXBSgVLlmIki9Evv+RCxkohCyKSLZCxhDGSZWIAcr8vB2CsYCTbCBlANgjAcjA4Fmt+vosMIKJkB7CDSWkpKoVBRhb8daxMY1K1wME4QIqAjTAhChAC7r1InLi0lA0EBH/lyMHnM13LAX8+aS5S/pMXm8Cfmyu+PI3uzJ3fVcA/j4p/frindbft13jatqGenE8uN7h+oaT3By+OHVxa+PoC3kBAD2YldS6f9OSa/wUuHQe9233HwIEDTxIFLLtSrHx8FhAQQb584R3AnwgjLNL8/y8QfL/3DpABAABWUDggcgEAAPAHAJ0BKjAAEwA/AWapTqslI6IwCAFgIAlsAL9p98fMXAMkG0CtBQUe65Bw13nW+ivrqBp0X3o9MY+B2Hq15/tkCG1NdibM8AD+7FcHTh3K/XZ5pSujoOO0qyd1iWGcDq++A5GB8WiYGDGievqQALAGq8IMCSFlIAGd+HaRA1wfbugvkMWvI0dGIbqPN3rflV8OjIuxzOQQh3eWgGCXLxXtmAA/m8+2MVdn/B/G60hg4CAGBb/pQeTr0stHR9iogZjJp9dKPkKKCORAzjE3+AqaH0lXwwJcCvU+duXcRpAydUEmdYIa6vXYUo+RlCVhp76lJF06VwXA+eLduLEbDFsLh6KLhaMUpN9w4VqPC4f6habLbyBKEvzfxMBclcKPYTueGArTHe8MztFl+ZDI68rYplL5/Q48k0z6FJmyubS+N9Qxwm+B8IOF/1cZGPmt3SQw7+Zqwid2uUP1tGZ2zSajcPq2OUi94keR1dAIE803AAA=");
-  background-size:contain;
-  background-repeat:no-repeat;
-  background-position:center;
+  background:transparent;
+  border:none;
+  outline:none;
+  box-shadow:none;
+  filter:none;
   user-select:none;
   -webkit-user-select:none;
   -webkit-user-drag:none;
-  transform:translateZ(0);
 }
 .load-logo-wrap{width:min(320px,78vw);margin-bottom:6px}
 .load-logo-img{width:100%;aspect-ratio:1996/788}
@@ -236,7 +236,7 @@ body.is-touch .mobile-hint{display:inline !important}
 <div id="near-miss" hidden>NEAR MISS +2</div>
 <div id="event-banner" hidden></div>
 <div id="world-intro" hidden><div id="world-intro-name">CITY</div><div id="world-intro-sub">CROSS! WORLD 01</div></div>
-<div id="toast" hidden></div>
+<div id="toast" hidden aria-live="polite"><div id="toast-title"></div><div id="toast-sub"></div></div>
 
 <!-- Menu top-right utility -->
 
