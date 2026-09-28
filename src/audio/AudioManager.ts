@@ -148,7 +148,7 @@ export class AudioManager {
    * Intelligently preloads essential audio assets without blocking mobile startup.
    */
   private async preloadCoreAssets(): Promise<void> {
-    const commonSfx = ['click', 'select', 'hop', 'coin', 'bump', 'crash', 'death'];
+    const commonSfx = ['click', 'select', 'hop', 'bump', 'crash', 'death'];
     for (const name of commonSfx) {
       void this.loadSfxBuffer(name);
     }
@@ -354,7 +354,27 @@ export class AudioManager {
   public setWorldAmbient(worldId: string, fadeDurationSec = 1.0): void {
     if (!this.ensure() || !this.ctx || !this.masterAmbientGain) return;
 
-    const world = worldId.toLowerCase();
+    const norm = worldId.toLowerCase();
+    const aliasMap: Record<string, string> = {
+      neon: 'night_city',
+      night_city: 'night_city',
+      sky: 'sky_island',
+      sky_island: 'sky_island',
+      ancient_ruins: 'ruins',
+      temple: 'ruins',
+      ruins: 'ruins',
+      countryside: 'farm',
+      mountain: 'snow',
+      flooded: 'river',
+      ocean: 'underwater',
+      fantasy: 'candy',
+      moon: 'space',
+      alien: 'space',
+      industrial: 'harbor',
+      pirate: 'harbor',
+      railway: 'highway',
+    };
+    const world = aliasMap[norm] ?? norm;
     if (this.currentAmbient && this.currentAmbient.id === world) return;
 
     const now = this.ctx.currentTime;
@@ -391,143 +411,267 @@ export class AudioManager {
     const createdNodes: AudioNode[] = [];
 
     try {
-      if (world === 'city' || world === 'industrial' || world === 'railway') {
-        // City / Industrial: Low road rumble + gentle filtered noise
-        const bufferSize = this.ctx.sampleRate * 2;
-        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      // World-specific procedural ambient generator for ALL 20 worlds
+      const createNoise = (sec = 2): AudioBufferSourceNode => {
+        const bufferSize = this.ctx!.sampleRate * sec;
+        const noiseBuffer = this.ctx!.createBuffer(1, bufferSize, this.ctx!.sampleRate);
         const output = noiseBuffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+        const src = this.ctx!.createBufferSource();
+        src.buffer = noiseBuffer;
+        src.loop = true;
+        return src;
+      };
 
-        const whiteNoise = this.ctx.createBufferSource();
-        whiteNoise.buffer = noiseBuffer;
-        whiteNoise.loop = true;
-
+      if (world === 'city') {
+        // 01 CITY: Low asphalt road murmur + gentle distant urban rumble
+        const noise = createNoise(2);
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'lowpass';
         filter.frequency.value = 240;
-
-        whiteNoise.connect(filter);
-        filter.connect(ambGain);
-        whiteNoise.start(0);
-
-        createdNodes.push(whiteNoise, filter);
-      } else if (world === 'desert' || world === 'mountain' || world === 'snow') {
-        // Desert / Mountain / Snow: Swirling wind breeze filter
-        const bufferSize = this.ctx.sampleRate * 2;
-        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        noise.loop = true;
-
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = world === 'snow' ? 550 : 380;
-        filter.Q.value = 2.5;
-
-        // Modulate wind filter frequency
-        const lfo = this.ctx.createOscillator();
-        lfo.frequency.value = 0.22;
-        const lfoGain = this.ctx.createGain();
-        lfoGain.gain.value = 160;
-
-        lfo.connect(lfoGain);
-        lfoGain.connect(filter.frequency);
-
         noise.connect(filter);
         filter.connect(ambGain);
-
         noise.start(0);
-        lfo.start(0);
-
-        createdNodes.push(noise, filter, lfo, lfoGain);
-      } else if (world === 'jungle' || world === 'forest' || world === 'countryside' || world === 'temple' || world === 'fantasy') {
-        // Nature / Forest: Gentle rustling breeze + high soft canopy air
-        const bufferSize = this.ctx.sampleRate * 2;
-        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        noise.loop = true;
-
+        createdNodes.push(noise, filter);
+      } else if (world === 'river') {
+        // 02 RIVER: Gentle babbling water currents + rippling water flow
+        const noise = createNoise(2);
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.value = 1200;
+        filter.frequency.value = 650;
+        filter.Q.value = 1.8;
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.35;
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 220;
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        lfo.start(0);
+        createdNodes.push(noise, filter, lfo, lfoGain);
+      } else if (world === 'beach') {
+        // 03 BEACH: Rolling tropical ocean waves + soft sea breeze
+        const noise = createNoise(3);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 420;
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.12; // Gentle swell
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 260;
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        lfo.start(0);
+        createdNodes.push(noise, filter, lfo, lfoGain);
+      } else if (world === 'forest') {
+        // 04 FOREST: Gentle rustling green canopy breeze + soft woodland air
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 950;
         filter.Q.value = 1.2;
-
         noise.connect(filter);
         filter.connect(ambGain);
         noise.start(0);
-
         createdNodes.push(noise, filter);
-      } else if (world === 'beach' || world === 'ocean' || world === 'flooded') {
-        // Ocean / Beach: Gentle surging wave noise
-        const bufferSize = this.ctx.sampleRate * 2;
-        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        noise.loop = true;
-
+      } else if (world === 'desert') {
+        // 05 DESERT: Warm arid desert wind whistle with wandering gusts
+        const noise = createNoise(2);
         const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 400;
-
+        filter.type = 'bandpass';
+        filter.frequency.value = 380;
+        filter.Q.value = 2.8;
         const lfo = this.ctx.createOscillator();
-        lfo.frequency.value = 0.15;
+        lfo.frequency.value = 0.18;
         const lfoGain = this.ctx.createGain();
-        lfoGain.gain.value = 280;
-
+        lfoGain.gain.value = 140;
         lfo.connect(lfoGain);
         lfoGain.connect(filter.frequency);
-
         noise.connect(filter);
         filter.connect(ambGain);
-
         noise.start(0);
         lfo.start(0);
-
         createdNodes.push(noise, filter, lfo, lfoGain);
-      } else if (world === 'volcano') {
-        // Volcano: Deep sub rumble
-        const bufferSize = this.ctx.sampleRate * 2;
-        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
-
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        noise.loop = true;
-
+      } else if (world === 'snow') {
+        // 06 SNOW: Cold crisp alpine winter wind whistling across icy snow
+        const noise = createNoise(2);
         const filter = this.ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 90;
-
+        filter.type = 'bandpass';
+        filter.frequency.value = 620;
+        filter.Q.value = 3.2;
         noise.connect(filter);
         filter.connect(ambGain);
         noise.start(0);
-
         createdNodes.push(noise, filter);
-      } else {
-        // Cyber / Neon / Moon / Sky / Alien: Subtle metallic resonance hum
+      } else if (world === 'farm') {
+        // 07 FARM: Warm cheerful morning pastoral breeze + soft rustic resonance
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 320;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
         const osc = this.ctx.createOscillator();
         osc.type = 'sine';
-        osc.frequency.value = world === 'neon' ? 110 : 75;
-
+        osc.frequency.value = 220;
         const oscGain = this.ctx.createGain();
-        oscGain.gain.value = 0.15;
-
+        oscGain.gain.value = 0.05;
         osc.connect(oscGain);
         oscGain.connect(ambGain);
         osc.start(0);
-
+        createdNodes.push(noise, filter, osc, oscGain);
+      } else if (world === 'jungle') {
+        // 08 JUNGLE: Dense tropical rainforest atmosphere + humid canopy air
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1350;
+        filter.Q.value = 1.4;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else if (world === 'night_city' || world === 'neon') {
+        // 09 NIGHT CITY: Cyberpunk electronic city hum + illuminated neon glow
+        const osc = this.ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.value = 55;
+        const lowFilt = this.ctx.createBiquadFilter();
+        lowFilt.type = 'lowpass';
+        lowFilt.frequency.value = 140;
+        const oscGain = this.ctx.createGain();
+        oscGain.gain.value = 0.12;
+        osc.connect(lowFilt);
+        lowFilt.connect(oscGain);
+        oscGain.connect(ambGain);
+        osc.start(0);
+        createdNodes.push(osc, lowFilt, oscGain);
+      } else if (world === 'volcano') {
+        // 10 VOLCANO: Deep subterranean volcanic rumble + magma heat
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 85;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else if (world === 'airport') {
+        // 11 AIRPORT: Distant turbine jet murmur + tarmac runway breeze
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1100;
+        filter.Q.value = 2.0;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else if (world === 'harbor') {
+        // 12 HARBOR: Marine ship bell resonance + coastal waters
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 350;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else if (world === 'highway') {
+        // 13 HIGHWAY: High-speed road friction + distant expressway traffic
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 310;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else if (world === 'candy') {
+        // 14 CANDY LAND: Sweet whimsical fairy shimmer + sparkling magical breeze
+        const osc = this.ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = 587.33; // D5
+        const oscGain = this.ctx.createGain();
+        oscGain.gain.value = 0.08;
+        const lfo = this.ctx.createOscillator();
+        lfo.frequency.value = 0.8;
+        lfo.connect(oscGain.gain);
+        osc.connect(oscGain);
+        oscGain.connect(ambGain);
+        osc.start(0);
+        lfo.start(0);
+        createdNodes.push(osc, oscGain, lfo);
+      } else if (world === 'ruins' || world === 'ancient_ruins') {
+        // 15 ANCIENT RUINS: Echoing stone temple breeze + mystical sanctuary resonance
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 460;
+        filter.Q.value = 2.2;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else if (world === 'space') {
+        // 16 SPACE: Cosmic deep-void hum + zero-gravity stellar resonance
+        const osc = this.ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = 65.41; // C2
+        const oscGain = this.ctx.createGain();
+        oscGain.gain.value = 0.15;
+        osc.connect(oscGain);
+        oscGain.connect(ambGain);
+        osc.start(0);
         createdNodes.push(osc, oscGain);
+      } else if (world === 'tokyo') {
+        // 17 TOKYO: Vibrant modern Japanese city night pulse + melodic chime
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 260;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else if (world === 'wildlife') {
+        // 18 WILDLIFE: Savannah golden grass breeze + warm wildlife plains
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 750;
+        filter.Q.value = 1.5;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else if (world === 'underwater') {
+        // 19 UNDERWATER: Submerged muffled deep pressure + gentle rising aquatic resonance
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 160;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
+      } else {
+        // 20 SKY ISLAND (and default): High-altitude ethereal airy cloud breeze
+        const noise = createNoise(2);
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 880;
+        filter.Q.value = 1.6;
+        noise.connect(filter);
+        filter.connect(ambGain);
+        noise.start(0);
+        createdNodes.push(noise, filter);
       }
     } catch { /* ignore audio graph initialization errors */ }
 
@@ -698,6 +842,23 @@ export class AudioManager {
     if (!this.sfxEnabled) return;
     if (!this.ensure() || !this.ctx || !this.masterSfxGain) return;
 
+    // Guaranteed positive, radiant arcade procedural synthesizers for gameplay feedback
+    const ALWAYS_PROCEDURAL = [
+      'coin',
+      'superpower',
+      'fanfare',
+      'start_run',
+      'gameover',
+      'shield_hit',
+      'superpower_impact',
+      'unlock',
+    ];
+
+    if (ALWAYS_PROCEDURAL.includes(name)) {
+      this.playFallbackSound(name);
+      return;
+    }
+
     const buffer = await this.loadSfxBuffer(name);
     if (buffer && this.ctx) {
       try {
@@ -731,25 +892,53 @@ export class AudioManager {
       case 'select': this.tone(520, 0.06, 'triangle', 0.18); break;
       case 'hop': this.tone(300, 0.08, 'square', 0.18, 0, 500); break;
       case 'bump': this.tone(140, 0.08, 'square', 0.15, 0, 90); break;
-      case 'coin': this.tone(950, 0.08, 'sine', 0.25); this.tone(1420, 0.12, 'sine', 0.25, 0.06); break;
+      case 'coin': {
+        // Joyful, sparkling golden coin collection chimes
+        // Random micro-offset gives runs of coin pickups a delightful musical melody
+        const rPitch = 1 + (Math.random() * 0.08 - 0.04);
+        this.tone(1318.51 * rPitch, 0.08, 'sine', 0.28, 0.00); // E6
+        this.tone(1661.22 * rPitch, 0.10, 'sine', 0.26, 0.03); // G#6
+        this.tone(1975.53 * rPitch, 0.13, 'sine', 0.28, 0.06); // B6
+        this.tone(2637.02 * rPitch, 0.15, 'triangle', 0.18, 0.08); // E7 glint
+        break;
+      }
       case 'death': this.tone(160, 0.35, 'sawtooth', 0.3, 0, 40); break;
-      case 'unlock': [523, 659, 784, 1046].forEach((f, i) => this.tone(f, 0.12, 'square', 0.2, i * 0.08)); break;
+      case 'unlock':
+        // Positive, joyful 4-note unlocking chime (C5 -> E5 -> G5 -> C6)
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) =>
+          this.tone(f, 0.14, 'sine', 0.26, i * 0.06, f * 1.05)
+        );
+        break;
       case 'gameover':
-        // Impact thud -> warm minor 7th resolving drop -> clean decay
-        this.tone(92, 0.18, 'sine', 0.38, 0, 38); // Impact thud
-        this.tone(311.13, 0.36, 'triangle', 0.20, 0.04, 261.63); // Eb4 -> C4
-        this.tone(207.65, 0.40, 'sine', 0.18, 0.05, 174.61); // Ab3 -> F3
-        this.tone(130.81, 0.48, 'sine', 0.24, 0.06, 110.00); // C3 -> A2 warm resolve
+        // Clean impact thud + smooth warm resolving chord (never sad buzzer/depressive tone)
+        this.tone(90, 0.18, 'sine', 0.38, 0, 36); // Solid thud
+        this.tone(329.63, 0.30, 'triangle', 0.20, 0.04, 293.66); // E4 -> D4
+        this.tone(220.00, 0.36, 'sine', 0.18, 0.06, 196.00); // A3 -> G3
+        this.tone(130.81, 0.45, 'sine', 0.24, 0.08, 110.00); // C3 -> A2 warm resolve
         break;
       case 'fanfare':
+        // STARTING NEW WORLD SOUND:
+        // Uplifting, proud, triumphant world discovery fanfare!
+        // Warm sub-bass anchor + soaring major brass and bell motif
+        this.tone(130, 0.20, 'sine', 0.36, 0.00, 65); // Warm bass punch
+        this.tone(392.00, 0.16, 'triangle', 0.26, 0.00); // G4
+        this.tone(523.25, 0.16, 'triangle', 0.28, 0.07); // C5
+        this.tone(659.25, 0.18, 'triangle', 0.30, 0.14); // E5
+        this.tone(783.99, 0.22, 'triangle', 0.34, 0.22); // G5
+        this.tone(1046.50, 0.38, 'sine', 0.36, 0.30); // C6 triumphant peak
+        this.tone(1318.51, 0.35, 'sine', 0.28, 0.33); // E6 harmony chime
+        this.tone(1567.98, 0.42, 'triangle', 0.22, 0.36); // G6 glockenspiel
+        this.tone(2093.00, 0.45, 'sine', 0.16, 0.40); // C7 celestial shimmer
+        break;
       case 'start_run':
-        // Modern, polished arcade launch cue:
-        // Anticipation riser + energetic launch chord (C5 + G5 + C6) + sub-kick weight
-        this.tone(140, 0.08, 'sine', 0.30, 0, 48); // Sub-bass punch
-        this.tone(360, 0.06, 'triangle', 0.16, 0, 720); // Quick rising sweep
-        this.tone(523.25, 0.22, 'sine', 0.24, 0.04); // Fundamental C5
-        this.tone(783.99, 0.24, 'triangle', 0.20, 0.05); // Fifth G5
-        this.tone(1046.50, 0.28, 'sine', 0.18, 0.06); // Octave C6 chime
+        // High-energy arcade launch cue:
+        // Snappy anticipation pips + energetic GO launch chord
+        this.tone(587.33, 0.05, 'square', 0.18, 0.00); // D5 tick
+        this.tone(739.99, 0.05, 'square', 0.20, 0.07); // F#5 tick
+        this.tone(120, 0.16, 'sine', 0.38, 0.14, 60); // Punch
+        this.tone(880.00, 0.22, 'sine', 0.28, 0.14); // A5
+        this.tone(1174.66, 0.24, 'triangle', 0.30, 0.14); // D6
+        this.tone(1479.98, 0.28, 'sine', 0.22, 0.16); // F#6 sparkling release
         break;
       case 'shield_hit':
         // Energy barrier deflection punch + glass/crystal shatter
@@ -759,8 +948,17 @@ export class AudioManager {
         this.tone(940, 0.12, 'square', 0.10, 0.02, 450); // Electric dissipation
         break;
       case 'superpower':
-        // Ascending high-energy arpeggiated power surge
-        [440, 554, 659, 880, 1108].forEach((f, i) => this.tone(f, 0.14, 'sawtooth', 0.22, i * 0.04, f * 1.25));
+        // SUPERPOWER COLLECTING SOUND:
+        // Uplifting, celebratory, joyful arcade superpower fanfare
+        // Ascending crystalline major arpeggio with empowering power surge!
+        this.tone(160, 0.12, 'sine', 0.32, 0.00, 80); // Warm sub punch
+        this.tone(523.25, 0.14, 'sine', 0.24, 0.00); // C5
+        this.tone(659.25, 0.14, 'sine', 0.24, 0.04); // E5
+        this.tone(783.99, 0.15, 'triangle', 0.24, 0.08); // G5
+        this.tone(1046.50, 0.18, 'sine', 0.26, 0.12); // C6
+        this.tone(1318.51, 0.20, 'triangle', 0.28, 0.16); // E6
+        this.tone(1567.98, 0.24, 'sine', 0.30, 0.20); // G6
+        this.tone(2093.00, 0.30, 'triangle', 0.25, 0.24); // C7 sparkling crown
         break;
       case 'superpower_impact':
         // Deep bass punch + resonant high shimmer

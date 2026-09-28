@@ -8,8 +8,10 @@ import {
   DIFFICULTY_LEVELS,
   getDifficultySpec,
 } from '../config/difficulty.config';
+import { getStreakReward } from '../config/streak.config';
 import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
+import type { StreakSystem } from '../gameplay/StreakSystem';
 import type { QualityLevel } from '../config/game.config';
 import { liquidUI } from './liquidUI';
 
@@ -64,9 +66,18 @@ function createMissionCard(
 }
 
 export class MissionsScreen {
-  constructor(private readonly save: SaveManager) {}
+  constructor(
+    private readonly save: SaveManager,
+    private readonly streak?: StreakSystem,
+    private readonly audio?: AudioManager,
+    private readonly onToast?: (msg: string) => void,
+    private readonly onStateChanged?: () => void,
+  ) {}
 
   render(maxLane: number, nearMiss: number, activeWorldId?: string, runCoins = 0): void {
+    // 0. Render Daily Streak Tracking System
+    this.renderStreakSection(maxLane, nearMiss, activeWorldId, runCoins);
+
     const ml = document.getElementById('missions-list');
     if (ml) {
       ml.innerHTML = '';
@@ -101,7 +112,7 @@ export class MissionsScreen {
         const done = !!this.save.data.achievements[a.id];
         const card = createMissionCard(
           a.name,
-          'Achievement Milestone',
+          a.desc ?? 'Achievement Milestone',
           done ? 'COMPLETED' : 'IN PROGRESS',
           done ? 1 : 0,
           1,
@@ -161,6 +172,94 @@ export class MissionsScreen {
       }
     } catch { /* daily list is additive — never break the screen */ }
     liquidUI.refresh();
+  }
+
+  private renderStreakSection(maxLane: number, nearMiss: number, activeWorldId?: string, runCoins = 0): void {
+    try {
+      const streakData = this.save.data.streak;
+      const currentStreak = Math.max(1, streakData?.currentStreak ?? 1);
+      const bestStreak = Math.max(1, streakData?.bestStreak ?? 1);
+      const canClaim = this.streak ? this.streak.canClaimToday() : !streakData?.claimedToday;
+      const tier = getStreakReward(currentStreak);
+
+      const daysNumEl = document.getElementById('streak-days-num');
+      if (daysNumEl) daysNumEl.textContent = String(currentStreak);
+
+      const bestNumEl = document.getElementById('streak-best-num');
+      if (bestNumEl) bestNumEl.textContent = String(bestStreak);
+
+      const resetTimerEl = document.getElementById('streak-reset-timer');
+      if (resetTimerEl) resetTimerEl.textContent = getDailyResetCountdown();
+
+      const statusTextEl = document.getElementById('streak-status-text');
+      if (statusTextEl) {
+        if (canClaim) {
+          statusTextEl.textContent = `Day ${currentStreak} reward is ready! Claim +${tier.coins} coins now.`;
+        } else {
+          statusTextEl.textContent = `Today's reward claimed! Come back tomorrow for Day ${currentStreak + 1}.`;
+        }
+      }
+
+      // Claim button
+      const claimBtn = document.getElementById('btn-claim-streak') as HTMLButtonElement | null;
+      if (claimBtn) {
+        if (canClaim) {
+          claimBtn.className = 'btn primary streak-claim-btn can-claim';
+          claimBtn.innerHTML = `CLAIM +${tier.coins} ${COIN_HTML}`;
+          claimBtn.disabled = false;
+        } else {
+          claimBtn.className = 'btn streak-claim-btn is-claimed';
+          claimBtn.innerHTML = `CLAIMED <span class="claim-check">✓</span>`;
+          claimBtn.disabled = true;
+        }
+
+        if (!(claimBtn as unknown as { _bound?: boolean })._bound) {
+          (claimBtn as unknown as { _bound?: boolean })._bound = true;
+          claimBtn.addEventListener('click', () => {
+            if (!this.streak || !this.streak.canClaimToday()) return;
+            const res = this.streak.claimReward();
+            if (res.success) {
+              this.audio?.coin();
+              this.audio?.fanfare();
+              this.onToast?.(`🔥 DAY ${res.day} STREAK CLAIMED! (+${res.reward} COINS)`);
+              this.onStateChanged?.();
+              this.render(maxLane, nearMiss, activeWorldId, runCoins);
+            }
+          });
+        }
+      }
+
+      // 7-day cyclical calendar row
+      const calRow = document.getElementById('streak-calendar-row');
+      if (calRow && this.streak) {
+        calRow.innerHTML = '';
+        const cards = this.streak.getCycleCards();
+        for (const c of cards) {
+          const tile = document.createElement('div');
+          tile.className = `streak-tile tile-${c.status}${c.tier.isMilestone ? ' milestone' : ''}`;
+          
+          let statusBadge = '';
+          if (c.status === 'claimed' || c.status === 'today-claimed') {
+            statusBadge = '<span class="tile-check" aria-label="Claimed">✓</span>';
+          } else if (c.status === 'today-unclaimed') {
+            statusBadge = '<span class="tile-flame" aria-label="Ready to claim">🔥</span>';
+          } else if (c.tier.isMilestone) {
+            statusBadge = '<span class="tile-crown" aria-label="Jackpot">👑</span>';
+          } else {
+            statusBadge = '<span class="tile-lock" aria-label="Upcoming">🔒</span>';
+          }
+
+          tile.innerHTML = `
+            <div class="tile-day-lbl">D${c.dayNum}</div>
+            <div class="tile-icon-wrap">${statusBadge}</div>
+            <div class="tile-reward-val">+${c.tier.coins}</div>
+          `;
+          calRow.appendChild(tile);
+        }
+      }
+    } catch (err) {
+      console.warn('Daily streak calendar rendering fallback:', err);
+    }
   }
 }
 

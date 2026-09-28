@@ -21,6 +21,8 @@ export type GameEventName =
   | 'powerCollected'
   | 'powerActivated'
   | 'powerEnded'
+  | 'streakUpdated'
+  | 'streakClaimed'
   | 'worldEventStarted'
   | 'worldEventEnded'
   | 'worldEventWarning';

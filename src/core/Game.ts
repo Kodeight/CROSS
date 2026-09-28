@@ -35,6 +35,7 @@ import { ProgressionSystem } from '../gameplay/ProgressionSystem';
 import { ParticleSystem } from '../gameplay/Particles';
 import { PowerUpSystem } from '../gameplay/PowerUpSystem';
 import { SuperpowerVFX } from '../gameplay/SuperpowerVFX';
+import { StreakSystem } from '../gameplay/StreakSystem';
 import { GameManager } from '../gameplay/GameManager';
 import { UIManager } from '../ui/UIManager';
 import { HUD } from '../ui/HUD';
@@ -51,7 +52,7 @@ import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
 import { showWorldTransition, updateWorldEnvironmentTheme, setPreGameTheme } from '../ui/worldNotch';
 import { getDifficultySpec } from '../config/difficulty.config';
-import { registerPWA } from '../pwa';
+import { registerPWA, lockScreenOrientationPortrait } from '../pwa';
 import { PWABottomPanel } from '../ui/PWABottomPanel';
 
 const DEBUG = /[?&](debug|worlddebug)/i.test(location.search);
@@ -82,6 +83,7 @@ export class Game implements LoopDelegate {
   private powerups!: PowerUpSystem;
   private superpowerVfx!: SuperpowerVFX;
   private missions!: MissionSystem;
+  private streakSystem!: StreakSystem;
   private progression!: ProgressionSystem;
   private particles!: ParticleSystem;
   private manager!: GameManager;

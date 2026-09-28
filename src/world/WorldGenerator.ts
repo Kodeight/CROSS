@@ -233,10 +233,6 @@ export class WorldGenerator {
 
   /**
    * World-specific signature 3D collectible items with distinct geometry,
-   * materials, and animated energy base halos across ALL 20 worlds!
-   */
-  /**
-   * World-specific signature 3D collectible items with distinct geometry,
    * smooth rounded surfaces, beveled contours, and premium stylized game art!
    */
   makeCollectibleMesh(worldId: string): THREE.Group {

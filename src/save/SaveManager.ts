@@ -1,7 +1,7 @@
 /** Centralized save system: versioned, corruption-tolerant, single key. */
 
 import { TESTING_MODE } from '../config/game.config';
-import { SaveData, defaultSave } from './SaveData';
+import { SaveData, defaultSave, defaultDailyStreak } from './SaveData';
 import { Storage } from './Storage';
 
 const SAVE_KEY = 'cross_save_v1';
@@ -32,6 +32,7 @@ export class SaveManager {
         settings: { ...base.settings, ...(parsed.settings ?? {}) },
         stats: { ...base.stats, ...(parsed.stats ?? {}) },
         dailyMissions: parsed.dailyMissions ?? base.dailyMissions,
+        streak: parsed.streak ? { ...defaultDailyStreak(), ...parsed.streak } : base.streak,
         tutorialShown: parsed.tutorialShown ?? base.tutorialShown,
       } as SaveData;
       this.data = merged;

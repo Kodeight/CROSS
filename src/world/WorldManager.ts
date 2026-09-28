@@ -25,9 +25,59 @@ export class WorldManager {
             (g) => props.trashCan(g),
             (g) => buildings.fence(g),
             (g) => props.crossSign(g),
-            (g) => props.kiosk(g),
             (g) => props.planter(g),
+          ];
+          break;
+        case 'river':
+          decor = [
+            (g) => props.duckie(g),
+            (g) => props.lilypad(g),
+            (g) => trees.streetTree(g),
+            (g) => props.buoy(g),
+            (g) => buildings.fence(g),
+          ];
+          break;
+        case 'beach':
+          decor = [
+            (g) => trees.palm(g),
+            (g) => props.umbrella(g),
+            (g) => props.surfboard(g),
+            (g) => props.beachSign(g),
             (g) => buildings.cafe(g),
+          ];
+          beachObstacles = props.beachDistrictObstacles();
+          break;
+        case 'forest':
+          decor = [
+            (g) => props.magicMushroom(g),
+            (g) => props.ancientRune(g),
+            (g) => trees.vineTree(g),
+            (g) => trees.bush(g),
+          ];
+          break;
+        case 'desert':
+          decor = [
+            (g) => trees.cactus(g),
+            (g) => props.desertRock(g),
+            (g) => buildings.mountain(g, 0xb08b52, 110),
+            (g) => props.tuft(g),
+          ];
+          break;
+        case 'snow':
+          decor = [
+            (g) => props.snowman(g),
+            (g) => trees.pine(g, true),
+            (g) => props.snowBank(g),
+            (g) => props.iceRock(g),
+            (g) => buildings.mountain(g, 0x5a6472, 120),
+          ];
+          break;
+        case 'farm':
+          decor = [
+            (g) => props.hayBale(g),
+            (g) => props.fence(g),
+            (g) => trees.streetTree(g),
+            (g) => buildings.smallHouse(g),
           ];
           break;
         case 'jungle':
@@ -38,22 +88,7 @@ export class WorldManager {
             (g) => trees.bush(g),
           ];
           break;
-        case 'desert':
-          decor = [
-            (g) => buildings.mountain(g, 0xb08b52, 110),
-            (g) => props.desertRock(g),
-            (g) => props.tuft(g),
-            (g) => trees.cactus(g),
-          ];
-          break;
-        case 'snow':
-          decor = [
-            (g) => trees.pine(g, true),
-            (g) => props.snowBank(g),
-            (g) => props.iceRock(g),
-            (g) => buildings.mountain(g, 0x5a6472, 120),
-          ];
-          break;
+        case 'night_city':
         case 'neon':
           decor = [
             (g) => props.holoPillar(0x38e1ff)(g),
@@ -71,119 +106,84 @@ export class WorldManager {
             (g) => buildings.mountain(g, 0x241410, 130),
           ];
           break;
-        case 'beach':
+        case 'airport':
           decor = [
-            (g) => buildings.cafe(g),
-            (g) => buildings.shop(g),
-            (g) => trees.palm(g),
-            (g) => props.beachSign(g),
-            (g) => props.crossSign(g),
-          ];
-          beachObstacles = props.beachDistrictObstacles();
-          break;
-        case 'forest':
-          decor = [
-            (g) => props.magicMushroom(g),
-            (g) => props.ancientRune(g),
-            (g) => trees.vineTree(g),
-            (g) => trees.bush(g),
-          ];
-          break;
-        case 'industrial':
-          decor = [
-            (g) => props.hazardBarrier(g),
+            (g) => props.trafficCone(g),
             (g) => props.shippingCrate(g),
+            (g) => props.barrier(g),
             (g) => props.trashCan(g),
+          ];
+          break;
+        case 'harbor':
+          decor = [
+            (g) => props.shippingCrate(g),
+            (g) => props.hazardBarrier(g),
+            (g) => props.buoy(g),
+            (g) => props.pierPost(g),
+          ];
+          break;
+        case 'highway':
+          decor = [
+            (g) => props.barrier(g),
+            (g) => props.hazardBarrier(g),
+            (g) => props.railSignal(g),
+            (g) => props.lamp(g),
+          ];
+          break;
+        case 'candy':
+          decor = [
+            (g) => props.candyCane(g),
+            (g) => trees.candyTree(g),
+            (g) => props.crystalSpire(g),
             (g) => buildings.shop(g),
           ];
           break;
-        case 'temple':
+        case 'ruins':
           decor = [
+            (g) => props.ruinsPillar(g),
             (g) => props.stoneObelisk(g),
             (g) => props.goldenUrn(g),
             (g) => props.jungleRock(g),
-            (g) => trees.vineTree(g),
           ];
           break;
-        case 'flooded':
+        case 'space':
           decor = [
-            (g) => props.submergedRooftop(g),
-            (g) => props.pierPost(g),
-            (g) => props.buoy(g),
-            (g) => buildings.cafe(g),
+            (g) => props.commAntenna(g),
+            (g) => props.lunarLander(g),
+            (g) => props.holoPillar(0x38e1ff)(g),
           ];
           break;
-        case 'railway':
+        case 'tokyo':
           decor = [
-            (g) => props.railSignal(g),
-            (g) => props.shippingCrate(g),
-            (g) => props.barrier(g),
-            (g) => buildings.fence(g),
-          ];
-          break;
-        case 'countryside':
-          decor = [
-            (g) => props.hayBale(g),
-            (g) => props.fence(g),
-            (g) => trees.streetTree(g),
-            (g) => buildings.smallHouse(g),
-          ];
-          break;
-        case 'mountain':
-          decor = [
-            (g) => trees.pine(g, true),
-            (g) => props.snowBank(g),
-            (g) => props.desertRock(g),
-            (g) => buildings.mountain(g, 0x385f6e, 140),
-          ];
-          break;
-        case 'fantasy':
-          decor = [
-            (g) => props.crystalSpire(g),
-            (g) => props.magicMushroom(g),
-            (g) => trees.vineTree(g),
+            (g) => props.toriiGate(g),
+            (g) => trees.cherryTree(g),
+            (g) => props.lamp(g),
             (g) => buildings.shop(g),
           ];
           break;
-        case 'pirate':
+        case 'wildlife':
           decor = [
-            (g) => props.treasureChest(g),
-            (g) => props.pirateCannon(g),
-            (g) => trees.palm(g),
-            (g) => props.surfboard(g),
+            (g) => trees.acaciaTree(g),
+            (g) => trees.baobabTree(g),
+            (g) => props.desertRock(g),
+            (g) => props.tuft(g),
           ];
           break;
-        case 'ocean':
+        case 'underwater':
           decor = [
             (g) => props.coralSpire(g),
             (g) => props.buoy(g),
-            (g) => props.boat(g),
             (g) => props.pierPost(g),
           ];
           break;
-        case 'moon':
-          decor = [
-            (g) => props.lunarLander(g),
-            (g) => props.commAntenna(g),
-            (g) => props.snowBank(g),
-            (g) => buildings.mountain(g, 0x2f3640, 100),
-          ];
-          break;
+        case 'sky_island':
         case 'sky':
-          decor = [
-            (g) => props.cloudPillar(g),
-            (g) => props.stoneObelisk(g),
-            (g) => props.crystalSpire(g),
-            (g) => buildings.cafe(g),
-          ];
-          break;
-        case 'alien':
         default:
           decor = [
-            (g) => props.xenolithMonolith(g),
-            (g) => props.bioSpore(g),
-            (g) => props.holoPillar(0xa55eea)(g),
-            (g) => buildings.mountain(g, 0x1d0b2e, 120),
+            (g) => props.cloudPillar(g),
+            (g) => props.crystalSpire(g),
+            (g) => props.stoneObelisk(g),
+            (g) => buildings.cafe(g),
           ];
           break;
       }

@@ -1,16 +1,64 @@
 /**
  * §21/§22 — PWA: service-worker registration (http(s) only, never file://),
- * install affordance, iOS hint. The game never depends on the worker.
+ * install affordance, iOS hint, and PWA screen orientation locking to portrait.
+ * The game never depends on the worker.
  */
 import type { UIManager } from './ui/UIManager';
 import { isTouchDevice } from './utils/DeviceUtils';
 
+/**
+ * Locks screen orientation to portrait on mobile PWA and supporting browsers.
+ * Handles modern Screen Orientation API, vendor prefixes, and user-gesture timing.
+ */
+export function lockScreenOrientationPortrait(): void {
+  try {
+    const screenAny = window.screen as unknown as {
+      orientation?: {
+        lock?: (orientation: string) => Promise<void>;
+        type?: string;
+      };
+      lockOrientation?: (orientation: string) => boolean;
+      mozLockOrientation?: (orientation: string) => boolean;
+      msLockOrientation?: (orientation: string) => boolean;
+    };
+    if (screenAny?.orientation?.lock) {
+      screenAny.orientation.lock('portrait').catch(() => {
+        // Some browsers only allow lock in standalone / fullscreen or after user gesture
+      });
+    } else if (screenAny?.lockOrientation) {
+      screenAny.lockOrientation('portrait');
+    } else if (screenAny?.mozLockOrientation) {
+      screenAny.mozLockOrientation('portrait');
+    } else if (screenAny?.msLockOrientation) {
+      screenAny.msLockOrientation('portrait');
+    }
+  } catch {
+    /* Orientation lock is best-effort and must never throw */
+  }
+}
+
 export function registerPWA(ui: UIManager, onClick: () => void): void {
-  // Background auto-pause is handled by Game; viewport changes here.
+  // Enforce portrait orientation lock immediately and on user gestures
+  lockScreenOrientationPortrait();
+  try {
+    const lockOnGesture = (): void => {
+      lockScreenOrientationPortrait();
+    };
+    window.addEventListener('pointerdown', lockOnGesture, { passive: true });
+    window.addEventListener('touchstart', lockOnGesture, { passive: true });
+  } catch { /* ignore */ }
+
+  // Background auto-pause is handled by Game; viewport changes & orientation lock here.
   try {
     window.addEventListener('orientationchange', () => {
+      lockScreenOrientationPortrait();
       window.dispatchEvent(new Event('cross:resize'));
+      window.setTimeout(() => lockScreenOrientationPortrait(), 120);
+      window.setTimeout(() => lockScreenOrientationPortrait(), 350);
     });
+    window.addEventListener('resize', () => {
+      lockScreenOrientationPortrait();
+    }, { passive: true });
   } catch { /* ignore */ }
 
   try {

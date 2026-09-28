@@ -509,6 +509,275 @@ export class VehicleFactory {
         break;
       }
 
+      // 11. FIRE TRUCK (EMERGENCY)
+      case 'fire_truck': {
+        const ftW = 32;
+        const cabLen = 24;
+        const ftRed = 0xd32f2f;
+        // Front Emergency Cab
+        this.rbody(g, cabLen, ftW, 26, ftRed, -len / 2 + cabLen / 2, 0, 18, 2.5);
+        this.box(g, 1.8, ftW - 6, 11, 0xd0e8fa, -len / 2 - 0.4, 0, 24);
+
+        // Emergency Lightbar on Cab Roof (Flashing Red / Amber)
+        const lightbar = new THREE.Mesh(
+          this.assets.box('ft-lightbar', 4 * ZOOM, 18 * ZOOM, 3 * ZOOM),
+          this.assets.phong('ft-lightbar-mat', 0xff1744, { emissive: 0xff0044, shininess: 100 }),
+        );
+        lightbar.position.set((-len / 2 + cabLen / 2) * ZOOM, 0, 32.5 * ZOOM);
+        g.add(lightbar);
+
+        // Rear Equipment Body
+        const rearLen = len - cabLen - 3;
+        this.rbody(g, rearLen, ftW + 1, 28, ftRed, len / 2 - rearLen / 2, 0, 19, 2.2);
+
+        // Side Shutter Equipment Doors (Silver aluminum)
+        for (const side of [-1, 1]) {
+          for (let p = -1; p <= 1; p++) {
+            this.box(g, 10, 1.2, 16, 0xb0bec5, len * 0.12 + p * 12, side * (ftW / 2 + 0.6), 18);
+          }
+        }
+
+        // Roof-Mounted Silver Extensible Ladder
+        const ladderL = new THREE.Mesh(
+          this.assets.box('ft-ladder-l', (rearLen - 4) * ZOOM, 2.2 * ZOOM, 2.5 * ZOOM),
+          this.mat(0xdce775, 0, 60),
+        );
+        ladderL.position.set((len / 2 - rearLen / 2) * ZOOM, -4 * ZOOM, 34.5 * ZOOM);
+        g.add(ladderL);
+
+        const ladderR = new THREE.Mesh(
+          this.assets.box('ft-ladder-r', (rearLen - 4) * ZOOM, 2.2 * ZOOM, 2.5 * ZOOM),
+          this.mat(0xdce775, 0, 60),
+        );
+        ladderR.position.set((len / 2 - rearLen / 2) * ZOOM, 4 * ZOOM, 34.5 * ZOOM);
+        g.add(ladderR);
+
+        // Rungs
+        for (let r = -2; r <= 2; r++) {
+          this.box(g, 1.8, 8, 1.8, 0xdce775, len / 2 - rearLen / 2 + r * 8, 0, 34.5);
+        }
+
+        this.wheelPair(g, -len / 2 + 10, ftW, 7.5);
+        this.wheelPair(g, len / 2 - 20, ftW, 7.5);
+        this.wheelPair(g, len / 2 - 8, ftW, 7.5);
+        this.addLightsAndBumpers(g, len, ftW, 10);
+        break;
+      }
+
+      // 12. POLICE INTERCEPTOR CRUISER
+      case 'police': {
+        this.rbody(g, len, bodyW, 12, 0x1a1c23, 0, 0, 9.5, 2.5);
+
+        // White side doors / roof panel
+        for (const side of [-1, 1]) {
+          this.box(g, len * 0.44, 1.2, 8, 0xf8f9fa, 0, side * (bodyW / 2 + 0.3), 10);
+        }
+
+        // Aerodynamic Tinted Cabin
+        const cab = new THREE.Mesh(
+          this.assets.roundedBox(len * 0.52 * ZOOM, (bodyW - 4) * ZOOM, 10.5 * ZOOM, 2.0 * ZOOM, 2),
+          this.glassMat(0xd8e8f8),
+        );
+        cab.position.set(len * 0.02 * ZOOM, 0, 19.5 * ZOOM);
+        g.add(cab);
+
+        // Police Roof Lightbar (Split Blue / Red)
+        const barRed = new THREE.Mesh(
+          this.assets.box('police-bar-r', 3 * ZOOM, 6 * ZOOM, 3 * ZOOM),
+          this.assets.phong('police-r-mat', 0xff1744, { emissive: 0xff002b }),
+        );
+        barRed.position.set(len * 0.02 * ZOOM, -4 * ZOOM, 26.5 * ZOOM);
+        g.add(barRed);
+
+        const barBlue = new THREE.Mesh(
+          this.assets.box('police-bar-b', 3 * ZOOM, 6 * ZOOM, 3 * ZOOM),
+          this.assets.phong('police-b-mat', 0x2979ff, { emissive: 0x0055ff }),
+        );
+        barBlue.position.set(len * 0.02 * ZOOM, 4 * ZOOM, 26.5 * ZOOM);
+        g.add(barBlue);
+
+        // Front heavy push-bar
+        this.box(g, 2.2, bodyW - 8, 8, 0x212121, -len / 2 - 1.2, 0, 10);
+
+        this.wheelPair(g, -len * 0.28, bodyW);
+        this.wheelPair(g, len * 0.28, bodyW);
+        this.addLightsAndBumpers(g, len, bodyW, 9.5);
+        break;
+      }
+
+      // 13. AMBULANCE
+      case 'ambulance': {
+        const ambW = 30;
+        this.rbody(g, len, ambW, 24, 0xf5f6fa, 0, 0, 16, 2.6);
+        // Driver windshield
+        this.box(g, 1.8, ambW - 6, 9, 0xd0e8fa, -len / 2 - 0.4, 0, 20);
+
+        // Red medical side stripes & crosses
+        for (const side of [-1, 1]) {
+          this.box(g, len * 0.72, 1.2, 3.5, 0xd32f2f, len * 0.05, side * (ambW / 2 + 0.4), 16);
+          // Red cross
+          this.box(g, 6, 1.4, 2, 0xd32f2f, len * 0.1, side * (ambW / 2 + 0.5), 23);
+          this.box(g, 2, 1.4, 6, 0xd32f2f, len * 0.1, side * (ambW / 2 + 0.5), 23);
+        }
+
+        // Roof Red / Blue beacons
+        const rBeacon = new THREE.Mesh(
+          this.assets.box('amb-beacon', 3.5 * ZOOM, 12 * ZOOM, 3 * ZOOM),
+          this.assets.phong('amb-beacon-mat', 0xff1744, { emissive: 0xff1744 }),
+        );
+        rBeacon.position.set((-len * 0.3) * ZOOM, 0, 29.5 * ZOOM);
+        g.add(rBeacon);
+
+        this.wheelPair(g, -len * 0.28, ambW, 7.2);
+        this.wheelPair(g, len * 0.28, ambW, 7.2);
+        this.addLightsAndBumpers(g, len, ambW, 10);
+        break;
+      }
+
+      // 14. FARM TRACTOR
+      case 'tractor': {
+        const trW = 28;
+        // Engine Hood
+        this.rbody(g, len * 0.55, trW * 0.65, 14, 0x43a047, -len * 0.2, 0, 12, 2.0);
+        // Driver Open/Glass Cabin
+        const cab = new THREE.Mesh(
+          this.assets.roundedBox(len * 0.42 * ZOOM, (trW - 4) * ZOOM, 18 * ZOOM, 1.5 * ZOOM, 2),
+          this.glassMat(0xd8e8f8),
+        );
+        cab.position.set((len * 0.22) * ZOOM, 0, 20 * ZOOM);
+        g.add(cab);
+
+        // Vertical Chrome Exhaust Pipe
+        const exhaust = new THREE.Mesh(
+          this.assets.cylinder('tr-exhaust', 1.2 * ZOOM, 1.2 * ZOOM, 14 * ZOOM, 8),
+          this.mat(0xdce775, 0, 80),
+        );
+        exhaust.position.set((-len * 0.15) * ZOOM, (trW * 0.35) * ZOOM, 24 * ZOOM);
+        g.add(exhaust);
+
+        // Small Front Wheels
+        this.wheelPair(g, -len * 0.35, trW * 0.75, 5.5);
+        // Giant Oversized Rear Drive Wheels
+        this.wheelPair(g, len * 0.22, trW + 4, 11);
+        break;
+      }
+
+      // 15. INDUSTRIAL FORKLIFT
+      case 'forklift': {
+        const flW = 26;
+        // Chassis in Safety Yellow
+        this.rbody(g, len * 0.7, flW, 14, 0xfbc02d, len * 0.1, 0, 11, 2.2);
+
+        // Roll Cage Overhead Guard
+        for (const side of [-1, 1]) {
+          const bar = new THREE.Mesh(
+            this.assets.cylinder('fl-bar', 1.2 * ZOOM, 1.2 * ZOOM, 18 * ZOOM, 8),
+            this.mat(0x212121, 0, 50),
+          );
+          bar.position.set((len * 0.1) * ZOOM, side * (flW / 2 - 2) * ZOOM, 21 * ZOOM);
+          g.add(bar);
+        }
+        this.box(g, len * 0.5, flW - 4, 2, 0x212121, len * 0.1, 0, 30);
+
+        // Front Lifting Mast and Steel Forks
+        this.box(g, 2.5, flW * 0.65, 26, 0x37474f, -len * 0.32, 0, 16);
+        for (const side of [-1, 1]) {
+          const fork = new THREE.Mesh(
+            this.assets.box('fl-fork', 16 * ZOOM, 2.8 * ZOOM, 1.5 * ZOOM),
+            this.mat(0x90a4ae, 0, 70),
+          );
+          fork.position.set((-len * 0.32 - 8) * ZOOM, side * 5 * ZOOM, 2.5 * ZOOM);
+          g.add(fork);
+        }
+
+        this.wheelPair(g, -len * 0.18, flW, 6);
+        this.wheelPair(g, len * 0.35, flW, 6);
+        break;
+      }
+
+      // 16. BOAT & SUBMARINE
+      case 'boat':
+      case 'submarine': {
+        const isSub = kind === 'submarine';
+        const boatW = 28;
+        // Pointed Prow Nautical Hull
+        this.rbody(g, len, boatW, 14, isSub ? 0x263238 : 0x0288d1, 0, 0, 10, 3.2);
+
+        // Upper Wheelhouse / Bridge
+        const bridge = new THREE.Mesh(
+          this.assets.roundedBox(len * 0.45 * ZOOM, (boatW - 6) * ZOOM, 10 * ZOOM, 2.0 * ZOOM, 2),
+          isSub ? this.mat(0x37474f) : this.glassMat(0xd8e8f8),
+        );
+        bridge.position.set(len * 0.05 * ZOOM, 0, 18 * ZOOM);
+        g.add(bridge);
+
+        if (isSub) {
+          // Periscope Tower
+          const peri = new THREE.Mesh(
+            this.assets.cylinder('sub-peri', 1.8 * ZOOM, 1.8 * ZOOM, 12 * ZOOM, 8),
+            this.mat(0x455a64, 0, 60),
+          );
+          peri.position.set((len * 0.05) * ZOOM, 0, 26 * ZOOM);
+          g.add(peri);
+        }
+
+        // Stern Propeller Drive
+        const prop = new THREE.Mesh(
+          this.assets.cylinder('boat-prop', 3.5 * ZOOM, 3.5 * ZOOM, 2.5 * ZOOM, 6),
+          this.mat(0xffb300, 0, 80),
+        );
+        prop.position.set((len / 2 + 2) * ZOOM, 0, 8 * ZOOM);
+        g.add(prop);
+        break;
+      }
+
+      // 17. AIRPLANE / SKY SHIP
+      case 'plane':
+      case 'sky_ship': {
+        const fuseW = 22;
+        // Fuselage
+        this.rbody(g, len, fuseW, 15, 0xe0e6ed, 0, 0, 14, 3.0);
+        // Cockpit canopy
+        const canopy = new THREE.Mesh(
+          this.assets.roundedBox(len * 0.35 * ZOOM, (fuseW - 4) * ZOOM, 8 * ZOOM, 1.8 * ZOOM, 2),
+          this.glassMat(0x81d4fa),
+        );
+        canopy.position.set((-len * 0.15) * ZOOM, 0, 22 * ZOOM);
+        g.add(canopy);
+
+        // Broad Swept Wings
+        const wings = new THREE.Mesh(
+          this.assets.box('plane-wings', 16 * ZOOM, 58 * ZOOM, 2.2 * ZOOM),
+          this.mat(0x1976d2, 0, 60),
+        );
+        wings.position.set((-len * 0.05) * ZOOM, 0, 14 * ZOOM);
+        g.add(wings);
+
+        // Wingtip Navigation Beacons (Red Port / Green Starboard)
+        const redBeacon = new THREE.Mesh(
+          this.assets.sphere('nav-red', 1.6 * ZOOM, 6, 6),
+          this.assets.phong('nav-red-mat', 0xff1744, { emissive: 0xff1744 }),
+        );
+        redBeacon.position.set((-len * 0.05) * ZOOM, -29 * ZOOM, 14 * ZOOM);
+        g.add(redBeacon);
+
+        const grnBeacon = new THREE.Mesh(
+          this.assets.sphere('nav-grn', 1.6 * ZOOM, 6, 6),
+          this.assets.phong('nav-grn-mat', 0x00e676, { emissive: 0x00e676 }),
+        );
+        grnBeacon.position.set((-len * 0.05) * ZOOM, 29 * ZOOM, 14 * ZOOM);
+        g.add(grnBeacon);
+
+        // Vertical Tail Fin
+        const tail = new THREE.Mesh(
+          this.assets.box('plane-tail', 10 * ZOOM, 2.2 * ZOOM, 14 * ZOOM),
+          this.mat(0x1976d2, 0, 60),
+        );
+        tail.position.set((len / 2 - 6) * ZOOM, 0, 24 * ZOOM);
+        g.add(tail);
+        break;
+      }
+
       default: {
         this.rbody(g, len, bodyW, 12, color, 0, 0, 9.5, 2.5);
         const cab = new THREE.Mesh(

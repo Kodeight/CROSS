@@ -350,29 +350,125 @@ export class PropFactory {
     this.ball(g, 3, 0x00f0ff, 3, 2, 10, 0x00ffff);
   };
 
+  // ---- New Canonical Reference Props ----
+  duckie = (g: THREE.Group): void => {
+    // Yellow rubber duck with orange beak
+    const m = new THREE.Mesh(this.assets.sphere('prop-duck-body', 4.5 * ZOOM, 9, 7), this.mat(0xfeca57, 0, 60));
+    m.position.set(0, 0, 4.5 * ZOOM);
+    g.add(m);
+    const head = new THREE.Mesh(this.assets.sphere('prop-duck-head', 3.0 * ZOOM, 8, 6), this.mat(0xfeca57, 0, 60));
+    head.position.set(0, 2.8 * ZOOM, 8.5 * ZOOM);
+    g.add(head);
+    const beak = new THREE.Mesh(this.assets.cylinder('prop-duck-beak', 0.2 * ZOOM, 1.4 * ZOOM, 2.2 * ZOOM, 7), this.mat(0xff6b35, 0, 50));
+    beak.rotation.x = Math.PI / 2;
+    beak.position.set(0, 5.2 * ZOOM, 8.2 * ZOOM);
+    g.add(beak);
+  };
+
+  lilypad = (g: THREE.Group): void => {
+    // Floating green lilypad with pink lotus flower
+    const pad = new THREE.Mesh(this.assets.cylinder('prop-lilypad', 6.5 * ZOOM, 6.5 * ZOOM, 0.6 * ZOOM, 12), this.mat(0x2ed573, 0, 30));
+    pad.position.set(0, 0, 0.4 * ZOOM);
+    g.add(pad);
+    const flower = new THREE.Mesh(this.assets.sphere('prop-lotus', 2.0 * ZOOM, 8, 6), this.mat(0xff9ff3, 0, 50));
+    flower.position.set(1.5 * ZOOM, 1.5 * ZOOM, 2.2 * ZOOM);
+    g.add(flower);
+  };
+
+  snowman = (g: THREE.Group): void => {
+    // Cute rounded snowman with blue scarf & hat
+    const whiteMat = this.mat(0xffffff, 0, 50);
+    const bottom = new THREE.Mesh(this.assets.sphere('prop-snow-bot', 5.5 * ZOOM, 10, 8), whiteMat);
+    bottom.position.set(0, 0, 5.5 * ZOOM);
+    g.add(bottom);
+    const head = new THREE.Mesh(this.assets.sphere('prop-snow-top', 3.8 * ZOOM, 9, 7), whiteMat);
+    head.position.set(0, 0, 12.5 * ZOOM);
+    g.add(head);
+    const scarf = new THREE.Mesh(this.assets.torus('prop-snow-scarf', 3.8 * ZOOM, 0.9 * ZOOM, 8, 16), this.mat(0x3867d6, 0, 50));
+    scarf.position.set(0, 0, 9.8 * ZOOM);
+    g.add(scarf);
+    const hat = new THREE.Mesh(this.assets.cylinder('prop-snow-hat', 2.2 * ZOOM, 2.2 * ZOOM, 3.5 * ZOOM, 10), this.mat(0x1e272e, 0, 60));
+    hat.position.set(0, 0, 16.5 * ZOOM);
+    g.add(hat);
+  };
+
+  toriiGate = (g: THREE.Group): void => {
+    // Traditional vermilion red Japanese Torii Gate
+    const redMat = this.mat(0xe74c3c, 0, 50);
+    const blackMat = this.mat(0x111111, 0, 60);
+    for (const s of [-8, 8]) {
+      const post = new THREE.Mesh(this.assets.cylinder('prop-torii-post', 1.8 * ZOOM, 1.8 * ZOOM, 24 * ZOOM, 8), redMat);
+      post.position.set(s * ZOOM, 0, 12 * ZOOM);
+      g.add(post);
+    }
+    const beam = new THREE.Mesh(this.assets.box('prop-torii-beam', 24 * ZOOM, 2.6 * ZOOM, 3.2 * ZOOM), redMat);
+    beam.position.set(0, 0, 22 * ZOOM);
+    g.add(beam);
+    const topBar = new THREE.Mesh(this.assets.box('prop-torii-top', 28 * ZOOM, 3.2 * ZOOM, 2.0 * ZOOM), blackMat);
+    topBar.position.set(0, 0, 24.5 * ZOOM);
+    g.add(topBar);
+  };
+
+  candyCane = (g: THREE.Group): void => {
+    // Red-and-white striped candy cane
+    const post = new THREE.Mesh(this.assets.cylinder('prop-cane-post', 1.6 * ZOOM, 1.6 * ZOOM, 18 * ZOOM, 8), this.mat(0xff4757, 0, 60));
+    post.position.set(0, 0, 9 * ZOOM);
+    g.add(post);
+    const arch = new THREE.Mesh(this.assets.torus('prop-cane-arch', 3.5 * ZOOM, 1.5 * ZOOM, 8, 16), this.mat(0xffffff, 0, 60));
+    arch.position.set(3.5 * ZOOM, 0, 18 * ZOOM);
+    arch.rotation.x = Math.PI / 2;
+    g.add(arch);
+  };
+
+  trafficCone = (g: THREE.Group): void => {
+    // Orange airport/road safety cone with white reflective band
+    const cone = new THREE.Mesh(this.assets.cylinder('prop-cone', 0.4 * ZOOM, 3.2 * ZOOM, 9 * ZOOM, 8), this.mat(0xff6348, 0, 50));
+    cone.position.set(0, 0, 4.5 * ZOOM);
+    g.add(cone);
+    const base = new THREE.Mesh(this.assets.box('prop-cone-base', 7 * ZOOM, 7 * ZOOM, 1.2 * ZOOM), this.mat(0xff6348, 0, 50));
+    base.position.set(0, 0, 0.6 * ZOOM);
+    g.add(base);
+    const band = new THREE.Mesh(this.assets.cylinder('prop-cone-band', 1.8 * ZOOM, 2.2 * ZOOM, 2.5 * ZOOM, 8), this.mat(0xffffff, 0, 80));
+    band.position.set(0, 0, 4.2 * ZOOM);
+    g.add(band);
+  };
+
+  ruinsPillar = (g: THREE.Group): void => {
+    // Sandstone ancient Egyptian ruins pillar
+    const col = new THREE.Mesh(this.assets.cylinder('prop-ruins-col', 3.4 * ZOOM, 3.8 * ZOOM, 20 * ZOOM, 8), this.mat(0xd2b48c, 0, 25));
+    col.position.set(0, 0, 10 * ZOOM);
+    col.castShadow = true;
+    g.add(col);
+    const cap = new THREE.Mesh(this.assets.box('prop-ruins-cap', 9 * ZOOM, 9 * ZOOM, 2.8 * ZOOM), this.mat(0xc8a870, 0, 30));
+    cap.position.set(0, 0, 20.5 * ZOOM);
+    g.add(cap);
+  };
+
   obstacleSets(): Record<string, PropBuilder[]> {
     const t = this.trees;
     return {
       city: [this.planter, this.kiosk, this.hydrant, this.barrier, (g) => t.streetTree(g), this.trashCan],
-      jungle: [(g) => t.bigLeaf(g), (g) => t.vineTree(g), this.jungleRock, (g) => t.bush(g)],
+      river: [this.duckie, this.lilypad, (g) => t.streetTree(g), this.buoy],
+      beach: [(g) => t.palm(g), this.umbrella, this.surfboard, this.beachSign],
+      forest: [this.magicMushroom, this.ancientRune, (g) => t.vineTree(g), (g) => t.bush(g)],
       desert: [(g) => t.cactus(g), this.desertRock, (g) => t.deadBush(g)],
-      snow: [(g) => t.pine(g, true), this.snowBank, this.iceRock, (g) => t.pine(g, false)],
+      snow: [this.snowman, (g) => t.pine(g, true), this.snowBank, this.iceRock],
+      farm: [this.hayBale, this.fence, (g) => t.streetTree(g), (g) => t.bush(g)],
+      jungle: [(g) => t.bigLeaf(g), (g) => t.vineTree(g), this.jungleRock, (g) => t.bush(g)],
+      night_city: [this.holoPillar(0x38e1ff), this.holoPillar(0xff3fb4), this.neonSign, this.glowBarrier],
       neon: [this.holoPillar(0x38e1ff), this.holoPillar(0xff3fb4), this.neonSign, this.glowBarrier],
       volcano: [this.magmaRock, this.basaltPillar, this.smokeVent],
-      beach: [(g) => t.palm(g), this.umbrella, this.surfboard],
-      forest: [this.magicMushroom, this.ancientRune, (g) => t.vineTree(g)],
-      industrial: [this.hazardBarrier, this.shippingCrate, this.trashCan],
-      temple: [this.stoneObelisk, this.goldenUrn, this.jungleRock],
-      flooded: [this.submergedRooftop, this.pierPost, this.buoy],
-      railway: [this.railSignal, this.shippingCrate, this.barrier],
-      countryside: [this.hayBale, this.fence, (g) => t.streetTree(g)],
-      mountain: [(g) => t.pine(g, true), this.snowBank, this.desertRock],
-      fantasy: [this.crystalSpire, this.magicMushroom, (g) => t.vineTree(g)],
-      pirate: [this.treasureChest, this.pirateCannon, (g) => t.palm(g)],
-      ocean: [this.coralSpire, this.buoy, this.boat],
-      moon: [this.lunarLander, this.commAntenna, this.snowBank],
-      sky: [this.cloudPillar, this.stoneObelisk, this.crystalSpire],
-      alien: [this.xenolithMonolith, this.bioSpore, this.holoPillar(0xa55eea)],
+      airport: [this.trafficCone, this.shippingCrate, this.barrier, this.trashCan],
+      harbor: [this.shippingCrate, this.hazardBarrier, this.buoy, this.pierPost],
+      highway: [this.barrier, this.hazardBarrier, this.railSignal],
+      candy: [this.candyCane, (g) => t.candyTree(g), this.crystalSpire],
+      ruins: [this.ruinsPillar, this.stoneObelisk, this.goldenUrn],
+      space: [this.commAntenna, this.lunarLander, this.holoPillar(0x38e1ff)],
+      tokyo: [this.toriiGate, (g) => t.cherryTree(g), this.lamp],
+      wildlife: [(g) => t.acaciaTree(g), (g) => t.baobabTree(g), this.desertRock],
+      underwater: [this.coralSpire, this.buoy, this.pierPost],
+      sky_island: [this.cloudPillar, this.crystalSpire, this.stoneObelisk],
+      sky: [this.cloudPillar, this.crystalSpire, this.stoneObelisk],
     };
   }
 

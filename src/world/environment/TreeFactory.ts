@@ -98,4 +98,37 @@ export class TreeFactory {
       this.add(g, this.assets.cylinder('pine-cap', 1.2 * ZOOM, 5 * ZOOM, 4 * ZOOM, 9), this.mat(0xffffff, 60), 0, 0, 26);
     }
   }
+
+  /** Japanese cherry blossom sakura tree (Tokyo). */
+  cherryTree(g: THREE.Group): void {
+    this.add(g, this.assets.cylinder('cherry-trunk', 2.2 * ZOOM, 2.8 * ZOOM, 16 * ZOOM, 7), this.mat(0x5a3d28, 12), 0, 0, 8);
+    const pink = this.mat(0xff9ff3, 30);
+    const c1 = this.add(g, this.assets.sphere('cherry-c1', 9.5 * ZOOM, 10, 8), pink, 0, 0, 21);
+    c1.scale.set(1.1, 1, 0.85);
+    const c2 = this.add(g, this.assets.sphere('cherry-c2', 6.5 * ZOOM, 8, 6), this.mat(0xffb8b8, 30), 4, 3, 18);
+    c2.scale.set(1, 1, 0.8);
+  }
+
+  /** Flat-topped umbrella acacia tree (Wildlife). */
+  acaciaTree(g: THREE.Group): void {
+    this.add(g, this.assets.cylinder('acacia-trunk', 2.4 * ZOOM, 3.2 * ZOOM, 20 * ZOOM, 7), this.mat(0x6e5030, 10), 0, 0, 10);
+    const leaf = this.mat(0x558b2f, 20);
+    const c = this.add(g, this.assets.cylinder('acacia-canopy', 13 * ZOOM, 11 * ZOOM, 4 * ZOOM, 10), leaf, 0, 0, 22);
+    c.scale.set(1.2, 0.9, 0.6);
+  }
+
+  /** Thick bottle-trunk baobab tree (Wildlife). */
+  baobabTree(g: THREE.Group): void {
+    this.add(g, this.assets.cylinder('baobab-trunk', 6 * ZOOM, 7 * ZOOM, 22 * ZOOM, 9), this.mat(0x7a5b3a, 8), 0, 0, 11);
+    const leaf = this.mat(0x33691e, 15);
+    this.add(g, this.assets.sphere('baobab-crown', 9 * ZOOM, 9, 7), leaf, 0, 0, 24);
+  }
+
+  /** Whimsical candy lollipop tree (Candy Land). */
+  candyTree(g: THREE.Group): void {
+    this.add(g, this.assets.cylinder('candy-stick', 1.4 * ZOOM, 1.4 * ZOOM, 16 * ZOOM, 8), this.mat(0xffffff, 40), 0, 0, 8);
+    const pink = this.mat(0xff6b81, 70);
+    const ball = this.add(g, this.assets.sphere('candy-pop', 7.5 * ZOOM, 12, 10), pink, 0, 0, 21);
+    ball.scale.set(1, 1, 0.6);
+  }
 }

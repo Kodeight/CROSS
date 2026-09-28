@@ -50,6 +50,27 @@ export function defaultDailyProgress(): DailyProgressState {
   };
 }
 
+/** Daily streak login tracking and rewards state */
+export interface DailyStreakSave {
+  currentStreak: number;
+  bestStreak: number;
+  lastLoginDate: string; // YYYY-MM-DD
+  lastClaimDate: string; // YYYY-MM-DD
+  claimedToday: boolean;
+  totalDaysLogged: number;
+}
+
+export function defaultDailyStreak(): DailyStreakSave {
+  return {
+    currentStreak: 0,
+    bestStreak: 0,
+    lastLoginDate: '',
+    lastClaimDate: '',
+    claimedToday: false,
+    totalDaysLogged: 0,
+  };
+}
+
 export interface SaveData {
   version: 1;
   bestScore: number;
@@ -70,6 +91,7 @@ export interface SaveData {
   missions: Record<string, boolean>;
   achievements: Record<string, boolean>;
   dailyMissions: DailyMissionsSave;
+  streak: DailyStreakSave;
   settings: GameSettings;
   stats: GameStats;
   tutorialShown: boolean;
@@ -91,6 +113,7 @@ export function defaultSave(): SaveData {
     missions: {},
     achievements: {},
     dailyMissions: { date: '', completed: {}, progress: defaultDailyProgress() },
+    streak: defaultDailyStreak(),
     settings: { music: true, sfx: true, musicVolume: 0.8, sfxVolume: 0.8, reducedMotion: false, quality: 'AUTO', difficulty: 'NORMAL' },
     stats: { totalSteps: 0, gamesPlayed: 0, totalNearMiss: 0 },
     tutorialShown: false,

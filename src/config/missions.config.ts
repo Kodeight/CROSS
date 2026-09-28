@@ -114,5 +114,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'rich', name: 'Coin Collector', desc: 'Collect 100 total gold coins' },
   { id: 'close', name: 'Close Call', desc: 'Execute your first near miss dodge' },
   { id: 'untouch', name: 'Untouchable', desc: 'Reach lane 50 in a single run' },
+  { id: 'streak3', name: 'On A Roll', desc: 'Maintain a 3-day consecutive login streak' },
+  { id: 'streak7', name: 'Weekly Legend', desc: 'Achieve a 7-day consecutive login streak' },
 ];
 
