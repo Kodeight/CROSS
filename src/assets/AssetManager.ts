@@ -106,6 +106,10 @@ export class AssetManager {
     return this.geometry(`tor:${key}:${r}x${tube}x${radial}x${tubular}`, () => new THREE.TorusGeometry(r, tube, radial, tubular));
   }
 
+  octahedron(key: string, radius: number, detail = 0): THREE.OctahedronGeometry {
+    return this.geometry(`oct:${key}:${radius}:${detail}`, () => new THREE.OctahedronGeometry(radius, detail));
+  }
+
   dispose(): void {
     for (const g of this.geometries.values()) g.dispose();
     for (const m of this.materials.values()) m.dispose();

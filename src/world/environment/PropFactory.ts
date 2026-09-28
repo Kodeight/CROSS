@@ -193,6 +193,163 @@ export class PropFactory {
     this.box(g, 8, 1, 5, 0xffc93c, 0, 0, 15);
   };
 
+  // ---- volcano ----
+  magmaRock = (g: THREE.Group): void => {
+    this.ball(g, 6, 0x351912, 0, 0, 3.5, 0xff2200);
+    this.ball(g, 3.5, 0xff5252, 4, 3, 2, 0xff5252);
+  };
+  basaltPillar = (g: THREE.Group): void => {
+    const m = new THREE.Mesh(this.assets.cylinder('prop-basalt', 4 * ZOOM, 4.5 * ZOOM, 18 * ZOOM, 6), this.mat(0x241410, 0, 20));
+    m.position.set(0, 0, 9 * ZOOM);
+    m.castShadow = true;
+    g.add(m);
+  };
+  smokeVent = (g: THREE.Group): void => {
+    this.box(g, 7, 7, 10, 0x351912, 0, 0, 5);
+    this.ball(g, 2.5, 0xff7744, 0, 0, 11, 0xff5500);
+  };
+
+  // ---- forest ----
+  magicMushroom = (g: THREE.Group): void => {
+    this.box(g, 2, 2, 7, 0xf5f6fa, 0, 0, 3.5);
+    this.ball(g, 5, 0x7bed9f, 0, 0, 8.5, 0x2ed573);
+  };
+  ancientRune = (g: THREE.Group): void => {
+    this.box(g, 6, 4, 14, 0x375e43, 0, 0, 7);
+    this.box(g, 4, 0.5, 10, 0x7bed9f, 0, 2, 7, 0x2ed573);
+  };
+
+  // ---- industrial ----
+  hazardBarrier = (g: THREE.Group): void => {
+    this.box(g, 22, 3, 8, 0xffa502, 0, 0, 4);
+    this.box(g, 20, 3.2, 3, 0x2d3436, 0, 0, 4);
+    this.box(g, 3, 3, 6, 0x636e72, -8, 0, 3);
+    this.box(g, 3, 3, 6, 0x636e72, 8, 0, 3);
+  };
+  shippingCrate = (g: THREE.Group): void => {
+    this.box(g, 16, 12, 12, 0x2d3436, 0, 0, 6);
+    this.box(g, 17, 13, 2, 0xffa502, 0, 0, 6);
+  };
+
+  // ---- temple ----
+  stoneObelisk = (g: THREE.Group): void => {
+    const m = new THREE.Mesh(this.assets.cylinder('prop-obelisk', 0.5 * ZOOM, 4 * ZOOM, 22 * ZOOM, 4), this.mat(0x8c7b65, 0, 40));
+    m.position.set(0, 0, 11 * ZOOM);
+    m.rotation.y = Math.PI / 4;
+    m.castShadow = true;
+    g.add(m);
+  };
+  goldenUrn = (g: THREE.Group): void => {
+    this.ball(g, 4, 0xf5cd79, 0, 0, 4.5, 0x886600);
+    this.box(g, 4, 4, 2, 0x6e5f4d, 0, 0, 1);
+  };
+
+  // ---- flooded ----
+  submergedRooftop = (g: THREE.Group): void => {
+    const m = new THREE.Mesh(this.assets.cylinder('prop-roof', 0.1, 8 * ZOOM, 12 * ZOOM, 4), this.mat(0x273c75));
+    m.position.set(0, 0, 3 * ZOOM);
+    m.rotation.y = Math.PI / 4;
+    m.castShadow = true;
+    g.add(m);
+  };
+
+  // ---- railway ----
+  railSignal = (g: THREE.Group): void => {
+    this.box(g, 2, 2, 20, 0x2f3542, 0, 0, 10);
+    this.box(g, 8, 2, 4, 0xf6b93b, 0, 0, 18);
+    this.ball(g, 1.8, 0xff5252, 0, 1, 18, 0xff2222);
+  };
+
+  // ---- countryside ----
+  hayBale = (g: THREE.Group): void => {
+    const m = new THREE.Mesh(this.assets.cylinder('prop-hay', 5 * ZOOM, 5 * ZOOM, 10 * ZOOM, 10), this.mat(0xf5cd79, 0, 15));
+    m.position.set(0, 0, 5 * ZOOM);
+    m.rotation.x = Math.PI / 2;
+    m.castShadow = true;
+    g.add(m);
+  };
+  fence = (g: THREE.Group): void => {
+    this.box(g, 16, 2, 2, 0xa07855, 0, 0, 4);
+    this.box(g, 16, 2, 2, 0xa07855, 0, 0, 8);
+    this.box(g, 2.5, 2.5, 11, 0x8a6240, -6, 0, 5.5);
+    this.box(g, 2.5, 2.5, 11, 0x8a6240, 6, 0, 5.5);
+  };
+
+  // ---- fantasy ----
+  crystalSpire = (g: THREE.Group): void => {
+    const m = new THREE.Mesh(this.assets.octahedron('prop-crystal', 7 * ZOOM), this.mat(0xe056fd, 0x6611aa, 80));
+    m.position.set(0, 0, 9 * ZOOM);
+    m.scale.set(0.7, 0.7, 1.6);
+    m.castShadow = true;
+    g.add(m);
+  };
+
+  // ---- pirate ----
+  treasureChest = (g: THREE.Group): void => {
+    this.box(g, 10, 7, 6, 0x6e5636, 0, 0, 3);
+    const lid = new THREE.Mesh(this.assets.cylinder('prop-chest-lid', 3.6 * ZOOM, 3.6 * ZOOM, 10 * ZOOM, 8), this.mat(0x8a5f36));
+    lid.rotation.z = Math.PI / 2;
+    lid.position.set(0, 0, 6.2 * ZOOM);
+    g.add(lid);
+    this.ball(g, 1.5, 0xffd700, 0, 3.6, 5, 0x886600);
+  };
+  pirateCannon = (g: THREE.Group): void => {
+    this.box(g, 6, 8, 4, 0x6e5636, 0, 0, 2);
+    const barrel = new THREE.Mesh(this.assets.cylinder('prop-cannon', 2.4 * ZOOM, 3.2 * ZOOM, 14 * ZOOM, 8), this.mat(0x2c3e50, 0, 60));
+    barrel.position.set(0, 0, 5 * ZOOM);
+    barrel.rotation.x = -0.3;
+    barrel.castShadow = true;
+    g.add(barrel);
+  };
+
+  // ---- ocean ----
+  coralSpire = (g: THREE.Group): void => {
+    this.box(g, 3, 3, 14, 0x00d2d3, 0, 0, 7);
+    this.ball(g, 4, 0xff9ff3, 3, 0, 12);
+    this.ball(g, 3.5, 0x54a0ff, -3, 0, 9);
+  };
+
+  // ---- moon ----
+  lunarLander = (g: THREE.Group): void => {
+    this.box(g, 10, 10, 8, 0xced6e0, 0, 0, 7);
+    this.ball(g, 3, 0xffd700, 0, 0, 12, 0x665500);
+    for (const sx of [-4, 4]) {
+      for (const sy of [-4, 4]) {
+        this.box(g, 1.2, 1.2, 6, 0x95a5a6, sx, sy, 2);
+      }
+    }
+  };
+  commAntenna = (g: THREE.Group): void => {
+    this.box(g, 1.5, 1.5, 16, 0xced6e0, 0, 0, 8);
+    const dish = new THREE.Mesh(this.assets.cylinder('prop-dish', 5 * ZOOM, 0.5 * ZOOM, 2 * ZOOM, 8), this.mat(0xf5f6fa));
+    dish.position.set(0, 0, 16 * ZOOM);
+    dish.rotation.x = 0.5;
+    g.add(dish);
+  };
+
+  // ---- sky ----
+  cloudPillar = (g: THREE.Group): void => {
+    const m = new THREE.Mesh(this.assets.cylinder('prop-skypillar', 3.5 * ZOOM, 3.5 * ZOOM, 18 * ZOOM, 8), this.mat(0xffffff, 0, 60));
+    m.position.set(0, 0, 9 * ZOOM);
+    m.castShadow = true;
+    g.add(m);
+    this.box(g, 9, 9, 2.5, 0xffd700, 0, 0, 19, 0x554400);
+  };
+
+  // ---- alien ----
+  xenolithMonolith = (g: THREE.Group): void => {
+    const m = new THREE.Mesh(this.assets.box('prop-xeno', 6 * ZOOM, 4 * ZOOM, 20 * ZOOM), this.mat(0x2b1240, 0x440088, 70));
+    m.position.set(0, 0, 10 * ZOOM);
+    m.rotation.z = 0.2;
+    m.castShadow = true;
+    g.add(m);
+    this.ball(g, 2.5, 0xa55eea, 0, 0, 21, 0xaa22ff);
+  };
+  bioSpore = (g: THREE.Group): void => {
+    this.ball(g, 6, 0xa55eea, 0, 0, 6, 0x7700cc);
+    this.ball(g, 3, 0x00f0ff, 3, 2, 10, 0x00ffff);
+  };
+
   obstacleSets(): Record<string, PropBuilder[]> {
     const t = this.trees;
     return {
@@ -201,7 +358,21 @@ export class PropFactory {
       desert: [(g) => t.cactus(g), this.desertRock, (g) => t.deadBush(g)],
       snow: [(g) => t.pine(g, true), this.snowBank, this.iceRock, (g) => t.pine(g, false)],
       neon: [this.holoPillar(0x38e1ff), this.holoPillar(0xff3fb4), this.neonSign, this.glowBarrier],
+      volcano: [this.magmaRock, this.basaltPillar, this.smokeVent],
       beach: [(g) => t.palm(g), this.umbrella, this.surfboard],
+      forest: [this.magicMushroom, this.ancientRune, (g) => t.vineTree(g)],
+      industrial: [this.hazardBarrier, this.shippingCrate, this.trashCan],
+      temple: [this.stoneObelisk, this.goldenUrn, this.jungleRock],
+      flooded: [this.submergedRooftop, this.pierPost, this.buoy],
+      railway: [this.railSignal, this.shippingCrate, this.barrier],
+      countryside: [this.hayBale, this.fence, (g) => t.streetTree(g)],
+      mountain: [(g) => t.pine(g, true), this.snowBank, this.desertRock],
+      fantasy: [this.crystalSpire, this.magicMushroom, (g) => t.vineTree(g)],
+      pirate: [this.treasureChest, this.pirateCannon, (g) => t.palm(g)],
+      ocean: [this.coralSpire, this.buoy, this.boat],
+      moon: [this.lunarLander, this.commAntenna, this.snowBank],
+      sky: [this.cloudPillar, this.stoneObelisk, this.crystalSpire],
+      alien: [this.xenolithMonolith, this.bioSpore, this.holoPillar(0xa55eea)],
     };
   }
 
