@@ -179,10 +179,10 @@ export class CharacterPreviewManager {
       model.rotation.z = 0.5; // Initial welcoming dynamic angle
       sc.add(model);
 
-      // Perspective studio camera centered on character
-      const cam = new THREE.PerspectiveCamera(36, W / H, 1, 1000);
-      cam.position.set(0, 52, 44);
-      cam.lookAt(0, 0, 16);
+      // Perspective studio camera centered on character with full-body breathing room
+      const cam = new THREE.PerspectiveCamera(32, W / H, 1, 1000);
+      cam.position.set(0, 72, 68);
+      cam.lookAt(0, 0, 8);
 
       e.live = { renderer, scene: sc, camera: cam, model };
       e.canvas.classList.add('loaded');
