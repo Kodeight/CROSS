@@ -191,9 +191,9 @@ class LiquidUIManager {
       '#btn-missions': { rgb: '245,158,11', opacity: 0.30 },
       '#btn-settings': { rgb: '244,63,94', opacity: 0.28 },
     };
-    for (const b of qa('#menu .menu-row .btn, #btn-settings, #menu .btn.wide, #btn-install')) {
+    for (const b of qa('#btn-chars, #btn-worlds, #btn-missions, #btn-settings, #menu .btn.wide, #btn-install')) {
       const key = b.id ? `#${b.id}` : '';
-      this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true, tint: menuTints[key] });
+      this.attachOne(b, { preset: 'secondary', borderRadius: 24, press: true, tint: menuTints[key] });
     }
     for (const p of qa('#chars-screen .panel, #worlds-screen .panel, #missions-screen .panel, #pause-screen .panel')) {
       this.attachOne(p, { preset: 'panel', borderRadius: 22 });
