@@ -1,5 +1,5 @@
 /**
- * §11/§14 — per-world lighting moods, lerped on transitions.
+ * Per-world lighting moods, atmospheres and dynamic lerped transitions.
  * Consumes WorldConfig only; owns no gameplay state.
  */
 import * as THREE from 'three';
@@ -15,9 +15,28 @@ export interface LightState {
   hemiI: number;
   dir: THREE.Color;
   dirI: number;
+  backColor: THREE.Color;
+  backI: number;
 }
 
 export function worldLightState(world: WorldConfig): LightState {
+  // World-specific signature rim/backlight
+  let backColorHex = 0xffffff;
+  let backIntensity = 0.35;
+  if (world.id === 'volcano') {
+    backColorHex = 0xff3811;
+    backIntensity = 0.55;
+  } else if (world.id === 'tokyo') {
+    backColorHex = 0xff007f; // Neon magenta rim
+    backIntensity = 0.5;
+  } else if (world.id === 'beach') {
+    backColorHex = 0x38b6ff;
+    backIntensity = 0.4;
+  } else if (world.id === 'river') {
+    backColorHex = 0x82ccdd;
+    backIntensity = 0.35;
+  }
+
   return {
     sky: new THREE.Color(world.sky),
     fog: new THREE.Color(world.fog),
@@ -28,6 +47,8 @@ export function worldLightState(world: WorldConfig): LightState {
     hemiI: world.hemiI,
     dir: new THREE.Color(world.dirColor),
     dirI: world.dirI,
+    backColor: new THREE.Color(backColorHex),
+    backI: backIntensity,
   };
 }
 
@@ -39,12 +60,14 @@ export class Lighting {
     hemiSky: new THREE.Color(0),
     hemiGround: new THREE.Color(0),
     dir: new THREE.Color(0),
+    back: new THREE.Color(0),
   };
 
   constructor(
     private readonly scene: THREE.Scene,
     private readonly hemi: THREE.HemisphereLight,
     private readonly dirLight: THREE.DirectionalLight,
+    private readonly backLight?: THREE.DirectionalLight,
   ) {}
 
   setWorld(world: WorldConfig, instant: boolean): void {
@@ -65,6 +88,10 @@ export class Lighting {
     this.hemi.intensity = t.hemiI;
     this.dirLight.color.copy(t.dir);
     this.dirLight.intensity = t.dirI;
+    if (this.backLight) {
+      this.backLight.color.copy(t.backColor);
+      this.backLight.intensity = t.backI;
+    }
   }
 
   update(dtMs: number, reducedMotion: boolean): void {
@@ -87,5 +114,10 @@ export class Lighting {
     this.tmp.dir.copy(this.dirLight.color).lerp(t.dir, k);
     this.dirLight.color.copy(this.tmp.dir);
     this.dirLight.intensity += (t.dirI - this.dirLight.intensity) * k;
+    if (this.backLight) {
+      this.tmp.back.copy(this.backLight.color).lerp(t.backColor, k);
+      this.backLight.color.copy(this.tmp.back);
+      this.backLight.intensity += (t.backI - this.backLight.intensity) * k;
+    }
   }
 }

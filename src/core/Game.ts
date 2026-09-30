@@ -218,7 +218,7 @@ export class Game implements LoopDelegate {
     this.camera = new FollowCamera();
     this.camera.setReducedMotion(this.reducedMotion);
     this.camera.onResize();
-    this.lighting = new Lighting(scene, this.renderer.hemi, this.renderer.dirLight);
+    this.lighting = new Lighting(scene, this.renderer.hemi, this.renderer.dirLight, this.renderer.backLight);
 
     this.factory = new CharacterFactory(this.assets);
     this.player = new Player(this.factory, {
@@ -647,11 +647,11 @@ export class Game implements LoopDelegate {
         this.particles.update(dt);
         this.superpowerVfx.update(dtMs, nowMs, this.player, this.camera, this.audio);
         this.camera.setFovOffset(this.superpowerVfx.getDynamicFovOffset());
-        this.coins.update(nowMs, GAME_CONFIG.zoom, dt, this.player.position);
+        this.coins.update(nowMs, GAME_CONFIG.zoom, dtMs, this.player.position);
         this.generator.updateWater(nowMs);
         this.manager.collisionCheck((ms, scale) => this.time.slowMo(ms, scale));
         this.player.updateIdle(nowMs, this.reducedMotion);
-        this.lighting.update(dt, this.reducedMotion);
+        this.lighting.update(dtMs, this.reducedMotion);
         this.manager.updateAmbient(dt);
         this.manager.checkWorldTransition();
       }
@@ -666,11 +666,11 @@ export class Game implements LoopDelegate {
         this.traffic.update(this.lanes.lanes, this.reducedMotion ? 0 : dt * 0.35, false);
         this.manager.checkWorldTransition();
       }
-      this.coins.update(nowMs, GAME_CONFIG.zoom, dt, this.player.position);
+      this.coins.update(nowMs, GAME_CONFIG.zoom, dtMs, this.player.position);
       this.generator.updateWater(nowMs);
       this.particles.update(dt);
       this.player.updateIdle(nowMs, this.reducedMotion);
-      this.lighting.update(dt, this.reducedMotion);
+      this.lighting.update(dtMs, this.reducedMotion);
     }
     // Camera always follows (menu diorama rests on the player start).
     this.camera.update(dtMs, this.player.position);

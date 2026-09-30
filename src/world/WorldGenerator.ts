@@ -11,11 +11,12 @@ import type { VehicleFactory, BuiltVehicle } from './environment/VehicleFactory'
 import type { PropFactory, PropBuilder } from './environment/PropFactory';
 import type { BuildingFactory } from './environment/BuildingFactory';
 import type { TreeFactory } from './environment/TreeFactory';
+import { WorldTerrainMaterials } from './environment/WorldTerrainMaterials';
 import type { Lane, LaneType, World } from './World';
 import { TRAFFIC_CONFIG } from '../config/traffic.config';
-import { COIN_SPEC, coinColor } from '../config/coin.config';
 import { activeCollectibleForWorld } from '../config/collectibles.config';
 import { buildGeneratedCollectible, isGeneratedKindReady, noteFallback } from '../assets/generated/GeneratedAssets';
+import { createGoldStarCoinModel } from '../../assets/img2threejs/factories/createCoinStarModel';
 import type { PowerUpType } from '../config/powerups.config';
 import { getDifficultySpec, type DifficultyLevel } from '../config/difficulty.config';
 import { pick } from '../utils/Random';
@@ -24,8 +25,8 @@ const PW = GAME_CONFIG.positionWidth;
 const COLS = GAME_CONFIG.columns;
 const ZOOM = GAME_CONFIG.zoom;
 const BOARD = PW * ZOOM * COLS;
-/** Extra wide diorama ground width (6500+) so terrain completely covers viewport on any aspect ratio */
-const TERRAIN_BOARD = Math.max(BOARD * 4.5, 6800);
+/** Extra wide diorama ground width (7200+) so terrain completely covers viewport on any aspect ratio */
+const TERRAIN_BOARD = Math.max(BOARD * 4.8, 7200);
 
 export interface WaterAnim {
   mesh: THREE.Object3D;
@@ -36,6 +37,7 @@ export interface WaterAnim {
 export class WorldGenerator {
   readonly waterAnims: WaterAnim[] = [];
   private consecutiveRoads = 0;
+  private readonly terrainMats = WorldTerrainMaterials.get();
 
   constructor(
     private readonly assets: AssetManager,
@@ -80,120 +82,259 @@ export class WorldGenerator {
     }
   }
 
-  private slab(color: number, h = 3): THREE.Mesh {
+  private slab(mat: THREE.Material, h = 3): THREE.Mesh {
     const m = new THREE.Mesh(
       this.assets.box(`gen-slab:${h}`, TERRAIN_BOARD, PW * ZOOM, h * ZOOM),
-      this.mat(color),
+      mat,
     );
     m.receiveShadow = true;
     return m;
   }
 
-  private sandTone(base: number): number {
-    try {
-      const j = new THREE.Color(base);
-      j.offsetHSL(0, (Math.random() - 0.5) * 0.03, (Math.random() - 0.5) * 0.035);
-      return j.getHex();
-    } catch {
-      return base;
-    }
-  }
-
+  /**
+   * Builds rich, stylized environment terrain slabs with PBR materials,
+   * natural tone variation, micro textures, and world-specific surface treatments.
+   */
   private buildTerrain(g: THREE.Group, world: WorldConfig, variant: string | null, laneIndex: number): void {
+    // -------------------------------------------------------------
+    // BEACH WORLD TERRAIN
+    // -------------------------------------------------------------
     if (world.id === 'beach') {
       const d = beachDistrict(laneIndex);
       if (d === 0) {
-        g.add(this.slab(0x5a8a3a, 3));
+        // Inland lush tropical grass
+        g.add(this.slab(this.terrainMats.getCityGrassMaterial(1), 3));
       } else if (d === 1) {
-        g.add(this.slab(this.sandTone(0xe8d090), 2.8));
+        // Sun-baked golden dunes
+        if (variant === 'boardwalk') {
+          const b = new THREE.Mesh(
+            this.assets.box('gen-boardwalk', TERRAIN_BOARD, PW * ZOOM, 3.4 * ZOOM),
+            this.terrainMats.getWoodPlankMaterial(),
+          );
+          b.receiveShadow = true;
+          g.add(b);
+        } else {
+          g.add(this.slab(this.terrainMats.getBeachSandMaterial(false), 2.8));
+        }
       } else if (d === 2) {
-        g.add(this.slab(0x40a0b8, 1.8));
-        this.regWater(g, 0);
+        // Darker wet shoreline sand with water foam edge
+        g.add(this.slab(this.terrainMats.getBeachSandMaterial(true), 2.4));
+        const waterEdge = new THREE.Mesh(
+          this.assets.box('gen-beach-water-edge', TERRAIN_BOARD, PW * ZOOM * 0.45, 1.8 * ZOOM),
+          this.terrainMats.getBeachOceanMaterial(),
+        );
+        waterEdge.position.set(0, (PW * ZOOM) * 0.25, -0.4 * ZOOM);
+        waterEdge.receiveShadow = true;
+        g.add(waterEdge);
+        this.regWater(waterEdge, -0.4 * ZOOM);
       } else if (d === 3) {
-        g.add(this.slab(0x287898, 1.4));
-        this.regWater(g, 0);
+        // Crystal turquoise tropical ocean
+        const ocean = new THREE.Mesh(
+          this.assets.box('gen-beach-ocean', TERRAIN_BOARD, PW * ZOOM, 1.8 * ZOOM),
+          this.terrainMats.getBeachOceanMaterial(),
+        );
+        ocean.position.z = -0.5 * ZOOM;
+        ocean.receiveShadow = true;
+        g.add(ocean);
+        this.regWater(ocean, -0.5 * ZOOM);
       } else {
-        g.add(this.slab(this.sandTone(0xdfc480), 2.8));
+        g.add(this.slab(this.terrainMats.getBeachSandMaterial(false), 2.8));
       }
       return;
     }
 
-    if (variant === 'bridge') {
-      const plank = new THREE.Mesh(
-        this.assets.box('gen-bridge', TERRAIN_BOARD, PW * ZOOM * 0.9, 4 * ZOOM),
-        this.assets.standard('bridge-wood', 0x5a3d28, { roughness: 0.8 }),
-      );
-      plank.receiveShadow = true;
-      plank.castShadow = true;
-      g.add(plank);
-      const water = new THREE.Mesh(
-        this.assets.box('bridge-water', TERRAIN_BOARD, PW * ZOOM, 1.5 * ZOOM),
-        this.mat(world.id === 'volcano' ? 0xff3811 : 0x2d68c4, 60),
-      );
-      water.position.z = -2.5 * ZOOM;
-      g.add(water);
-      this.regWater(water, -2.5 * ZOOM);
+    // -------------------------------------------------------------
+    // VOLCANO WORLD TERRAIN
+    // -------------------------------------------------------------
+    if (world.id === 'volcano') {
+      if (variant === 'bridge' || variant === 'lava') {
+        const lava = new THREE.Mesh(
+          this.assets.box('gen-volcano-lava', TERRAIN_BOARD, PW * ZOOM, 2.0 * ZOOM),
+          this.terrainMats.getVolcanoLavaMaterial(),
+        );
+        lava.position.z = -0.6 * ZOOM;
+        lava.receiveShadow = true;
+        g.add(lava);
+        this.regWater(lava, -0.6 * ZOOM);
+
+        // Industrial heat-resistant steel bridge walkway
+        const bridge = new THREE.Mesh(
+          this.assets.box('gen-volcano-bridge', TERRAIN_BOARD, PW * ZOOM * 0.88, 3.8 * ZOOM),
+          this.assets.standard('volcano-bridge-plate', 0x4a4448, { metalness: 0.8, roughness: 0.35, emissive: 0x220804 }),
+        );
+        bridge.receiveShadow = true;
+        bridge.castShadow = true;
+        g.add(bridge);
+        return;
+      }
+      // Cracked basalt obsidian rock crust
+      g.add(this.slab(this.terrainMats.getVolcanoRockMaterial(), 3));
       return;
     }
 
+    // -------------------------------------------------------------
+    // RIVER WORLD TERRAIN
+    // -------------------------------------------------------------
+    if (world.id === 'river') {
+      if (variant === 'bridge') {
+        // Rustic wooden crossing plank walkway with railings
+        const bridge = new THREE.Mesh(
+          this.assets.box('gen-river-bridge', TERRAIN_BOARD, PW * ZOOM * 0.9, 3.8 * ZOOM),
+          this.terrainMats.getWoodPlankMaterial(),
+        );
+        bridge.receiveShadow = true;
+        bridge.castShadow = true;
+        g.add(bridge);
+
+        const water = new THREE.Mesh(
+          this.assets.box('gen-bridge-water', TERRAIN_BOARD, PW * ZOOM, 1.8 * ZOOM),
+          this.terrainMats.getRiverWaterMaterial(),
+        );
+        water.position.z = -1.5 * ZOOM;
+        water.receiveShadow = true;
+        g.add(water);
+        this.regWater(water, -1.5 * ZOOM);
+        return;
+      }
+      // Grassy riverbank with moss & silt
+      g.add(this.slab(this.terrainMats.getRiverBankMaterial(), 3));
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // TOKYO WORLD TERRAIN
+    // -------------------------------------------------------------
+    if (world.id === 'tokyo') {
+      // Modern dark urban sidewalk pavers
+      g.add(this.slab(this.terrainMats.getTokyoSidewalkMaterial(), 3));
+      // Glowing neon ground trim strip
+      const neonStrip = new THREE.Mesh(
+        this.assets.box('gen-tokyo-safe-neon', TERRAIN_BOARD, 1.2 * ZOOM, 0.4 * ZOOM),
+        this.terrainMats.getTokyoNeonStripMaterial(laneIndex % 2 === 0 ? 0x00e5ff : 0xff007f),
+      );
+      neonStrip.position.set(0, (PW * ZOOM) / 2 - 0.6 * ZOOM, 1.6 * ZOOM);
+      g.add(neonStrip);
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // CITY / GENERAL SAFE FIELD TERRAIN
+    // -------------------------------------------------------------
     if (variant === 'boardwalk') {
       const b = new THREE.Mesh(
-        this.assets.box('gen-boardwalk', TERRAIN_BOARD, PW * ZOOM, 3.5 * ZOOM),
-        this.assets.standard('boardwalk-wood', 0xc2a679, { roughness: 0.7 }),
+        this.assets.box('gen-boardwalk', TERRAIN_BOARD, PW * ZOOM, 3.4 * ZOOM),
+        this.terrainMats.getWoodPlankMaterial(),
       );
       b.receiveShadow = true;
       g.add(b);
       return;
     }
 
-    if (variant === 'ice') {
-      const ice = new THREE.Mesh(
-        this.assets.box('gen-ice', TERRAIN_BOARD, PW * ZOOM, 2.5 * ZOOM),
-        this.mat(0xd6eaf8, 90),
-      );
-      ice.receiveShadow = true;
-      g.add(ice);
-      return;
-    }
-
-    const groundColor = Math.random() < 0.5 ? world.safe : world.safeDark;
-    g.add(this.slab(groundColor, 3));
+    // Lush multi-tone park grass with micro-blade noise
+    const grassMat = this.terrainMats.getCityGrassMaterial(laneIndex % 3);
+    g.add(this.slab(grassMat, 3));
   }
 
+  /**
+   * Builds high-quality roads with dark asphalt grain, PBR roughness maps,
+   * granite curb edges, solid boundary lines, and crisp painted lane markings.
+   */
   private buildRoad(g: THREE.Group, world: WorldConfig, variant: string | null): void {
-    const roadColor = world.road;
-    g.add(this.slab(roadColor, 2.8));
+    // 1. Road Surface Slab
+    let roadMat: THREE.Material;
+    if (world.id === 'tokyo') {
+      roadMat = this.terrainMats.getTokyoRoadMaterial();
+    } else if (world.id === 'volcano') {
+      roadMat = this.terrainMats.getVolcanoRockMaterial();
+    } else if (world.id === 'river') {
+      // River water channel
+      const water = new THREE.Mesh(
+        this.assets.box('gen-river-main-water', TERRAIN_BOARD, PW * ZOOM, 2.2 * ZOOM),
+        this.terrainMats.getRiverWaterMaterial(),
+      );
+      water.position.z = -0.4 * ZOOM;
+      water.receiveShadow = true;
+      g.add(water);
+      this.regWater(water, -0.4 * ZOOM);
+      return;
+    } else {
+      roadMat = this.terrainMats.getCityRoadMaterial();
+    }
 
-    // Sidewalk curb edges spanning full terrain width
+    g.add(this.slab(roadMat, 2.8));
+
+    // 2. Granite Curbs on Top and Bottom Road Edges
+    const curbMat = world.id === 'tokyo'
+      ? this.terrainMats.getTokyoSidewalkMaterial()
+      : this.terrainMats.getGraniteCurbMaterial(world.walk);
+
     for (const s of [-1, 1]) {
       const curb = new THREE.Mesh(
         this.assets.box(`road-curb:${world.id}`, TERRAIN_BOARD, 1.8 * ZOOM, 3.4 * ZOOM),
-        this.mat(world.walk, 20),
+        curbMat,
       );
       curb.position.y = s * ((PW * ZOOM) / 2 - 0.9 * ZOOM);
       curb.position.z = 0.3 * ZOOM;
       curb.receiveShadow = true;
       g.add(curb);
+
+      // Tokyo Cyberpunk: Neon underglow strip running along curbs
+      if (world.id === 'tokyo') {
+        const neonCurb = new THREE.Mesh(
+          this.assets.box('road-curb-neon', TERRAIN_BOARD, 0.8 * ZOOM, 0.4 * ZOOM),
+          this.terrainMats.getTokyoNeonStripMaterial(s === 1 ? 0x00e5ff : 0xff007f),
+        );
+        neonCurb.position.y = s * ((PW * ZOOM) / 2 - 1.6 * ZOOM);
+        neonCurb.position.z = 1.55 * ZOOM;
+        g.add(neonCurb);
+      }
     }
 
-    // Road markings
+    // 3. Solid Edge Fog Lines (White boundary line inside curbs)
+    const lineMat = this.terrainMats.getMarkingMaterial(world.marking, world.id === 'tokyo');
+    for (const s of [-1, 1]) {
+      const fogLine = new THREE.Mesh(
+        this.assets.box('road-fog-line', TERRAIN_BOARD, 0.8 * ZOOM, 0.25 * ZOOM),
+        lineMat,
+      );
+      fogLine.position.y = s * ((PW * ZOOM) / 2 - 2.4 * ZOOM);
+      fogLine.position.z = 1.45 * ZOOM;
+      fogLine.receiveShadow = true;
+      g.add(fogLine);
+    }
+
+    // 4. Center Lane Markings
     if (variant === 'intersection' || variant === 'crosswalk') {
+      // Bold zebra crosswalk stripes
       for (let x = -BOARD / 2 + 15 * ZOOM; x < BOARD / 2; x += 30 * ZOOM) {
         const stripe = new THREE.Mesh(
           this.assets.box('crosswalk-stripe', 12 * ZOOM, PW * ZOOM * 0.65, 0.4 * ZOOM),
-          this.mat(world.marking, 10),
+          lineMat,
         );
-        stripe.position.set(x, 0, 1.6 * ZOOM);
+        stripe.position.set(x, 0, 1.55 * ZOOM);
         stripe.receiveShadow = true;
         g.add(stripe);
       }
+    } else if (world.id === 'tokyo' && Math.random() < 0.35) {
+      // Tokyo Tram Rail Tracks
+      const railMat = this.assets.standard('tokyo-tram-rail', 0xe0e7ff, { metalness: 0.95, roughness: 0.15 });
+      for (const ry of [-4 * ZOOM, 4 * ZOOM]) {
+        const rail = new THREE.Mesh(
+          this.assets.box('tokyo-rail', TERRAIN_BOARD, 1.2 * ZOOM, 0.6 * ZOOM),
+          railMat,
+        );
+        rail.position.set(0, ry, 1.5 * ZOOM);
+        rail.receiveShadow = true;
+        g.add(rail);
+      }
     } else {
+      // Standard dashed center lane divider
       for (let x = -BOARD / 2 + 25 * ZOOM; x < BOARD / 2; x += 50 * ZOOM) {
         const dash = new THREE.Mesh(
           this.assets.box('road-dash', 22 * ZOOM, 2.2 * ZOOM, 0.35 * ZOOM),
-          this.mat(world.marking, 10),
+          lineMat,
         );
-        dash.position.set(x, 0, 1.55 * ZOOM);
+        dash.position.set(x, 0, 1.5 * ZOOM);
         dash.receiveShadow = true;
         g.add(dash);
       }
@@ -201,9 +342,7 @@ export class WorldGenerator {
   }
 
   /**
-   * img2threejs powerType → reference-built factory kind. fire_shield reuses
-   * the shield factory with a heat tint; double_jump/low_gravity share the
-   * spring factory. Returns null when the chunk is not loaded yet.
+   * img2threejs powerType → reference-built factory kind.
    */
   private generatedPowerCore(powerType: PowerUpType): THREE.Group | null {
     const KIND: Record<string, string> = {
@@ -220,15 +359,13 @@ export class WorldGenerator {
     };
     const kind = KIND[powerType];
     if (!kind || !isGeneratedKindReady(kind)) return null;
-    const core = buildGeneratedCollectible(kind, 13 * ZOOM);
+    const core = buildGeneratedCollectible(kind, 14 * ZOOM);
     if (!core) {
       console.warn(`[collectibles] generated asset "${kind}" failed, using fallback`);
       noteFallback(kind);
       return null;
     }
     if (powerType === 'fire_shield') {
-      // Heat variant of the shield factory: clone materials so the shared
-      // prototype stays blue, then shift toward magma red.
       core.traverse((child) => {
         const mesh = child as THREE.Mesh;
         if ((mesh as THREE.Mesh).isMesh) {
@@ -244,47 +381,27 @@ export class WorldGenerator {
     return core;
   }
 
+  /**
+   * Returns the high-fidelity 3D Gold Star Coin model.
+   * Thick, beveled, polished 24K gold with 3D star medallion.
+   */
   makeCoinMesh(): THREE.Group {
-    // New 3D coin: thick, beveled, polished gold with star emboss —
-    // reference-built via the local img2threejs pipeline.
     if (isGeneratedKindReady('coin_star')) {
       const generated = buildGeneratedCollectible('coin_star', 16 * ZOOM, true);
       if (generated) return generated;
       console.warn('[collectibles] generated asset "coin_star" failed, using fallback');
       noteFallback('coin_star');
     }
-    const g = new THREE.Group();
-    const R = 8 * ZOOM;
-    const T = 2.5 * ZOOM;
-    const edge = new THREE.Mesh(
-      this.assets.cylinder('coin-v', R, R, T, 20),
-      this.assets.standard('coin-edge', coinColor(COIN_SPEC.edge), { metalness: 0.85, roughness: 0.35, emissive: 0x2a1a00 }),
-    );
-    edge.castShadow = true;
-    g.add(edge);
-    for (const s of [-1, 1]) {
-      const face = new THREE.Mesh(
-        this.assets.cylinder('coin-face', R * COIN_SPEC.faceRatio, R * COIN_SPEC.faceRatio, T + 1, 20),
-        this.assets.standard('coin-face', coinColor(COIN_SPEC.face), { metalness: 0.9, roughness: 0.28, emissive: 0x3a2600 }),
-      );
-      face.position.y = s * 0.2;
-      face.castShadow = true;
-      g.add(face);
-    }
-    const emboss = new THREE.Mesh(
-      this.assets.cylinder('coin-emboss', R * COIN_SPEC.embossRatio, R * COIN_SPEC.embossRatio, T + 2, 14),
-      this.assets.standard('coin-emboss', coinColor(COIN_SPEC.emboss), { metalness: 0.9, roughness: 0.3, emissive: 0x3a2600 }),
-    );
-    emboss.castShadow = true;
-    g.add(emboss);
-    const rim = new THREE.Mesh(
-      this.assets.torus('coin-rim', R, 1.1 * ZOOM, 10, 24),
-      this.assets.standard('coin-rim', coinColor(COIN_SPEC.rim), { metalness: 0.85, roughness: 0.4, emissive: 0x241500 }),
-    );
-    rim.rotation.x = Math.PI / 2;
-    rim.castShadow = true;
-    g.add(rim);
-    return g;
+    // Direct pristine 3D coin instantiation
+    const model = createGoldStarCoinModel({ castShadow: true, receiveShadow: false });
+    model.rotation.x = Math.PI / 2;
+    const holder = new THREE.Group();
+    holder.add(model);
+    const box = new THREE.Box3().setFromObject(holder);
+    const size = box.getSize(new THREE.Vector3());
+    const s = (16 * ZOOM) / Math.max(Math.max(size.x, size.y), 1e-4);
+    holder.scale.setScalar(s);
+    return holder;
   }
 
   /**
@@ -294,9 +411,6 @@ export class WorldGenerator {
   makeCollectibleMesh(worldId: string): THREE.Group {
     const g = new THREE.Group();
     const colDef = activeCollectibleForWorld(worldId);
-    // Reference-built 3D powerup core (img2threejs pipeline) with the
-    // signature glow halo. Falls through to the procedural branches when the
-    // chunk has not finished loading — never a missing/blank pickup.
     const generatedCore = this.generatedPowerCore(colDef.powerType);
     if (generatedCore) {
       const halo = new THREE.Mesh(
@@ -326,332 +440,6 @@ export class WorldGenerator {
     halo.rotation.x = Math.PI / 2;
     halo.position.z = -7 * ZOOM;
     g.add(halo);
-
-    const powerType = colDef.powerType;
-
-    if (powerType === 'shield' || powerType === 'fire_shield') {
-      // --- PREMIUM 3D SHIELD COLLECTIBLE ---
-      // Smooth heraldic heater shield with dimensional beveled rim, vibrant plate, and golden emblem crest
-      const shieldGroup = new THREE.Group();
-
-      const shieldShape = new THREE.Shape();
-      const sw = 6.2 * ZOOM;
-      const sh = 7.5 * ZOOM;
-      shieldShape.moveTo(-sw, sh);
-      shieldShape.lineTo(sw, sh);
-      shieldShape.quadraticCurveTo(sw * 1.05, 0, 0, -sh * 1.15);
-      shieldShape.quadraticCurveTo(-sw * 1.05, 0, -sw, sh);
-
-      const shieldGeo = new THREE.ExtrudeGeometry(shieldShape, {
-        depth: 1.4 * ZOOM,
-        bevelEnabled: true,
-        bevelThickness: 1.1 * ZOOM,
-        bevelSize: 1.0 * ZOOM,
-        bevelSegments: 3,
-      });
-      shieldGeo.computeVertexNormals();
-
-      const shieldMat = this.assets.standard(
-        `col-shield-plate:${worldId}`,
-        colDef.color,
-        { metalness: 0.45, roughness: 0.2, emissive: colDef.emissive },
-      );
-      const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-      shieldMesh.castShadow = true;
-      shieldGroup.add(shieldMesh);
-
-      // Golden raised heraldic rim/border
-      const rimMat = this.assets.standard('col-gold-rim', 0xffd700, {
-        metalness: 0.9,
-        roughness: 0.18,
-        emissive: 0x442a00,
-      });
-
-      // Central dimensional golden crest cross / star
-      const crossH = new THREE.Mesh(
-        this.assets.box('col-shield-cross-h', 6 * ZOOM, 1.8 * ZOOM, 2.2 * ZOOM),
-        rimMat,
-      );
-      crossH.position.set(0, 1 * ZOOM, 1.4 * ZOOM);
-      crossH.castShadow = true;
-      shieldGroup.add(crossH);
-
-      const crossV = new THREE.Mesh(
-        this.assets.box('col-shield-cross-v', 1.8 * ZOOM, 8 * ZOOM, 2.2 * ZOOM),
-        rimMat,
-      );
-      crossV.position.set(0, 1 * ZOOM, 1.4 * ZOOM);
-      crossV.castShadow = true;
-      shieldGroup.add(crossV);
-
-      // Central glowing power diamond gem
-      const gem = new THREE.Mesh(
-        this.assets.sphere(`col-shield-gem:${worldId}`, 2.2 * ZOOM, 8, 6),
-        this.assets.standard(`col-shield-gem-mat:${worldId}`, colDef.glowColor, {
-          metalness: 0.95,
-          roughness: 0.1,
-          emissive: colDef.glowColor,
-        }),
-      );
-      gem.position.set(0, 1 * ZOOM, 2.5 * ZOOM);
-      shieldGroup.add(gem);
-
-      shieldGroup.rotation.x = Math.PI / 8; // Slanted upright angle
-      g.add(shieldGroup);
-
-    } else if (powerType === 'magnet') {
-      // --- PREMIUM 3D COIN MAGNET COLLECTIBLE ---
-      // Authentic curved horseshoe magnet with red enamel, chrome tips, and floating golden coin
-      const magnetGroup = new THREE.Group();
-
-      // Curved U-arch body
-      const arch = new THREE.Mesh(
-        this.assets.torus('col-magnet-arch', 6.5 * ZOOM, 2.0 * ZOOM, 14, 24),
-        this.assets.standard('col-magnet-body', 0xe74c3c, {
-          metalness: 0.35,
-          roughness: 0.18,
-          emissive: 0x330805,
-        }),
-      );
-      arch.rotation.x = Math.PI / 2;
-      magnetGroup.add(arch);
-
-      // Twin straight legs
-      const legMat = this.assets.standard('col-magnet-body', 0xe74c3c, {
-        metalness: 0.35,
-        roughness: 0.18,
-        emissive: 0x330805,
-      });
-      const chromeMat = this.assets.standard('col-magnet-chrome', 0xf1f2f6, {
-        metalness: 0.95,
-        roughness: 0.12,
-        emissive: 0x333333,
-      });
-
-      for (const s of [-1, 1]) {
-        const leg = new THREE.Mesh(
-          this.assets.cylinder('col-magnet-leg', 2.0 * ZOOM, 2.0 * ZOOM, 5 * ZOOM, 14),
-          legMat,
-        );
-        leg.position.set(s * 6.5 * ZOOM, -2.5 * ZOOM, 0);
-        leg.rotation.x = Math.PI / 2;
-        leg.castShadow = true;
-        magnetGroup.add(leg);
-
-        // Metallic silver pole tip
-        const poleTip = new THREE.Mesh(
-          this.assets.cylinder('col-magnet-pole', 2.1 * ZOOM, 2.1 * ZOOM, 2.5 * ZOOM, 14),
-          chromeMat,
-        );
-        poleTip.position.set(s * 6.5 * ZOOM, -5.5 * ZOOM, 0);
-        poleTip.rotation.x = Math.PI / 2;
-        poleTip.castShadow = true;
-        magnetGroup.add(poleTip);
-      }
-
-      // Floating golden mini-coin magnetically levitating between the poles
-      const levCoin = new THREE.Mesh(
-        this.assets.cylinder('col-magnet-coin', 3.2 * ZOOM, 3.2 * ZOOM, 1.2 * ZOOM, 16),
-        this.assets.standard('col-magnet-gold', 0xffd700, {
-          metalness: 0.95,
-          roughness: 0.15,
-          emissive: 0x553300,
-        }),
-      );
-      levCoin.position.set(0, -5.5 * ZOOM, 0);
-      levCoin.rotation.x = Math.PI / 4;
-      magnetGroup.add(levCoin);
-
-      magnetGroup.rotation.x = -Math.PI / 4;
-      g.add(magnetGroup);
-
-    } else if (powerType === 'dash') {
-      // --- PREMIUM 3D SONIC DASH SPEED POD ---
-      // Aerodynamic glowing energy capsule with twin orbital speed rings & forward chevron
-      const dashGroup = new THREE.Group();
-
-      const core = new THREE.Mesh(
-        this.assets.sphere(`col-dash-core:${worldId}`, 5.5 * ZOOM, 16, 12),
-        this.assets.standard(`col-dash-core-mat:${worldId}`, colDef.color, {
-          metalness: 0.85,
-          roughness: 0.12,
-          emissive: colDef.glowColor,
-        }),
-      );
-      core.scale.set(1, 1.4, 0.9);
-      core.castShadow = true;
-      dashGroup.add(core);
-
-      // Orbital high-velocity warp rings
-      const ring1 = new THREE.Mesh(
-        this.assets.torus('col-dash-ring1', 8.2 * ZOOM, 1.1 * ZOOM, 10, 24),
-        this.assets.standard('col-dash-ring-mat', 0xffa502, {
-          metalness: 0.9,
-          roughness: 0.15,
-          emissive: 0xffa502,
-        }),
-      );
-      ring1.rotation.x = Math.PI / 3;
-      dashGroup.add(ring1);
-
-      const ring2 = new THREE.Mesh(
-        this.assets.torus('col-dash-ring2', 7.0 * ZOOM, 0.9 * ZOOM, 8, 20),
-        this.assets.standard('col-dash-ring-cyan', 0x38e1ff, {
-          metalness: 0.95,
-          roughness: 0.1,
-          emissive: 0x00f0ff,
-        }),
-      );
-      ring2.rotation.y = Math.PI / 3;
-      dashGroup.add(ring2);
-
-      g.add(dashGroup);
-
-    } else if (powerType === 'freeze') {
-      // --- PREMIUM 3D FROST FREEZE PERMAFROST PRISM ---
-      // Multi-faceted crystalline snowflake with beveled surfaces & floating frost shards
-      const freezeGroup = new THREE.Group();
-
-      const prism = new THREE.Mesh(
-        this.assets.sphere('col-freeze-octa', 6.5 * ZOOM, 8, 6),
-        this.assets.standard('col-freeze-ice', 0xa8d8ea, {
-          metalness: 0.3,
-          roughness: 0.08,
-          emissive: 0x004466,
-        }),
-      );
-      prism.scale.set(1, 1, 1.6);
-      prism.castShadow = true;
-      freezeGroup.add(prism);
-
-      // Glowing frost core
-      const frostCore = new THREE.Mesh(
-        this.assets.sphere('col-freeze-core', 3.5 * ZOOM, 8, 6),
-        this.assets.standard('col-freeze-core-mat', 0xdff9fb, {
-          metalness: 0.9,
-          roughness: 0.1,
-          emissive: 0x38e1ff,
-        }),
-      );
-      freezeGroup.add(frostCore);
-
-      // 4 orbital satellite ice needles
-      for (let i = 0; i < 4; i++) {
-        const a = (i / 4) * Math.PI * 2;
-        const shard = new THREE.Mesh(
-          this.assets.sphere(`col-ice-shard:${i}`, 1.8 * ZOOM, 6, 4),
-          this.assets.standard('col-freeze-ice', 0xa8d8ea, { metalness: 0.3, roughness: 0.08, emissive: 0x004466 }),
-        );
-        shard.position.set(Math.cos(a) * 8.5 * ZOOM, Math.sin(a) * 8.5 * ZOOM, 0);
-        shard.scale.set(1, 1, 2);
-        freezeGroup.add(shard);
-      }
-
-      g.add(freezeGroup);
-
-    } else if (powerType === 'ghost') {
-      // --- PREMIUM 3D PHASE GHOST SPIRIT ORB ---
-      // Spectral translucent wisp with glowing ethereal wisp star
-      const ghostGroup = new THREE.Group();
-
-      const wisp = new THREE.Mesh(
-        this.assets.sphere('col-ghost-outer', 6.5 * ZOOM, 16, 12),
-        this.assets.standard('col-ghost-outer-mat', colDef.color, {
-          metalness: 0.2,
-          roughness: 0.1,
-          emissive: colDef.glowColor,
-        }),
-      );
-      wisp.scale.set(0.9, 1.1, 1.3);
-      wisp.castShadow = true;
-      ghostGroup.add(wisp);
-
-      const auraTorus = new THREE.Mesh(
-        this.assets.torus('col-ghost-torus', 8 * ZOOM, 1.0 * ZOOM, 10, 24),
-        this.assets.standard('col-ghost-torus-mat', colDef.glowColor, {
-          metalness: 0.8,
-          roughness: 0.2,
-          emissive: colDef.glowColor,
-        }),
-      );
-      auraTorus.rotation.x = Math.PI / 4;
-      ghostGroup.add(auraTorus);
-
-      g.add(ghostGroup);
-
-    } else if (powerType === 'time_warp') {
-      // --- PREMIUM 3D QUANTUM CHRONOMETER GYROSCOPE ---
-      // Twin golden gimbal rings orbiting around a radiant pulsing chrono-sphere
-      const timeGroup = new THREE.Group();
-
-      const chronoSphere = new THREE.Mesh(
-        this.assets.sphere('col-time-sphere', 4.5 * ZOOM, 14, 10),
-        this.assets.standard('col-time-sphere-mat', colDef.color, {
-          metalness: 0.8,
-          roughness: 0.15,
-          emissive: colDef.glowColor,
-        }),
-      );
-      timeGroup.add(chronoSphere);
-
-      const ringOuter = new THREE.Mesh(
-        this.assets.torus('col-time-ring-outer', 8.2 * ZOOM, 1.1 * ZOOM, 10, 28),
-        this.assets.standard('col-time-brass', 0xffd700, {
-          metalness: 0.9,
-          roughness: 0.2,
-          emissive: 0x443300,
-        }),
-      );
-      ringOuter.rotation.x = Math.PI / 3;
-      timeGroup.add(ringOuter);
-
-      const ringInner = new THREE.Mesh(
-        this.assets.torus('col-time-ring-inner', 6.2 * ZOOM, 0.9 * ZOOM, 8, 22),
-        this.assets.standard('col-time-magenta', 0xff3fb4, {
-          metalness: 0.85,
-          roughness: 0.15,
-          emissive: 0xff3fb4,
-        }),
-      );
-      ringInner.rotation.y = Math.PI / 3;
-      timeGroup.add(ringInner);
-
-      g.add(timeGroup);
-
-    } else {
-      // --- PREMIUM 3D WINGED DOUBLE HOP SPHERE ---
-      // Glowing sphere flanked by stylized golden wings
-      const jumpGroup = new THREE.Group();
-
-      const jumpCore = new THREE.Mesh(
-        this.assets.sphere(`col-jump-core:${worldId}`, 5.5 * ZOOM, 16, 12),
-        this.assets.standard(`col-jump-core-mat:${worldId}`, colDef.color, {
-          metalness: 0.6,
-          roughness: 0.2,
-          emissive: colDef.glowColor,
-        }),
-      );
-      jumpCore.castShadow = true;
-      jumpGroup.add(jumpCore);
-
-      const wingMat = this.assets.standard('col-jump-wing', 0xffffff, {
-        metalness: 0.3,
-        roughness: 0.2,
-        emissive: 0x444444,
-      });
-
-      for (const s of [-1, 1]) {
-        const wing = new THREE.Mesh(
-          this.assets.roundedBox(5 * ZOOM, 2.5 * ZOOM, 1.5 * ZOOM, 0.6 * ZOOM, 2),
-          wingMat,
-        );
-        wing.position.set(s * 6.5 * ZOOM, 1.5 * ZOOM, 0);
-        wing.rotation.z = s * 0.35;
-        jumpGroup.add(wing);
-      }
-
-      g.add(jumpGroup);
-    }
 
     return g;
   }
@@ -846,7 +634,6 @@ export class WorldGenerator {
       const slots = type === 'car' ? 8 : 6;
       let attempts = 0;
 
-      // Consistent lane speed: all vehicles in this lane share controlled cruising speed
       const laneSpeed = 2.4 * dif.speedMul;
       lane.speed = laneSpeed;
 
@@ -858,59 +645,48 @@ export class WorldGenerator {
         const probe = this.vehicles.create(kind);
         const px0 = (slot / slots - 0.5) * BOARD * 1.1;
         const ph0 = (probe.userData.length * ZOOM) / 2;
-        const baseMinGap = world.id === 'tokyo' ? 85 : TRAFFIC_CONFIG.minGap;
-        const minGap = baseMinGap * dif.minGapFactor;
-        
-        let ok = true;
-        for (const q of placed) {
-          if (Math.abs(px0 - q.x) < ph0 + q.half + minGap) {
-            ok = false;
-            break;
-          }
-        }
-        if (!ok) continue;
+        const overlaps = placed.some((p) => Math.abs(p.x - px0) < (p.half + ph0 + 40 * ZOOM));
+        if (overlaps) continue;
         used.add(slot);
-        const veh = probe as BuiltVehicle;
-        veh.position.x = px0;
-        if (!lane.direction) veh.rotation.z = Math.PI;
-
-        // Controlled, predictable cruise speed without jarring random bursts
-        veh.userData.baseSpeed = laneSpeed;
-        veh.userData.cruise = laneSpeed / 16;
-        veh.userData.cur = veh.userData.cruise;
-        veh.userData.prevDx = null;
-
-        lane.mesh.add(veh);
-        list.push(veh);
         placed.push({ x: px0, half: ph0 });
+        const v = this.vehicles.create(kind);
+        v.position.x = px0;
+        v.position.z = 0;
+        list.push(v);
+        lane.mesh.add(v);
       }
       lane.vehicles = list;
-
-      // Fairness: nudge vehicles off the player's column on lanes entering view
-      if (index >= opts.playerLane && index - opts.playerLane <= 4) {
-        for (const v of lane.vehicles) {
-          const vu = (v as BuiltVehicle).userData;
-          const half = (vu.length * ZOOM) / 2;
-          if (Math.abs(v.position.x - opts.playerX) < half + 11 * ZOOM + 20) {
-            v.position.x = opts.playerX + (v.position.x >= opts.playerX ? 1 : -1) * (half + 11 * ZOOM + 60);
-          }
-        }
-      }
-      this.laneDecor(lane, def, opts.playerX);
       this.enforceLaneSpacing(lane, (world.id === 'tokyo' ? 65 : TRAFFIC_CONFIG.minGap) * dif.minGapFactor);
     }
 
-    // Coins & World Superpower Collectibles placement on safe lanes
-    if ((type === 'field' || type === 'forest') && index > 2 && Math.random() < 0.48) {
+    // =========================================================================
+    // COINS & WORLD SUPERPOWER COLLECTIBLES PIPELINE
+    // Intentional placement patterns (single, lines, arcs, crossing rewards)
+    // =========================================================================
+    const isSafeLane = type === 'field' || type === 'forest';
+    const isRoadLane = type === 'car' || type === 'truck';
+    const coinChance = isSafeLane ? 0.62 : (isRoadLane ? 0.28 : 0.45);
+
+    if (index > 2 && Math.random() < coinChance) {
       const dif = this.difficultyFor(index, world, opts.difficulty);
       const r = Math.random();
       const cols: number[] = [];
       const start = Math.floor(Math.random() * COLS);
-      if (r < 0.5 || COLS < 3) cols.push(start);
-      else if (r < 0.75) {
-        cols.push(start, Math.min(COLS - 1, start + 1));
+
+      if (isSafeLane) {
+        if (r < 0.40 || COLS < 3) {
+          // Single coin
+          cols.push(start);
+        } else if (r < 0.75) {
+          // Short line of 2 coins
+          cols.push(start, Math.min(COLS - 1, start + 1));
+        } else {
+          // Rewarding 3-coin cluster/line
+          cols.push(Math.max(0, start - 1), start, Math.min(COLS - 1, start + 1));
+        }
       } else {
-        cols.push(Math.max(0, start - 1), start, Math.min(COLS - 1, start + 1));
+        // Road crossing: single coin in safe gap
+        cols.push(start);
       }
 
       for (const col of cols) {
@@ -918,7 +694,7 @@ export class WorldGenerator {
         if (lane.coins.some((c: { col: number }) => c.col === col)) continue;
 
         // Spawn signature superpower collectible based on difficulty's powerSpawnChance
-        const isCollectible = Math.random() < dif.powerSpawnChance;
+        const isCollectible = isSafeLane && Math.random() < dif.powerSpawnChance;
         if (isCollectible) {
           const colDef = activeCollectibleForWorld(world.id);
           const mesh = this.makeCollectibleMesh(world.id);

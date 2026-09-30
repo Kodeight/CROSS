@@ -64,9 +64,9 @@ const ALL_WORLD_CONFIGS: WorldConfig[] = [
   // 01 — City
   {
     id: 'city', name: 'CITY', num: '01', price: 0,
-    safe: 0x82c850, safeDark: 0x68a53c, road: 0x353a45, marking: 0xffffff, walk: 0xd8d4c2,
-    sky: 0x8ecae6, fog: 0x8ecae6, fogNear: 2600, fogFar: 6000,
-    hemiSky: 0xffffff, hemiGround: 0x8a8f7a, hemiI: 0.75, dirColor: 0xfff2dd, dirI: 0.65,
+    safe: 0x68b838, safeDark: 0x56a02c, road: 0x242831, marking: 0xffffff, walk: 0xd8d4c2,
+    sky: 0x8ecae6, fog: 0x98d2ec, fogNear: 2800, fogFar: 6500,
+    hemiSky: 0xffffff, hemiGround: 0x76885b, hemiI: 0.85, dirColor: 0xfff6e5, dirI: 0.82,
     laneMix: { road: 0.46, obst: 0.28 }, carSplit: 0.62, speedMul: 1.0,
     carKinds: ['city_taxi', 'city_taxi', 'city_suv', 'city_suv'], truckKinds: ['city_bus'],
     variants: ['crosswalk'], weather: null,
@@ -76,9 +76,9 @@ const ALL_WORLD_CONFIGS: WorldConfig[] = [
   // 02 — River
   {
     id: 'river', name: 'RIVER', num: '02', price: 500,
-    safe: 0x6ab04c, safeDark: 0x55913d, road: 0x2288cc, marking: 0x66ccff, walk: 0xd8d0b8,
-    sky: 0x82ccdd, fog: 0x93d5e4, fogNear: 1600, fogFar: 4400,
-    hemiSky: 0xffffff, hemiGround: 0x4a7c59, hemiI: 0.8, dirColor: 0xfff9e6, dirI: 0.7,
+    safe: 0x5a9442, safeDark: 0x477c32, road: 0x1f80b0, marking: 0x66ccff, walk: 0xd8d0b8,
+    sky: 0x80d0e0, fog: 0x90d8e8, fogNear: 2800, fogFar: 6500,
+    hemiSky: 0xe0f7fa, hemiGround: 0x4a7c59, hemiI: 0.88, dirColor: 0xfffaed, dirI: 0.85,
     laneMix: { road: 0.44, obst: 0.30 }, carSplit: 0.58, speedMul: 0.95,
     carKinds: ['river_fishing_boat', 'river_speed_boat'], truckKinds: ['river_cargo_boat'],
     variants: ['bridge'], weather: null,
@@ -88,9 +88,9 @@ const ALL_WORLD_CONFIGS: WorldConfig[] = [
   // 03 — Beach
   {
     id: 'beach', name: 'BEACH', num: '03', price: 1200,
-    safe: 0xf5e0a5, safeDark: 0xe3c886, road: 0x38b6ff, marking: 0xffffff, walk: 0xe3c886,
-    sky: 0x9fdcf5, fog: 0x9fdcf5, fogNear: 1500, fogFar: 4200,
-    hemiSky: 0xffffff, hemiGround: 0xc7b083, hemiI: 0.85, dirColor: 0xfff3d0, dirI: 0.78,
+    safe: 0xf2dea2, safeDark: 0xdcc482, road: 0x22a8cf, marking: 0xffffff, walk: 0xe3c886,
+    sky: 0x6ac2eb, fog: 0x86d2f5, fogNear: 2600, fogFar: 6200,
+    hemiSky: 0xfff8e7, hemiGround: 0xc7ab75, hemiI: 0.90, dirColor: 0xfff4d6, dirI: 0.92,
     laneMix: { road: 0.42, obst: 0.30 }, carSplit: 0.6, speedMul: 0.95,
     carKinds: ['beach_dune_buggy', 'beach_atv'], truckKinds: ['beach_jet_ski', 'beach_dune_buggy'],
     variants: ['boardwalk'], weather: null,
@@ -172,9 +172,9 @@ const ALL_WORLD_CONFIGS: WorldConfig[] = [
   // 10 — Volcano
   {
     id: 'volcano', name: 'VOLCANO', num: '10', price: 10000,
-    safe: 0x3a221c, safeDark: 0x2a1712, road: 0x20120e, marking: 0xff5252, walk: 0x2a1712,
-    sky: 0x4a140e, fog: 0x5c1a12, fogNear: 1300, fogFar: 3600,
-    hemiSky: 0xff7744, hemiGround: 0x2b0d06, hemiI: 0.85, dirColor: 0xff8844, dirI: 0.8,
+    safe: 0x262228, safeDark: 0x1c181e, road: 0x20120e, marking: 0xff5252, walk: 0x3a343a,
+    sky: 0x181014, fog: 0x281418, fogNear: 2400, fogFar: 5800,
+    hemiSky: 0xff6b35, hemiGround: 0x221014, hemiI: 0.85, dirColor: 0xff7728, dirI: 0.90,
     laneMix: { road: 0.45, obst: 0.32 }, carSplit: 0.58, speedMul: 1.05,
     carKinds: ['volcano_armored_truck', 'volcano_drill_vehicle'], truckKinds: ['volcano_dump_truck', 'volcano_armored_truck'],
     variants: ['bridge'], weather: 'embers',
@@ -256,9 +256,9 @@ const ALL_WORLD_CONFIGS: WorldConfig[] = [
   // 17 — Tokyo
   {
     id: 'tokyo', name: 'TOKYO', num: '17', price: 35000,
-    safe: 0x485460, safeDark: 0x343f4b, road: 0x1e272e, marking: 0xff5252, walk: 0x343f4b,
-    sky: 0x2c1f36, fog: 0x3c2b4a, fogNear: 1500, fogFar: 4000,
-    hemiSky: 0xff9ff3, hemiGround: 0x221a28, hemiI: 0.82, dirColor: 0xffb8b8, dirI: 0.74,
+    safe: 0x2d283c, safeDark: 0x201c2c, road: 0x181524, marking: 0x00e5ff, walk: 0x2d283c,
+    sky: 0x120e20, fog: 0x1c1630, fogNear: 2400, fogFar: 5800,
+    hemiSky: 0xb388ff, hemiGround: 0x18ffff, hemiI: 0.82, dirColor: 0x00e5ff, dirI: 0.78,
     laneMix: { road: 0.48, obst: 0.28 }, carSplit: 0.62, speedMul: 1.05,
     carKinds: ['tokyo_white_tuner', 'tokyo_red_tuner'], truckKinds: ['tokyo_neon_tram'],
     variants: ['crosswalk'], weather: null,
