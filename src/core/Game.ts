@@ -96,8 +96,6 @@ export class Game implements LoopDelegate {
   private worldSelect!: WorldSelect;
   private missionsScreen!: MissionsScreen;
   private settingsScreen!: SettingsScreen;
-  private charPreviews!: CharacterPreviewManager;
-  private worldPreviews!: WorldPreviewManager;
 
   private reducedMotion = false;
   private readonly isTouch = isTouchDevice();
@@ -304,14 +302,12 @@ export class Game implements LoopDelegate {
       (pct) => this.pwaBottomPanel?.setWorldProgress(pct),
     );
     this.menu = new MainMenu(this.save);
-    this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion);
-    this.worldPreviews = new WorldPreviewManager(vehicles, () => this.reducedMotion);
     this.charSelect = new CharacterSelect(
-      this.save, this.audio, this.progression, this.charPreviews, this.ui,
+      this.save, this.audio, this.progression, this.ui,
       () => this.rebuildPlayerMesh(), () => this.menu.render(),
     );
     this.worldSelect = new WorldSelect(
-      this.save, this.audio, this.progression, this.worldPreviews, this.ui,
+      this.save, this.audio, this.progression, this.ui,
       this.allWorlds(), () => {
         this.menu.render();
         const w = this.worlds.byId(this.save.data.selectedWorld);
@@ -500,9 +496,7 @@ export class Game implements LoopDelegate {
     if (s === GameState.PAUSED) this.audio.pauseMusic();
     if (s === GameState.GAME_OVER) this.audio.stopMusic();
     if (s === GameState.CHARACTER_SELECT) this.charSelect.render();
-    else this.charPreviews.close();
     if (s === GameState.WORLD_SELECT) this.worldSelect.render();
-    else this.worldPreviews.close();
     liquidUI.refresh();
   }
 

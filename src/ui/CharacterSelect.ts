@@ -1,20 +1,17 @@
-/** Character roster screen: select / unlock, TESTING_MODE-aware pricing. */
+/** Character roster screen: select / unlock, TESTING_MODE-aware pricing with static image previews. */
 import { CHARACTERS } from '../config/characters.config';
 import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
 import type { ProgressionSystem } from '../gameplay/ProgressionSystem';
-import { LOCK_SVG, type CharacterPreviewManager } from './Previews';
+import { LOCK_SVG } from './Previews';
 import { liquidUI } from './liquidUI';
 import type { UIManager } from './UIManager';
 
 export class CharacterSelect {
-  canvases: Array<{ canvas: HTMLCanvasElement; id: string }> = [];
-
   constructor(
     private readonly save: SaveManager,
     private readonly audio: AudioManager,
     private readonly progression: ProgressionSystem,
-    private readonly previews: CharacterPreviewManager,
     private readonly ui: UIManager,
     private readonly onMeshChanged: () => void,
     private readonly onStatsChanged: () => void,
@@ -24,21 +21,27 @@ export class CharacterSelect {
     const grid = document.getElementById('chars-grid');
     if (!grid) return;
     grid.innerHTML = '';
-    this.canvases = [];
     const coinsEl = document.getElementById('chars-coins');
     if (coinsEl) coinsEl.textContent = String(this.save.data.coins);
+
     for (const c of CHARACTERS) {
       const unlocked = this.save.isCharacterUnlocked(c.id);
       const selected = this.save.data.selectedCharacter === c.id;
       const price = this.save.price(c.cost);
       const card = document.createElement('div');
       card.className = 'char-card' + (selected ? ' selected' : '') + (unlocked ? '' : ' locked');
+      
       const wrap = document.createElement('div');
       wrap.className = 'prev-wrap';
-      const canvas = document.createElement('canvas');
-      canvas.className = 'prev-canvas';
-      canvas.setAttribute('aria-label', `${c.name} 3D preview`);
-      wrap.appendChild(canvas);
+      
+      // Static optimized Character Image Preview
+      const img = document.createElement('img');
+      img.className = 'prev-img';
+      img.src = `/assets/character-previews/${c.id}.svg`;
+      img.alt = `${c.name} Preview`;
+      img.loading = 'lazy';
+      wrap.appendChild(img);
+
       if (!unlocked) {
         const veil = document.createElement('div');
         veil.className = 'lock-veil';
@@ -46,7 +49,7 @@ export class CharacterSelect {
         wrap.appendChild(veil);
       }
       card.appendChild(wrap);
-      this.canvases.push({ canvas, id: c.id });
+
       const info = document.createElement('div');
       info.className = 'card-info';
       const h = document.createElement('h3');
@@ -56,10 +59,9 @@ export class CharacterSelect {
       p.textContent = selected ? 'SELECTED' : unlocked ? 'UNLOCKED' : `${price} COINS`;
       info.appendChild(p);
       card.appendChild(info);
+
       const b = document.createElement('button');
       b.className = 'btn' + (selected ? '' : ' primary');
-      // Card buttons never capture touches: a swipe starting on one must
-      // scroll the list, never drag the button (native :active remains).
       b.dataset.press = 'off';
       if (selected) {
         b.textContent = 'PLAYING';
@@ -91,22 +93,7 @@ export class CharacterSelect {
       card.appendChild(b);
       grid.appendChild(card);
     }
-    // GL contexts are a scarce browser budget: only attach them while this
-    // screen is actually shown. Boot renders the DOM (hidden) without
-    // creating ~19 contexts the player may never open.
-    try {
-      const sec = document.getElementById('chars-screen');
-      if (sec && !sec.hidden) this.previews.open(this.canvases);
-    } catch { /* DOM-only render still succeeds */ }
-    // Freeze preview rotation while the user scrolls: a list swipe must
-    // never appear to manipulate the 3D models.
-    try {
-      const scroller = document.querySelector('#chars-screen .panel-scroll');
-      if (scroller && !(scroller as unknown as { _holdBound?: boolean })._holdBound) {
-        (scroller as unknown as { _holdBound?: boolean })._holdBound = true;
-        scroller.addEventListener('scroll', () => this.previews.hold(), { passive: true });
-      }
-    } catch { /* scrolls natively regardless */ }
+
     liquidUI.refresh();
   }
 }

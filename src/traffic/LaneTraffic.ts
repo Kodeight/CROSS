@@ -15,10 +15,14 @@ export class LaneTraffic {
   update(lane: Lane, dtMs: number): number {
     let braking = 0;
     const sgn = lane.direction ? -1 : 1;
+    const targetRotZ = sgn > 0 ? Math.PI : 0;
     const margin = GAME_CONFIG.positionWidth * TRAFFIC_CONFIG.recycleMarginLanes * GAME_CONFIG.zoom;
     const minX = -BOARD_HALF - margin;
     const maxX = BOARD_HALF + margin;
     for (const v of lane.vehicles) {
+      if (v.rotation.z !== targetRotZ) {
+        v.rotation.z = targetRotZ;
+      }
       const st = getVehicleState(v);
       const ahead = findAhead(lane, v, sgn);
       let bumper = Infinity;

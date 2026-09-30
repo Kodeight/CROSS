@@ -209,6 +209,7 @@ class LiquidUIManager {
     const actionTints: Record<string, { rgb: string; opacity: number }> = {
       '#btn-resume': { rgb: '252,167,29', opacity: 0.32 },
       '#btn-again': { rgb: '252,167,29', opacity: 0.32 },
+      '#btn-reset-save': { rgb: '230,57,70', opacity: 0.35 },
     };
     for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, .panel .modal-x, #app-error .btn')) {
       const key = b.id ? `#${b.id}` : '';

@@ -641,6 +641,7 @@ export class WorldGenerator {
 
       const laneSpeed = 2.4 * dif.speedMul;
       lane.speed = laneSpeed;
+      const sgn = lane.direction ? -1 : 1;
 
       while (list.length < targetCars && attempts < 90) {
         attempts++;
@@ -657,6 +658,8 @@ export class WorldGenerator {
         const v = this.vehicles.create(kind);
         v.position.x = px0;
         v.position.z = 0;
+        // Direction-driven orientation: moving right (sgn > 0) faces right (PI), moving left (sgn < 0) faces left (0)
+        v.rotation.z = sgn > 0 ? Math.PI : 0;
         list.push(v);
         lane.mesh.add(v);
       }
