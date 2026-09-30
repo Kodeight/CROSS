@@ -340,32 +340,43 @@ export function chunkForVehicleKind(kind: string): string | null {
 }
 
 const lensMats = new Map<number, THREE.MeshBasicMaterial>();
-let lensGeo: THREE.BoxGeometry | null = null;
+let lensGeo: THREE.BufferGeometry | null = null;
 
 /**
  * Emissive front (warm white) + rear (red) light lenses, placed from the
- * measured holder bounds. The generated factories carry the body/cabin/
- * wheels; lenses guarantee the front/rear read at gameplay distance and in
- * TOKYO/VOLCANO night lighting. Detail augmentation only — never the vehicle.
+ * measured holder bounds. Uses beveled lens geometry.
  */
 function addLightLenses(holder: THREE.Group): void {
   try {
     const box = new THREE.Box3().setFromObject(holder);
     const size = box.getSize(new THREE.Vector3());
     const c = box.getCenter(new THREE.Vector3());
-    // Lenses are children of the SCALED holder: convert world measurements
-    // to holder-local or they inherit the vehicle scale (140-unit lenses).
     const inv = 1 / Math.max(holder.scale.x, 1e-6);
     const toLocal = (p: THREE.Vector3): THREE.Vector3 => holder.worldToLocal(p.clone());
-    if (!lensGeo) lensGeo = new THREE.BoxGeometry(1, 1, 1);
+    if (!lensGeo) {
+      const s = new THREE.Shape();
+      s.moveTo(-0.5, -0.4);
+      s.quadraticCurveTo(0, -0.5, 0.5, -0.4);
+      s.lineTo(0.5, 0.4);
+      s.quadraticCurveTo(0, 0.5, -0.5, 0.4);
+      s.closePath();
+      lensGeo = new THREE.ExtrudeGeometry(s, {
+        depth: 0.6,
+        bevelEnabled: true,
+        bevelThickness: 0.12,
+        bevelSize: 0.12,
+        bevelSegments: 2,
+      });
+      lensGeo.center();
+    }
     const lens = (color: number): THREE.Mesh => {
       let m = lensMats.get(color);
       if (!m) {
         m = new THREE.MeshBasicMaterial({ color });
         lensMats.set(color, m);
       }
-      const mesh = new THREE.Mesh(lensGeo as THREE.BoxGeometry, m);
-      mesh.scale.set(1.4 * ZOOM * inv, Math.max(1.2 * ZOOM, size.y * 0.06) * inv, 1.6 * ZOOM * inv);
+      const mesh = new THREE.Mesh(lensGeo as THREE.BufferGeometry, m);
+      mesh.scale.set(1.2 * ZOOM * inv, Math.max(1.0 * ZOOM, size.y * 0.05) * inv, 1.4 * ZOOM * inv);
       return mesh;
     };
     const frontX = box.min.x - 0.4 * ZOOM;
