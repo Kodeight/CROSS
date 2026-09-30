@@ -62,6 +62,15 @@ export function registerPWA(ui: UIManager, onClick: () => void): void {
   } catch { /* ignore */ }
 
   try {
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        for (const name of names) {
+          if ((name.includes('cross-assets') || name.includes('workbox-precache')) && !name.includes('2026-09-current')) {
+            void caches.delete(name);
+          }
+        }
+      }).catch(() => { /* ignore */ });
+    }
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.protocol === 'http:')) {
       void import('virtual:pwa-register').then((mod) => {
         try {

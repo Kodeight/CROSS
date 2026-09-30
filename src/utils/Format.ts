@@ -35,6 +35,18 @@ export function fmtCount(n: number): string {
   return sign + String(v);
 }
 
+/** Formats coins for compact top HUD display (e.g. 123, 1.2K, 10K, 25.5K, 1M). */
+export function formatHudCoins(n: number): string {
+  return fmtCount(n);
+}
+
+/** Formats coins for menu display showing exact integer with locale thousands separators (e.g. 1,076, 15,342). */
+export function formatMenuCoins(n: number): string {
+  const v = Math.floor(Math.abs(n));
+  const sign = n < 0 ? '-' : '';
+  return sign + v.toLocaleString('en-US');
+}
+
 /** <100 → up to 1 decimal (25.5K, 1.2K); >=100 → integer (100K, 250K). */
 function trimNum(x: number): string {
   if (x >= 100) return String(Math.round(x));

@@ -43,8 +43,8 @@ import { MainMenu } from '../ui/MainMenu';
 import { GameOverScreen } from '../ui/GameOver';
 import { CharacterSelect } from '../ui/CharacterSelect';
 import { WorldSelect } from '../ui/WorldSelect';
+import { CharacterPreviewManager } from '../ui/Previews';
 import { MissionsScreen, SettingsScreen } from '../ui/Screens';
-import { CharacterPreviewManager, WorldPreviewManager } from '../ui/Previews';
 import { isTouchDevice, prefersReducedMotion, vibrate } from '../utils/DeviceUtils';
 import { modalScrollInfo, installPointerProbe, lastPointerDown } from '../utils/DebugScroll';
 import { installViewportDebug } from '../utils/ViewportDebug';
@@ -96,6 +96,7 @@ export class Game implements LoopDelegate {
   private worldSelect!: WorldSelect;
   private missionsScreen!: MissionsScreen;
   private settingsScreen!: SettingsScreen;
+  private charPreviews!: CharacterPreviewManager;
 
   private reducedMotion = false;
   private readonly isTouch = isTouchDevice();
@@ -302,8 +303,9 @@ export class Game implements LoopDelegate {
       (pct) => this.pwaBottomPanel?.setWorldProgress(pct),
     );
     this.menu = new MainMenu(this.save);
+    this.charPreviews = new CharacterPreviewManager(this.factory, () => this.reducedMotion);
     this.charSelect = new CharacterSelect(
-      this.save, this.audio, this.progression, this.ui,
+      this.save, this.audio, this.progression, this.charPreviews, this.ui,
       () => this.rebuildPlayerMesh(), () => this.menu.render(),
     );
     this.worldSelect = new WorldSelect(
@@ -496,6 +498,7 @@ export class Game implements LoopDelegate {
     if (s === GameState.PAUSED) this.audio.pauseMusic();
     if (s === GameState.GAME_OVER) this.audio.stopMusic();
     if (s === GameState.CHARACTER_SELECT) this.charSelect.render();
+    else this.charPreviews?.close();
     if (s === GameState.WORLD_SELECT) this.worldSelect.render();
     liquidUI.refresh();
   }
@@ -643,6 +646,7 @@ export class Game implements LoopDelegate {
         this.camera.setFovOffset(this.superpowerVfx.getDynamicFovOffset());
         this.coins.update(nowMs, GAME_CONFIG.zoom, dtMs, this.player.position);
         this.generator.updateWater(nowMs);
+        this.manager.updateWaterGameplay(dtMs);
         this.manager.collisionCheck((ms, scale) => this.time.slowMo(ms, scale));
         this.player.updateIdle(nowMs, this.reducedMotion);
         this.lighting.update(dtMs, this.reducedMotion);

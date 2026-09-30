@@ -1,5 +1,5 @@
 /** Main menu stats. World notch is owned by HUD/worldNotch — never duplicated here. */
-import { fmtCount } from '../utils/Format';
+import { fmtCount, formatMenuCoins } from '../utils/Format';
 import type { SaveManager } from '../save/SaveManager';
 import type { StreakSystem } from '../gameplay/StreakSystem';
 
@@ -14,8 +14,8 @@ export class MainMenu {
       const e = document.getElementById(id);
       if (e) e.textContent = v;
     };
-    // Menus show the full exact integer (HUD alone uses compact fmtCount).
-    const exactCoins = String(Math.floor(this.save.data.coins));
+    // Menus show the full exact integer formatted (HUD alone uses compact formatHudCoins).
+    const exactCoins = formatMenuCoins(this.save.data.coins);
     set('menu-best', fmtCount(this.save.data.bestScore));
     set('menu-coins', exactCoins);
     set('menu-top-coins', exactCoins);

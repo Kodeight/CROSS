@@ -17,6 +17,26 @@ import { pick } from '../../utils/Random';
 
 const ZOOM = GAME_CONFIG.zoom;
 
+export function normalizeVehicleKind(kind: string): string {
+  const k = kind.toLowerCase();
+  if (k === 'taxi') return 'city_taxi';
+  if (k === 'suv' || k === 'car') return 'city_suv';
+  if (k === 'bus') return 'city_bus';
+  if (k === 'fishing_boat') return 'river_fishing_boat';
+  if (k === 'speed_boat') return 'river_speed_boat';
+  if (k === 'cargo_boat') return 'river_cargo_boat';
+  if (k === 'dune_buggy' || k === 'buggy') return 'beach_dune_buggy';
+  if (k === 'atv') return 'beach_atv';
+  if (k === 'jet_ski') return 'beach_jet_ski';
+  if (k === 'armored_truck') return 'volcano_armored_truck';
+  if (k === 'dump_truck' || k === 'truck') return 'volcano_dump_truck';
+  if (k === 'drill_vehicle' || k === 'drill') return 'volcano_drill_vehicle';
+  if (k === 'white_tuner' || k === 'tuner') return 'tokyo_white_tuner';
+  if (k === 'red_tuner') return 'tokyo_red_tuner';
+  if (k === 'neon_tram' || k === 'tram') return 'tokyo_neon_tram';
+  return kind;
+}
+
 const BODY_COLORS = [
   0xd64045, // Crimson Red
   0x3f8efc, // Cobalt Blue
@@ -180,27 +200,26 @@ export class VehicleFactory {
   }
 
   create(kind: string): BuiltVehicle {
-    const spec = vehicleSpec(kind);
+    const canonicalKind = normalizeVehicleKind(kind);
+    const spec = vehicleSpec(canonicalKind);
     const len = Math.round(spec.length * 1.76);
-    // img2threejs reference-built 3D vehicles: same lengths/speeds as the
-    // catalogue so spacing/collision math is untouched. Falls back to the
-    // procedural builder below when the chunk is not loaded or fails.
-    if (chunkForVehicleKind(kind)) {
-      const generated = buildGeneratedVehicle(kind, len);
-      if (generated) {
-        const g = generated as BuiltVehicle;
-        g.userData.length = len;
-        g.userData.kind = kind;
-        g.userData.speed = spec.baseSpeed;
-        g.userData.prevDx = null;
-        return g;
-      }
-      console.warn(`[vehicles] generated asset "${kind}" not ready, using fallback`);
-      noteFallback(kind);
+    
+    const generated = buildGeneratedVehicle(canonicalKind, len);
+    if (generated) {
+      const g = generated as BuiltVehicle;
+      g.userData.length = len;
+      g.userData.kind = canonicalKind;
+      g.userData.speed = spec.baseSpeed;
+      g.userData.prevDx = null;
+      return g;
     }
+
+    console.error(`[ASSET ERROR] canonical vehicle model missing for "${canonicalKind}" (raw kind "${kind}")`);
+    noteFallback(canonicalKind);
+
     const g = new THREE.Group() as BuiltVehicle;
     const bodyW = 28;
-    const color = kind === 'taxi' ? 0xffc107 : pick(BODY_COLORS);
+    const color = pick(BODY_COLORS);
     const speed = spec.baseSpeed;
 
     switch (kind) {

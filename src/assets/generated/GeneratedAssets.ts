@@ -27,8 +27,16 @@
  */
 import * as THREE from 'three';
 import { GAME_CONFIG } from '../../config/game.config';
+import { CITY_FACTORIES } from './worldCity';
+import { RIVER_FACTORIES } from './worldRiver';
+import { BEACH_FACTORIES } from './worldBeach';
+import { VOLCANO_FACTORIES } from './worldVolcano';
+import { TOKYO_FACTORIES } from './worldTokyo';
+import { COLLECTIBLE_FACTORIES } from './collectibles';
 
 const ZOOM = GAME_CONFIG.zoom;
+
+export const ASSET_VERSION = '2026-09-current';
 
 /** img2threejs asset id → owning world chunk. */
 const WORLD_CHUNK_KINDS: Record<string, 'city' | 'river' | 'beach' | 'volcano' | 'tokyo'> = {
@@ -51,10 +59,19 @@ export const WORLD_ORDER = ['city', 'river', 'beach', 'volcano', 'tokyo'] as con
 
 type Factory = () => THREE.Group;
 
+// Synchronously populated canonical factory registry
 const factoryRegistry = new Map<string, Factory>();
 const prototypeCache = new Map<string, THREE.Group>();
-const chunkLoaded = new Set<string>();
+const chunkLoaded = new Set<string>(['city', 'river', 'beach', 'volcano', 'tokyo', 'collectibles']);
 const chunkLoading = new Map<string, Promise<void>>();
+
+// Register all canonical factories statically so cold starts never miss them
+for (const [k, f] of Object.entries(CITY_FACTORIES)) factoryRegistry.set(k, f);
+for (const [k, f] of Object.entries(RIVER_FACTORIES)) factoryRegistry.set(k, f);
+for (const [k, f] of Object.entries(BEACH_FACTORIES)) factoryRegistry.set(k, f);
+for (const [k, f] of Object.entries(VOLCANO_FACTORIES)) factoryRegistry.set(k, f);
+for (const [k, f] of Object.entries(TOKYO_FACTORIES)) factoryRegistry.set(k, f);
+for (const [k, f] of Object.entries(COLLECTIBLE_FACTORIES)) factoryRegistry.set(k, f);
 
 /** Runtime provenance counters: generated builds vs procedural fallbacks. */
 const statsGenerated = new Map<string, number>();
@@ -86,67 +103,13 @@ export function assetsDebugSnapshot(): AssetsDebugSnapshot & { failures: Record<
 }
 
 async function loadWorldChunk(worldId: string): Promise<void> {
-  if (chunkLoaded.has(worldId)) return;
-  const pending = chunkLoading.get(worldId);
-  if (pending) return pending;
-  const job = (async () => {
-    switch (worldId) {
-      case 'city': {
-        const m = await import('./worldCity');
-        for (const [k, f] of Object.entries(m.CITY_FACTORIES)) factoryRegistry.set(k, f);
-        break;
-      }
-      case 'river': {
-        const m = await import('./worldRiver');
-        for (const [k, f] of Object.entries(m.RIVER_FACTORIES)) factoryRegistry.set(k, f);
-        break;
-      }
-      case 'beach': {
-        const m = await import('./worldBeach');
-        for (const [k, f] of Object.entries(m.BEACH_FACTORIES)) factoryRegistry.set(k, f);
-        break;
-      }
-      case 'volcano': {
-        const m = await import('./worldVolcano');
-        for (const [k, f] of Object.entries(m.VOLCANO_FACTORIES)) factoryRegistry.set(k, f);
-        break;
-      }
-      case 'tokyo': {
-        const m = await import('./worldTokyo');
-        for (const [k, f] of Object.entries(m.TOKYO_FACTORIES)) factoryRegistry.set(k, f);
-        break;
-      }
-      default:
-        return;
-    }
-    chunkLoaded.add(worldId);
-    console.info(`[img2threejs] world chunk ready: ${worldId} -> ${(WORLD_VEHICLE_KINDS[worldId] ?? []).join(', ')}`);
-  })();
-  chunkLoading.set(worldId, job);
-  try {
-    await job;
-  } finally {
-    chunkLoading.delete(worldId);
-  }
+  return Promise.resolve();
 }
 
-let collectiblesLoaded = false;
-let collectiblesLoading: Promise<void> | null = null;
+let collectiblesLoaded = true;
 
 async function loadCollectibles(): Promise<void> {
-  if (collectiblesLoaded) return;
-  if (collectiblesLoading) return collectiblesLoading;
-  collectiblesLoading = (async () => {
-    const m = await import('./collectibles');
-    for (const [k, f] of Object.entries(m.COLLECTIBLE_FACTORIES)) factoryRegistry.set(k, f);
-    collectiblesLoaded = true;
-    console.info(`[img2threejs] collectibles ready: ${Object.keys(m.COLLECTIBLE_FACTORIES).join(', ')}`);
-  })();
-  try {
-    await collectiblesLoading;
-  } finally {
-    collectiblesLoading = null;
-  }
+  return Promise.resolve();
 }
 
 /** Preload the current world's vehicle chunk (await before lane generation). */
@@ -308,6 +271,13 @@ export function buildGeneratedCollectible(kind: string, targetDiameter: number, 
   if (!proto) return null;
   try {
     const inner = proto.clone(true);
+    // Remove ugly visual ground/halo rings while preserving the core 3D powerup item
+    inner.traverse((child) => {
+      const name = (child.name || '').toLowerCase();
+      if (name.includes('ring') || name.includes('halo') || name.includes('aura')) {
+        child.visible = false;
+      }
+    });
     // Coins are authored flat in XZ (axis Y): face them to the camera so the
     // existing in-plane spin reads. Powerups orient Y-up → Z-up the same way.
     inner.rotation.x = Math.PI / 2;

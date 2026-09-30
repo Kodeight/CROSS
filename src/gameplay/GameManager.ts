@@ -4,6 +4,7 @@
  * Traffic-vs-traffic lives in TrafficManager; UI lives in UIManager —
  * this class coordinates systems via callbacks and the event bus.
  */
+import type * as THREE from 'three';
 import { GAME_CONFIG } from '../config/game.config';
 import type { EventBus } from '../core/EventBus';
 import type { SaveManager } from '../save/SaveManager';
@@ -564,6 +565,61 @@ export class GameManager {
     );
     this.bus.emit('playerHit');
     this.cb.onDeath();
+  }
+
+  onWaterDeath(): void {
+    if (this.dying) return;
+    this.dying = true;
+    this.player.dying = true;
+    this.deathAt = performance.now();
+    this.shake = 10;
+    this.audio.crash();
+    this.audio.duckAmbient(0.8);
+    vibrate([30, 40, 30]);
+    this.particles.burst(
+      this.player.position.x, this.player.position.y, 12,
+      0x38e1ff, 18, 300, 0.9, 400, this.lowQuality,
+    );
+    this.player.group.position.z -= 14 * GAME_CONFIG.zoom;
+    this.bus.emit('playerHit');
+    this.cb.onDeath();
+  }
+
+  updateWaterGameplay(dtMs: number): void {
+    const currentWorld = this.worlds.current?.config?.id;
+    if ((currentWorld === 'river' || currentWorld === 'beach') && !this.dying) {
+      const activeLane = this.lanes.laneAt(this.player.lane);
+      if (activeLane && (activeLane.type === 'car' || activeLane.type === 'truck')) {
+        const px = this.player.position.x;
+        let onPlatform = false;
+        let ridingPlatform: THREE.Group | null = null;
+
+        for (const v of activeLane.vehicles) {
+          const len = (v.userData.length as number | undefined) ?? 60;
+          const half = ((len * GAME_CONFIG.zoom) / 2) * 0.95;
+          const vMin = v.position.x - half;
+          const vMax = v.position.x + half;
+
+          if (px >= vMin && px <= vMax) {
+            onPlatform = true;
+            ridingPlatform = v;
+            break;
+          }
+        }
+
+        if (onPlatform && ridingPlatform && !this.player.moving) {
+          const sgn = activeLane.direction ? -1 : 1;
+          const shift = activeLane.speed * GAME_CONFIG.zoom * sgn * (dtMs / 1000) * 1.1;
+          this.player.group.position.x += shift;
+          const minX = -GAME_CONFIG.positionWidth * GAME_CONFIG.zoom * (GAME_CONFIG.columns / 2 - 0.5);
+          const maxX = GAME_CONFIG.positionWidth * GAME_CONFIG.zoom * (GAME_CONFIG.columns / 2 - 0.5);
+          this.player.group.position.x = Math.max(minX, Math.min(maxX, this.player.group.position.x));
+          this.player.column = Math.round((this.player.group.position.x - minX) / (GAME_CONFIG.positionWidth * GAME_CONFIG.zoom));
+        } else if (!onPlatform && !this.player.moving && performance.now() > this.invulnerableUntil) {
+          this.onWaterDeath();
+        }
+      }
+    }
   }
 
   finishDeath(): { score: number; newBest: boolean } {

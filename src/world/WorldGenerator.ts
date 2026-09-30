@@ -79,6 +79,11 @@ export class WorldGenerator {
     for (const w of this.waterAnims) {
       if (!w.mesh.parent) continue;
       w.mesh.position.z = w.base + Math.sin(tMs / 900 + w.off) * 1.2;
+      const mat = (w.mesh as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      if (mat && mat.map) {
+        mat.map.offset.x = (tMs / 3200) % 1;
+        mat.map.offset.y = Math.sin(tMs / 1800 + w.off) * 0.05;
+      }
     }
   }
 
@@ -413,33 +418,9 @@ export class WorldGenerator {
     const colDef = activeCollectibleForWorld(worldId);
     const generatedCore = this.generatedPowerCore(colDef.powerType);
     if (generatedCore) {
-      const halo = new THREE.Mesh(
-        this.assets.torus(`col-halo:${colDef.id}`, 9.5 * ZOOM, 1.2 * ZOOM, 8, 24),
-        this.assets.standard(`col-halo-mat:${colDef.id}`, colDef.glowColor, {
-          metalness: 0.9,
-          roughness: 0.1,
-          emissive: colDef.glowColor,
-        }),
-      );
-      halo.rotation.x = Math.PI / 2;
-      halo.position.z = -7 * ZOOM;
-      g.add(halo);
       g.add(generatedCore);
       return g;
     }
-
-    // Glowing ground aura halo ring
-    const halo = new THREE.Mesh(
-      this.assets.torus(`col-halo:${colDef.id}`, 9.5 * ZOOM, 1.2 * ZOOM, 8, 24),
-      this.assets.standard(`col-halo-mat:${colDef.id}`, colDef.glowColor, {
-        metalness: 0.9,
-        roughness: 0.1,
-        emissive: colDef.glowColor,
-      }),
-    );
-    halo.rotation.x = Math.PI / 2;
-    halo.position.z = -7 * ZOOM;
-    g.add(halo);
 
     return g;
   }

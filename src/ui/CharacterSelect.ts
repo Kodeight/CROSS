@@ -1,17 +1,20 @@
-/** Character roster screen: select / unlock, TESTING_MODE-aware pricing with static image previews. */
+/** Character roster screen: select / unlock, TESTING_MODE-aware pricing with 3D character previews. */
 import { CHARACTERS } from '../config/characters.config';
 import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
 import type { ProgressionSystem } from '../gameplay/ProgressionSystem';
-import { LOCK_SVG } from './Previews';
+import { LOCK_SVG, type CharacterPreviewManager } from './Previews';
 import { liquidUI } from './liquidUI';
 import type { UIManager } from './UIManager';
 
 export class CharacterSelect {
+  canvases: Array<{ canvas: HTMLCanvasElement; id: string }> = [];
+
   constructor(
     private readonly save: SaveManager,
     private readonly audio: AudioManager,
     private readonly progression: ProgressionSystem,
+    private readonly previews: CharacterPreviewManager,
     private readonly ui: UIManager,
     private readonly onMeshChanged: () => void,
     private readonly onStatsChanged: () => void,
@@ -21,6 +24,7 @@ export class CharacterSelect {
     const grid = document.getElementById('chars-grid');
     if (!grid) return;
     grid.innerHTML = '';
+    this.canvases = [];
     const coinsEl = document.getElementById('chars-coins');
     if (coinsEl) coinsEl.textContent = String(this.save.data.coins);
 
@@ -34,13 +38,11 @@ export class CharacterSelect {
       const wrap = document.createElement('div');
       wrap.className = 'prev-wrap';
       
-      // Static optimized Character Image Preview
-      const img = document.createElement('img');
-      img.className = 'prev-img';
-      img.src = `/assets/character-previews/${c.id}.svg`;
-      img.alt = `${c.name} Preview`;
-      img.loading = 'lazy';
-      wrap.appendChild(img);
+      // 3D Canvas Preview
+      const canvas = document.createElement('canvas');
+      canvas.className = 'prev-canvas';
+      canvas.setAttribute('aria-label', `${c.name} 3D preview`);
+      wrap.appendChild(canvas);
 
       if (!unlocked) {
         const veil = document.createElement('div');
@@ -49,6 +51,7 @@ export class CharacterSelect {
         wrap.appendChild(veil);
       }
       card.appendChild(wrap);
+      this.canvases.push({ canvas, id: c.id });
 
       const info = document.createElement('div');
       info.className = 'card-info';
@@ -93,6 +96,18 @@ export class CharacterSelect {
       card.appendChild(b);
       grid.appendChild(card);
     }
+
+    try {
+      const sec = document.getElementById('chars-screen');
+      if (sec && !sec.hidden) this.previews.open(this.canvases);
+    } catch { /* DOM-only render still succeeds */ }
+    try {
+      const scroller = document.querySelector('#chars-screen .panel-scroll');
+      if (scroller && !(scroller as unknown as { _holdBound?: boolean })._holdBound) {
+        (scroller as unknown as { _holdBound?: boolean })._holdBound = true;
+        scroller.addEventListener('scroll', () => this.previews.hold(), { passive: true });
+      }
+    } catch { /* scrolls natively */ }
 
     liquidUI.refresh();
   }

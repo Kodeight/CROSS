@@ -70,7 +70,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,webp,ogg,wav,mp3,woff,woff2,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,webp,jpg,svg,ogg,wav,mp3,woff,woff2,webmanifest}'],
         globIgnores: ['**/favicon-cross.zip', '**/*.zip', '**/logo-orig.webp', '**/favicon.svg'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
