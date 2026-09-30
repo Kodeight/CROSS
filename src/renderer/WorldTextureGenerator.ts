@@ -27,6 +27,10 @@ export class WorldTextureGenerator {
   }
 
   private generateTexture(key: string): THREE.CanvasTexture {
+    if (typeof document === 'undefined') {
+      const dummy = new THREE.CanvasTexture({ width: 1, height: 1 } as any);
+      return dummy;
+    }
     const size = 512;
     const canvas = document.createElement('canvas');
     canvas.width = size;

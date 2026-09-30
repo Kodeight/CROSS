@@ -57,7 +57,7 @@ export class FollowCamera {
   private readonly introLookAhead = 140;
 
   constructor() {
-    const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+    const aspect = typeof window !== 'undefined' ? window.innerWidth / Math.max(1, window.innerHeight) : 16 / 9;
     this.camera = new THREE.PerspectiveCamera(this.desktopFov, aspect, 0.5, 9000);
   }
 

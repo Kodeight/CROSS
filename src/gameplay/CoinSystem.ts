@@ -11,6 +11,7 @@ export interface CoinAnim {
   mesh: THREE.Object3D;
   off: number;
   baseZ: number;
+  baseScale: number;
 }
 
 interface ItemCollectAnim {
@@ -19,6 +20,7 @@ interface ItemCollectAnim {
   maxTime: number;
   startPos: THREE.Vector3;
   targetPos?: THREE.Vector3;
+  baseScale: number;
 }
 
 export class CoinSystem {
@@ -38,10 +40,12 @@ export class CoinSystem {
   }
 
   track(mesh: THREE.Object3D): void {
+    const baseScale = mesh.scale.x > 0 ? mesh.scale.x : 1.0;
     this.anims.push({
       mesh,
       off: Math.random() * Math.PI * 2,
       baseZ: mesh.position.z,
+      baseScale,
     });
     if (this.anims.length > 250) this.anims.splice(0, this.anims.length - 250);
   }
@@ -51,12 +55,15 @@ export class CoinSystem {
    */
   beginCollect(mesh: THREE.Object3D, targetPos?: THREE.Vector3, durationMs = 280): void {
     if (!mesh.parent) return;
+    const existing = this.anims.find((a) => a.mesh === mesh);
+    const baseScale = existing?.baseScale ?? (mesh.scale.x > 0 ? mesh.scale.x : 1.0);
     this.collecting.push({
       mesh,
       t: 0,
       maxTime: durationMs,
       startPos: mesh.position.clone(),
       targetPos: targetPos ? targetPos.clone() : undefined,
+      baseScale,
     });
   }
 
@@ -84,9 +91,9 @@ export class CoinSystem {
       const bob = Math.sin(tMs / 320 + c.off) * 1.5 * zoom;
       c.mesh.position.z = 12 * zoom + bob;
       
-      // Gentle breathing scale
+      // Gentle breathing scale preserving the model's authored baseScale
       const breath = 1.0 + Math.sin(tMs / 280 + c.off) * 0.05;
-      const s = breath * proxScale;
+      const s = c.baseScale * breath * proxScale;
       c.mesh.scale.set(s, s, s);
     }
 
@@ -97,16 +104,16 @@ export class CoinSystem {
       const k = Math.min(a.t / a.maxTime, 1);
 
       if (k < 0.2) {
-        // Phase 1: Quick anticipation scale-up (pop to 1.25x)
+        // Phase 1: Quick anticipation scale-up (pop to 1.25x of baseScale)
         const popK = k / 0.2;
-        const s = 1.0 + Math.sin(popK * Math.PI) * 0.25;
+        const s = a.baseScale * (1.0 + Math.sin(popK * Math.PI) * 0.25);
         a.mesh.scale.setScalar(s);
         a.mesh.position.z += dtMs * 0.15 * zoom;
       } else {
         // Phase 2: Accelerate toward player + shrink to 0
         const moveK = (k - 0.2) / 0.8;
         const easeMove = moveK * moveK; // quadratic acceleration
-        const s = Math.max(0.01, (1 - moveK) * 1.2);
+        const s = Math.max(0.01, a.baseScale * (1 - moveK) * 1.2);
         a.mesh.scale.setScalar(s);
 
         if (a.targetPos && a.mesh.parent) {

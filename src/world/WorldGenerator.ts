@@ -518,6 +518,7 @@ export class WorldGenerator {
     void playerColumnX;
     const builders: PropBuilder[] =
       world.id === 'beach' ? [(g: THREE.Group) => this.trees.palm(g), (g: THREE.Group) => this.props.dune(g)] : def.decor;
+    if (!builders || !builders.length) return;
     const buildChance = world.id === 'city' ? 0.55 : 0.65;
     if (Math.random() > buildChance) return;
     for (const side of [-1, 1]) {
@@ -576,6 +577,10 @@ export class WorldGenerator {
           world.id === 'beach' && def.beachObstacles
             ? def.beachObstacles[Math.max(0, Math.min(4, district))]
             : def.obstacles;
+        if (!builders || !builders.length) {
+          this.laneDecor(lane, def, opts.playerX);
+          return lane;
+        }
         const occ: Record<number, boolean> = {};
         const jmp: Record<number, boolean> = {};
         const center = Math.floor(COLS / 2);
@@ -667,13 +672,18 @@ export class WorldGenerator {
     const isRoadLane = type === 'car' || type === 'truck';
     const coinChance = isSafeLane ? 0.62 : (isRoadLane ? 0.28 : 0.45);
 
-    if (index > 2 && Math.random() < coinChance) {
+    const centerCol = Math.floor(COLS / 2);
+    const isStartZone = index >= GAME_CONFIG.startLane + 1 && index <= GAME_CONFIG.startLane + 3;
+
+    if (isStartZone || (index > 2 && Math.random() < coinChance)) {
       const dif = this.difficultyFor(index, world, opts.difficulty);
       const r = Math.random();
       const cols: number[] = [];
-      const start = Math.floor(Math.random() * COLS);
+      const start = isStartZone ? centerCol : Math.floor(Math.random() * COLS);
 
-      if (isSafeLane) {
+      if (isStartZone) {
+        cols.push(centerCol);
+      } else if (isSafeLane) {
         if (r < 0.40 || COLS < 3) {
           // Single coin
           cols.push(start);
