@@ -44,7 +44,7 @@ export interface WorldConfig {
   stages: WorldStageDef[];
 }
 
-export const WORLD_LENGTH = 40;
+export const WORLD_LENGTH = 120;
 
 function defaultStages(worldName: string, baseRoad: number, baseObst: number): WorldStageDef[] {
   return [

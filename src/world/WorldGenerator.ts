@@ -34,6 +34,18 @@ export interface WaterAnim {
   off: number;
 }
 
+export function isWatercraft(kind: string): boolean {
+  const k = kind.toLowerCase();
+  return (
+    k.includes('boat') ||
+    k.includes('jet_ski') ||
+    k.includes('yacht') ||
+    k.includes('ship') ||
+    k.includes('raft') ||
+    k.includes('sub')
+  );
+}
+
 export class WorldGenerator {
   readonly waterAnims: WaterAnim[] = [];
   private consecutiveRoads = 0;
@@ -627,6 +639,20 @@ export class WorldGenerator {
       while (list.length < targetCars && attempts < 90) {
         attempts++;
         const kind = pick(spawnKinds);
+
+        const isWaterLane = (world.id === 'river') || (world.id === 'beach' && roadVariant === 'water');
+        const isWaterVehicle = isWatercraft(kind);
+
+        if (isWaterVehicle && !isWaterLane) {
+          console.error("INVALID WATERCRAFT SPAWN REJECTED", kind, lane.type, world.id);
+          continue;
+        }
+
+        if (!isWaterVehicle && isWaterLane) {
+          console.error("INVALID LAND VEHICLE IN WATER SPAWN REJECTED", kind, lane.type, world.id);
+          continue;
+        }
+
         const slot = Math.floor(Math.random() * slots);
         if (used.has(slot)) continue;
         const probe = this.vehicles.create(kind);

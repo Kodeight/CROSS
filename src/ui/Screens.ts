@@ -15,7 +15,7 @@ import type { StreakSystem } from '../gameplay/StreakSystem';
 import type { QualityLevel } from '../config/game.config';
 import { liquidUI } from './liquidUI';
 
-const COIN_HTML = '<span class="coin-ico sm" aria-hidden="true"><span class="coin-ico-face"><span class="coin-ico-core"></span></span></span>';
+const COIN_HTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="gold-star-coin-ico" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FCA71D" stroke="#B57E00" stroke-width="1.5"/><circle cx="12" cy="12" r="7.5" stroke="#FFE853" stroke-width="1" stroke-dasharray="1.5 1.5"/><polygon points="12,5.5 13.9,9.8 18.5,10.2 15,13.2 16,17.7 12,15.2 8,17.7 9,13.2 5.5,10.2 10.1,9.8" fill="#FFFDF5" stroke="#D97706" stroke-width="0.75" stroke-linejoin="round"/></svg>';
 
 function createMissionCard(
   title: string,

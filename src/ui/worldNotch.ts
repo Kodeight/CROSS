@@ -50,19 +50,20 @@ export function worldCompletionPct(
 ): number {
   try {
     const active = activeWorldId === world.id;
+    if (active) {
+      const S = stretchStartFor(world.id, playerLane, save.selectedWorld);
+      const lo = Math.max(S, runStartLane);
+      const end = S + WORLD_LENGTH;
+      if (playerLane <= lo) return 0;
+      if (playerLane >= end) return 100;
+      return Math.round(((playerLane - lo) / (end - lo)) * 100);
+    }
     const best = save.worldBest[world.id] ?? 0;
-    // Standing inside the active stretch: measure from the feet (covers
-    // stepping back from a further frontier). Otherwise use the frontier.
-    const inStretch = active && worldIdForLane(playerLane, save.selectedWorld) === world.id;
-    const ref = inStretch
-      ? Math.max(best, playerLane)
-      : active ? Math.max(best, runMaxLane) : best;
-    const S = stretchStartFor(world.id, ref, save.selectedWorld);
-    const lo = Math.max(S, active ? runStartLane : S);
+    const S = stretchStartFor(world.id, best, save.selectedWorld);
     const end = S + WORLD_LENGTH;
-    if (ref <= lo) return 0;
-    if (ref >= end) return 100;
-    return Math.round(((ref - lo) / (end - lo)) * 100);
+    if (best <= S) return 0;
+    if (best >= end) return 100;
+    return Math.round(((best - S) / (end - S)) * 100);
   } catch {
     return 0;
   }

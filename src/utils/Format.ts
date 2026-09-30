@@ -35,9 +35,27 @@ export function fmtCount(n: number): string {
   return sign + String(v);
 }
 
-/** Formats coins for compact top HUD display (e.g. 123, 1.2K, 10K, 25.5K, 1M). */
+/** Formats coins for compact top HUD display (e.g. 518, 1K, 1.2K, 1.5K, 10K, 25.5K, 100K, 1M, 1.2M). */
 export function formatHudCoins(n: number): string {
-  return fmtCount(n);
+  const v = Math.floor(Math.abs(n));
+  const sign = n < 0 ? '-' : '';
+  if (v < 1000) return sign + String(v);
+
+  if (v >= 1_000_000) {
+    const val = v / 1_000_000;
+    const rounded = Math.round(val * 10) / 10;
+    const str = rounded % 1 === 0 ? String(Math.round(val)) : rounded.toFixed(1);
+    return sign + str + 'M';
+  }
+
+  const val = v / 1000;
+  if (v >= 100_000) {
+    return sign + String(Math.round(val)) + 'K';
+  }
+
+  const rounded = Math.round(val * 10) / 10;
+  const str = rounded % 1 === 0 ? String(Math.round(val)) : rounded.toFixed(1);
+  return sign + str + 'K';
 }
 
 /** Formats coins for menu display showing exact integer with locale thousands separators (e.g. 1,076, 15,342). */

@@ -568,42 +568,32 @@ export class GameManager {
   }
 
   onWaterDeath(): void {
-    if (this.dying) return;
-    this.dying = true;
-    this.player.dying = true;
-    this.deathAt = performance.now();
-    this.shake = 10;
-    this.audio.crash();
-    this.audio.duckAmbient(0.8);
-    vibrate([30, 40, 30]);
-    this.particles.burst(
-      this.player.position.x, this.player.position.y, 12,
-      0x38e1ff, 18, 300, 0.9, 400, this.lowQuality,
-    );
-    this.player.group.position.z -= 14 * GAME_CONFIG.zoom;
-    this.bus.emit('playerHit');
-    this.cb.onDeath();
+    // Water death is explicitly disabled per PART 2 spec.
+    // The player can swim/cross water without dying.
+    return;
   }
 
   updateWaterGameplay(dtMs: number): void {
     const currentWorld = this.worlds.current?.config?.id;
     if ((currentWorld === 'river' || currentWorld === 'beach') && !this.dying) {
       const activeLane = this.lanes.laneAt(this.player.lane);
-      if (activeLane && (activeLane.type === 'car' || activeLane.type === 'truck')) {
+      if (activeLane && (activeLane.variant === 'water' || currentWorld === 'river')) {
         const px = this.player.position.x;
         let onPlatform = false;
         let ridingPlatform: THREE.Group | null = null;
 
-        for (const v of activeLane.vehicles) {
-          const len = (v.userData.length as number | undefined) ?? 60;
-          const half = ((len * GAME_CONFIG.zoom) / 2) * 0.95;
-          const vMin = v.position.x - half;
-          const vMax = v.position.x + half;
+        if (activeLane.type === 'car' || activeLane.type === 'truck') {
+          for (const v of activeLane.vehicles) {
+            const len = (v.userData.length as number | undefined) ?? 60;
+            const half = ((len * GAME_CONFIG.zoom) / 2) * 0.95;
+            const vMin = v.position.x - half;
+            const vMax = v.position.x + half;
 
-          if (px >= vMin && px <= vMax) {
-            onPlatform = true;
-            ridingPlatform = v;
-            break;
+            if (px >= vMin && px <= vMax) {
+              onPlatform = true;
+              ridingPlatform = v;
+              break;
+            }
           }
         }
 
@@ -615,8 +605,12 @@ export class GameManager {
           const maxX = GAME_CONFIG.positionWidth * GAME_CONFIG.zoom * (GAME_CONFIG.columns / 2 - 0.5);
           this.player.group.position.x = Math.max(minX, Math.min(maxX, this.player.group.position.x));
           this.player.column = Math.round((this.player.group.position.x - minX) / (GAME_CONFIG.positionWidth * GAME_CONFIG.zoom));
-        } else if (!onPlatform && !this.player.moving && performance.now() > this.invulnerableUntil) {
-          this.onWaterDeath();
+        } else if (!onPlatform && !this.player.moving && !this.reducedMotion && Math.random() < 0.15) {
+          // Play water splash/bubbles visual feedback without killing player
+          this.particles.burst(
+            this.player.position.x, this.player.position.y, 3,
+            0x38e1ff, 4, 100, 0.4, 150, this.lowQuality,
+          );
         }
       }
     }
