@@ -1,0 +1,85 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.86,
+  "estimatedFidelity": 0.86,
+  "targetThreshold": 0.7,
+  "materialId": "body",
+  "sourceImage": "E:\\dev\\games\\CROSS!\\ref\\C740D9EE-2E3A-4C8D-9B46-43CE14D9FB03 9.jpg",
+  "outDir": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_jet_ski",
+  "palette": [
+    "#5990B0",
+    "#0D1844",
+    "#D3AA88",
+    "#244FD2",
+    "#65655A"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_jet_ski\\body_albedo.png",
+      "url": "/evidence/beach_jet_ski/body_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_jet_ski\\body_roughness.png",
+      "url": "/evidence/beach_jet_ski/body_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_jet_ski\\body_height.png",
+      "url": "/evidence/beach_jet_ski/body_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_jet_ski\\body_normal.png",
+      "url": "/evidence/beach_jet_ski/body_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_jet_ski\\body_ao.png",
+      "url": "/evidence/beach_jet_ski/body_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 401,
+    "sourceHeight": 193,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 401,
+      "height": 193
+    },
+    "mask": {
+      "backgroundColor": "#C78286",
+      "backgroundNoise": 132.265,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 0.8502
+    },
+    "mapStats": {
+      "valueRange": 0.6663,
+      "heightP90Gradient": 0.18176,
+      "roughnessBase": 0.736,
+      "roughnessVariation": 0.207,
+      "normalStrength": 0.369,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#5990B0",
+      "#0D1844",
+      "#D3AA88",
+      "#244FD2",
+      "#65655A"
+    ]
+  },
+  "warnings": [
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

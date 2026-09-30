@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.829,
+  "estimatedFidelity": 0.829,
+  "targetThreshold": 0.7,
+  "materialId": "body",
+  "sourceImage": "E:\\dev\\games\\CROSS!\\ref\\C740D9EE-2E3A-4C8D-9B46-43CE14D9FB03 7.jpg",
+  "outDir": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_dune_buggy",
+  "palette": [
+    "#6495BE",
+    "#1E100E",
+    "#EBBE76",
+    "#61533C",
+    "#AE7850"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_dune_buggy\\body_albedo.png",
+      "url": "/evidence/beach_dune_buggy/body_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_dune_buggy\\body_roughness.png",
+      "url": "/evidence/beach_dune_buggy/body_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_dune_buggy\\body_height.png",
+      "url": "/evidence/beach_dune_buggy/body_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_dune_buggy\\body_normal.png",
+      "url": "/evidence/beach_dune_buggy/body_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\beach_dune_buggy\\body_ao.png",
+      "url": "/evidence/beach_dune_buggy/body_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 441,
+    "sourceHeight": 197,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 441,
+      "height": 197
+    },
+    "mask": {
+      "backgroundColor": "#8D7165",
+      "backgroundNoise": 86.678,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 0.9678
+    },
+    "mapStats": {
+      "valueRange": 0.7784,
+      "heightP90Gradient": 0.23563,
+      "roughnessBase": 0.77,
+      "roughnessVariation": 0.21,
+      "normalStrength": 0.432,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#6495BE",
+      "#1E100E",
+      "#EBBE76",
+      "#61533C",
+      "#AE7850"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

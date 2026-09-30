@@ -48,12 +48,14 @@ import { CharacterPreviewManager, WorldPreviewManager } from '../ui/Previews';
 import { isTouchDevice, prefersReducedMotion, vibrate } from '../utils/DeviceUtils';
 import { modalScrollInfo, installPointerProbe, lastPointerDown } from '../utils/DebugScroll';
 import { installViewportDebug } from '../utils/ViewportDebug';
+import { installAssetsDebug } from '../utils/AssetsDebug';
 import { applyCoinTheme } from '../config/coin.config';
 import { liquidUI } from '../ui/liquidUI';
 import { showWorldTransition, updateWorldEnvironmentTheme, setPreGameTheme } from '../ui/worldNotch';
 import { getDifficultySpec } from '../config/difficulty.config';
 import { registerPWA, lockScreenOrientationPortrait } from '../pwa';
 import { PWABottomPanel } from '../ui/PWABottomPanel';
+import { preloadCollectibles, preloadNextWorld, preloadWorldVehicles } from '../assets/generated/GeneratedAssets';
 
 const DEBUG = /[?&](debug|worlddebug)/i.test(location.search);
 
@@ -166,6 +168,9 @@ export class Game implements LoopDelegate {
       }
       // On-device viewport diagnostic (?viewportdebug / ?pwadbg): live layer-by-layer
       // dimensions + build id so a physical test pinpoints lost pixels.
+      if (/[?&]assetsdbg/i.test(location.search)) {
+        installAssetsDebug();
+      }
       if (/[?&](viewportdebug|pwadbg)/i.test(location.search)) {
         installViewportDebug(() => {
           const size = new THREE.Vector2();
@@ -314,12 +319,33 @@ export class Game implements LoopDelegate {
         this.lighting.setWorld(w.config, true);
         this.lanes.setWorldTheme(w.config.safeDark);
         this.hud.update();
+        // Warm the newly selected world's 3D traffic chunk in the
+        // background so PLAY finds it cached; queue the next world too.
+        try {
+          void preloadWorldVehicles(w.config.id).then(() => preloadNextWorld(w.config.id));
+        } catch { /* fallback procedural vehicles cover any failure */ }
       },
     );
     this.missionsScreen = new MissionsScreen(this.save);
     this.settingsScreen = new SettingsScreen(this.save, this.audio, (what: 'music' | 'sfx' | 'motion' | 'quality' | 'difficulty' | 'reset' | 'tutorial') => this.onSettingsChanged(what));
     this.pwaBottomPanel = new PWABottomPanel();
     this.pwaBottomPanel.setPreGameTheme();
+
+    // img2threejs 3D assets: coin/powerups now, current world traffic next.
+    // Lanes below need them cached; any failure falls back to procedural
+    // meshes, so boot can never break on asset loading.
+    onProgress?.(37, 'FORGING 3D TRAFFIC...');
+    try {
+      await preloadCollectibles();
+    } catch (err) {
+      console.warn('[assets] collectible preload failed, using fallbacks:', err);
+    }
+    try {
+      await preloadWorldVehicles(this.save.data.selectedWorld);
+    } catch (err) {
+      console.warn('[assets] vehicle preload failed, using fallbacks:', err);
+    }
+    preloadNextWorld(this.save.data.selectedWorld);
 
     const worldName = this.worlds.current.config.name;
     // Initial showcase buffer behind the menu: full city section with the
@@ -480,8 +506,17 @@ export class Game implements LoopDelegate {
     liquidUI.refresh();
   }
 
-  private newRun(): void {
+  private async newRun(): Promise<void> {
     this.audio.click();
+    // Restart stays in the CURRENT world (never resets to CITY): ensure its
+    // traffic chunk is cached before lanes generate, then queue the next.
+    const runWorldId = this.save.data.selectedWorld;
+    try {
+      await preloadWorldVehicles(runWorldId);
+    } catch (err) {
+      console.warn('[assets] vehicle preload failed, using fallbacks:', err);
+    }
+    preloadNextWorld(runWorldId);
     this.superpowerVfx.reset();
     this.manager.newRun(
       (i) => this.makeLane(i),
@@ -663,11 +698,11 @@ export class Game implements LoopDelegate {
       const e = document.getElementById(id);
       if (e) e.addEventListener('click', fn);
     };
-    on('btn-play', () => this.newRun());
-    on('btn-again', () => this.newRun());
+    on('btn-play', () => { void this.newRun(); });
+    on('btn-again', () => { void this.newRun(); });
     on('btn-resume', () => this.resume());
     on('btn-x-pause', () => this.resume());
-    on('btn-restart-pause', () => this.newRun());
+    on('btn-restart-pause', () => { void this.newRun(); });
     on('btn-home-pause', () => { this.audio.click(); this.toMenu(); });
     on('btn-home', () => { this.audio.click(); this.toMenu(); });
     const openScreen = (target: GameState) => {

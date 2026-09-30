@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.829,
+  "estimatedFidelity": 0.829,
+  "targetThreshold": 0.7,
+  "materialId": "body",
+  "sourceImage": "E:\\dev\\games\\CROSS!\\ref\\C740D9EE-2E3A-4C8D-9B46-43CE14D9FB03 3.jpg",
+  "outDir": "E:\\dev\\games\\CROSS!\\public\\evidence\\city_suv",
+  "palette": [
+    "#1A2342",
+    "#0F0810",
+    "#AB3133",
+    "#DA6F72",
+    "#303658"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\city_suv\\body_albedo.png",
+      "url": "/evidence/city_suv/body_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\city_suv\\body_roughness.png",
+      "url": "/evidence/city_suv/body_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\city_suv\\body_height.png",
+      "url": "/evidence/city_suv/body_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\city_suv\\body_normal.png",
+      "url": "/evidence/city_suv/body_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\city_suv\\body_ao.png",
+      "url": "/evidence/city_suv/body_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 389,
+    "sourceHeight": 210,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 389,
+      "height": 210
+    },
+    "mask": {
+      "backgroundColor": "#18264E",
+      "backgroundNoise": 10.817,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 1.0
+    },
+    "mapStats": {
+      "valueRange": 0.5073,
+      "heightP90Gradient": 0.25717,
+      "roughnessBase": 0.729,
+      "roughnessVariation": 0.214,
+      "normalStrength": 0.458,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#1A2342",
+      "#0F0810",
+      "#AB3133",
+      "#DA6F72",
+      "#303658"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

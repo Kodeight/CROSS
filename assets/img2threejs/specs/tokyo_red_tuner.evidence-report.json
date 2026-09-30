@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.829,
+  "estimatedFidelity": 0.829,
+  "targetThreshold": 0.7,
+  "materialId": "body",
+  "sourceImage": "E:\\dev\\games\\CROSS!\\ref\\C740D9EE-2E3A-4C8D-9B46-43CE14D9FB03 14.jpg",
+  "outDir": "E:\\dev\\games\\CROSS!\\public\\evidence\\tokyo_red_tuner",
+  "palette": [
+    "#2D1B55",
+    "#3C268E",
+    "#BB3456",
+    "#180510",
+    "#D77ABF"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\tokyo_red_tuner\\body_albedo.png",
+      "url": "/evidence/tokyo_red_tuner/body_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\tokyo_red_tuner\\body_roughness.png",
+      "url": "/evidence/tokyo_red_tuner/body_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\tokyo_red_tuner\\body_height.png",
+      "url": "/evidence/tokyo_red_tuner/body_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\tokyo_red_tuner\\body_normal.png",
+      "url": "/evidence/tokyo_red_tuner/body_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\tokyo_red_tuner\\body_ao.png",
+      "url": "/evidence/tokyo_red_tuner/body_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 429,
+    "sourceHeight": 188,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 429,
+      "height": 188
+    },
+    "mask": {
+      "backgroundColor": "#1F1A86",
+      "backgroundNoise": 64.031,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 0.996
+    },
+    "mapStats": {
+      "valueRange": 0.5682,
+      "heightP90Gradient": 0.21406,
+      "roughnessBase": 0.764,
+      "roughnessVariation": 0.21,
+      "normalStrength": 0.407,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#2D1B55",
+      "#3C268E",
+      "#BB3456",
+      "#180510",
+      "#D77ABF"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

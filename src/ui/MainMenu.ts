@@ -14,9 +14,11 @@ export class MainMenu {
       const e = document.getElementById(id);
       if (e) e.textContent = v;
     };
+    // Menus show the full exact integer (HUD alone uses compact fmtCount).
+    const exactCoins = String(Math.floor(this.save.data.coins));
     set('menu-best', fmtCount(this.save.data.bestScore));
-    set('menu-coins', fmtCount(this.save.data.coins));
-    set('menu-top-coins', fmtCount(this.save.data.coins));
+    set('menu-coins', exactCoins);
+    set('menu-top-coins', exactCoins);
 
     const currentStreak = Math.max(1, this.save.data.streak?.currentStreak ?? 1);
     const dayWord = currentStreak === 1 ? 'DAY' : 'DAYS';

@@ -39,6 +39,30 @@
   } catch(e){}
 })();
 </script>
+<script>
+/* file:// guard: ES modules + root-absolute assets are blocked by CORS on the
+   file protocol, so double-clicking dist/index.html can only show a black
+   screen. Explain instead of failing silently. Classic script = runs on file://. */
+(function(){
+  try {
+    if (location.protocol === 'file:') {
+      document.addEventListener('DOMContentLoaded', function(){
+        document.body.innerHTML =
+          '<div style="font-family:system-ui,sans-serif;max-width:560px;margin:12vh auto;padding:28px;' +
+          'background:#FFFDF5;border-radius:16px;color:#1E2430;line-height:1.55">' +
+          '<h1 style="margin:0 0 8px">CROSS! needs a local server</h1>' +
+          '<p style="margin:0 0 12px">You opened the built file directly ' +
+          '(<code>file://</code>), which browsers block: scripts, styles and ' +
+          'game assets cannot load that way.</p>' +
+          '<p style="margin:0">From the project folder run one of:<br>' +
+          '<code>npm run dev</code> (play + develop),<br>' +
+          '<code>npm run preview</code> (play the <code>dist/</code> build),<br>' +
+          'or deploy <code>dist/</code> to any static host.</p></div>';
+      });
+    }
+  } catch(e){}
+})();
+</script>
 <style>
 /* ============================================================
    FIRST-PAINT BOOT LAYER — no JS, no Three.js, no async.

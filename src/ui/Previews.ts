@@ -322,6 +322,7 @@ function createWorldDiorama(world: WorldConfig): THREE.Group {
       ball(4, 0xbcd8ee, 10, 2, 8);
       break;
     }
+    case 'tokyo':
     case 'neon': {
       box(4, 18, 4, 0x38e1ff, -10, 9, -6, 0x38e1ff);
       box(4, 22, 4, 0xff3fb4, 8, 11, 4, 0xff3fb4);

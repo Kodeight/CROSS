@@ -12,6 +12,7 @@ import * as THREE from 'three';
 import { GAME_CONFIG } from '../../config/game.config';
 import { vehicleSpec } from '../../config/traffic.config';
 import type { AssetManager } from '../../assets/AssetManager';
+import { buildGeneratedVehicle, chunkForVehicleKind, noteFallback } from '../../assets/generated/GeneratedAssets';
 import { pick } from '../../utils/Random';
 
 const ZOOM = GAME_CONFIG.zoom;
@@ -180,8 +181,24 @@ export class VehicleFactory {
 
   create(kind: string): BuiltVehicle {
     const spec = vehicleSpec(kind);
-    const g = new THREE.Group() as BuiltVehicle;
     const len = Math.round(spec.length * 1.76);
+    // img2threejs reference-built 3D vehicles: same lengths/speeds as the
+    // catalogue so spacing/collision math is untouched. Falls back to the
+    // procedural builder below when the chunk is not loaded or fails.
+    if (chunkForVehicleKind(kind)) {
+      const generated = buildGeneratedVehicle(kind, len);
+      if (generated) {
+        const g = generated as BuiltVehicle;
+        g.userData.length = len;
+        g.userData.kind = kind;
+        g.userData.speed = spec.baseSpeed;
+        g.userData.prevDx = null;
+        return g;
+      }
+      console.warn(`[vehicles] generated asset "${kind}" not ready, using fallback`);
+      noteFallback(kind);
+    }
+    const g = new THREE.Group() as BuiltVehicle;
     const bodyW = 28;
     const color = kind === 'taxi' ? 0xffc107 : pick(BODY_COLORS);
     const speed = spec.baseSpeed;

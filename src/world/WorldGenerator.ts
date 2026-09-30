@@ -14,7 +14,9 @@ import type { TreeFactory } from './environment/TreeFactory';
 import type { Lane, LaneType, World } from './World';
 import { TRAFFIC_CONFIG } from '../config/traffic.config';
 import { COIN_SPEC, coinColor } from '../config/coin.config';
-import { collectibleForWorld } from '../config/collectibles.config';
+import { activeCollectibleForWorld } from '../config/collectibles.config';
+import { buildGeneratedCollectible, isGeneratedKindReady, noteFallback } from '../assets/generated/GeneratedAssets';
+import type { PowerUpType } from '../config/powerups.config';
 import { getDifficultySpec, type DifficultyLevel } from '../config/difficulty.config';
 import { pick } from '../utils/Random';
 
@@ -198,7 +200,59 @@ export class WorldGenerator {
     }
   }
 
+  /**
+   * img2threejs powerType → reference-built factory kind. fire_shield reuses
+   * the shield factory with a heat tint; double_jump/low_gravity share the
+   * spring factory. Returns null when the chunk is not loaded yet.
+   */
+  private generatedPowerCore(powerType: PowerUpType): THREE.Group | null {
+    const KIND: Record<string, string> = {
+      shield: 'powerup_shield',
+      fire_shield: 'powerup_shield',
+      magnet: 'powerup_magnet',
+      dash: 'powerup_speed',
+      freeze: 'powerup_freeze',
+      time_warp: 'powerup_slow_time',
+      ghost: 'powerup_ghost',
+      double_jump: 'powerup_jump_boost',
+      low_gravity: 'powerup_jump_boost',
+      coin_mult: 'powerup_double_coins',
+    };
+    const kind = KIND[powerType];
+    if (!kind || !isGeneratedKindReady(kind)) return null;
+    const core = buildGeneratedCollectible(kind, 13 * ZOOM);
+    if (!core) {
+      console.warn(`[collectibles] generated asset "${kind}" failed, using fallback`);
+      noteFallback(kind);
+      return null;
+    }
+    if (powerType === 'fire_shield') {
+      // Heat variant of the shield factory: clone materials so the shared
+      // prototype stays blue, then shift toward magma red.
+      core.traverse((child) => {
+        const mesh = child as THREE.Mesh;
+        if ((mesh as THREE.Mesh).isMesh) {
+          const mat = mesh.material as THREE.MeshStandardMaterial;
+          if (mat && (mat as THREE.MeshStandardMaterial).isMeshStandardMaterial) {
+            mesh.material = mat.clone();
+            (mesh.material as THREE.MeshStandardMaterial).color.offsetHSL(-0.55, 0.1, 0);
+            (mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x771100);
+          }
+        }
+      });
+    }
+    return core;
+  }
+
   makeCoinMesh(): THREE.Group {
+    // New 3D coin: thick, beveled, polished gold with star emboss —
+    // reference-built via the local img2threejs pipeline.
+    if (isGeneratedKindReady('coin_star')) {
+      const generated = buildGeneratedCollectible('coin_star', 16 * ZOOM, true);
+      if (generated) return generated;
+      console.warn('[collectibles] generated asset "coin_star" failed, using fallback');
+      noteFallback('coin_star');
+    }
     const g = new THREE.Group();
     const R = 8 * ZOOM;
     const T = 2.5 * ZOOM;
@@ -239,7 +293,26 @@ export class WorldGenerator {
    */
   makeCollectibleMesh(worldId: string): THREE.Group {
     const g = new THREE.Group();
-    const colDef = collectibleForWorld(worldId);
+    const colDef = activeCollectibleForWorld(worldId);
+    // Reference-built 3D powerup core (img2threejs pipeline) with the
+    // signature glow halo. Falls through to the procedural branches when the
+    // chunk has not finished loading — never a missing/blank pickup.
+    const generatedCore = this.generatedPowerCore(colDef.powerType);
+    if (generatedCore) {
+      const halo = new THREE.Mesh(
+        this.assets.torus(`col-halo:${colDef.id}`, 9.5 * ZOOM, 1.2 * ZOOM, 8, 24),
+        this.assets.standard(`col-halo-mat:${colDef.id}`, colDef.glowColor, {
+          metalness: 0.9,
+          roughness: 0.1,
+          emissive: colDef.glowColor,
+        }),
+      );
+      halo.rotation.x = Math.PI / 2;
+      halo.position.z = -7 * ZOOM;
+      g.add(halo);
+      g.add(generatedCore);
+      return g;
+    }
 
     // Glowing ground aura halo ring
     const halo = new THREE.Mesh(
@@ -588,7 +661,7 @@ export class WorldGenerator {
     if (index <= 4) return 'field';
 
     const spec = getDifficultySpec(difficultyLevel);
-    const maxConsecutive = world.id === 'neon' ? (spec.id === 'EASY' ? 1 : 2) : (spec.id === 'EASY' ? 2 : spec.id === 'EXTREME' ? 4 : 3);
+    const maxConsecutive = world.id === 'tokyo' ? (spec.id === 'EASY' ? 1 : 2) : (spec.id === 'EASY' ? 2 : spec.id === 'EXTREME' ? 4 : 3);
     
     if (this.consecutiveRoads >= maxConsecutive) {
       return Math.random() < (spec.id === 'EASY' ? 0.8 : 0.6) ? 'field' : 'forest';
@@ -598,12 +671,12 @@ export class WorldGenerator {
     let roadW = world.laneMix.road * (spec.id === 'EASY' ? 0.75 : spec.id === 'EXTREME' ? 1.25 : 1.0);
     const forestW = world.laneMix.obst;
 
-    if (world.id === 'neon' && this.consecutiveRoads >= 1) {
+    if (world.id === 'tokyo' && this.consecutiveRoads >= 1) {
       roadW *= 0.42;
     }
     if (world.id === 'beach' && district === 0) roadW += 0.08;
     if (world.id === 'beach' && district === 3) roadW = Math.max(0.2, roadW - 0.12);
-    if (index > 40 && world.id !== 'neon') roadW = Math.min(0.58, roadW + 0.04);
+    if (index > 40 && world.id !== 'tokyo') roadW = Math.min(0.58, roadW + 0.04);
 
     if (r < roadW) return Math.random() < world.carSplit ? 'car' : 'truck';
     if (r < roadW + forestW) return 'forest';
@@ -785,7 +858,7 @@ export class WorldGenerator {
         const probe = this.vehicles.create(kind);
         const px0 = (slot / slots - 0.5) * BOARD * 1.1;
         const ph0 = (probe.userData.length * ZOOM) / 2;
-        const baseMinGap = world.id === 'neon' ? 85 : TRAFFIC_CONFIG.minGap;
+        const baseMinGap = world.id === 'tokyo' ? 85 : TRAFFIC_CONFIG.minGap;
         const minGap = baseMinGap * dif.minGapFactor;
         
         let ok = true;
@@ -824,7 +897,7 @@ export class WorldGenerator {
         }
       }
       this.laneDecor(lane, def, opts.playerX);
-      this.enforceLaneSpacing(lane, (world.id === 'neon' ? 65 : TRAFFIC_CONFIG.minGap) * dif.minGapFactor);
+      this.enforceLaneSpacing(lane, (world.id === 'tokyo' ? 65 : TRAFFIC_CONFIG.minGap) * dif.minGapFactor);
     }
 
     // Coins & World Superpower Collectibles placement on safe lanes
@@ -847,7 +920,7 @@ export class WorldGenerator {
         // Spawn signature superpower collectible based on difficulty's powerSpawnChance
         const isCollectible = Math.random() < dif.powerSpawnChance;
         if (isCollectible) {
-          const colDef = collectibleForWorld(world.id);
+          const colDef = activeCollectibleForWorld(world.id);
           const mesh = this.makeCollectibleMesh(world.id);
           mesh.position.set((col * PW + PW / 2) * ZOOM - BOARD / 2, 0, 12 * ZOOM);
           lane.mesh.add(mesh);

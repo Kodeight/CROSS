@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.829,
+  "estimatedFidelity": 0.829,
+  "targetThreshold": 0.7,
+  "materialId": "body",
+  "sourceImage": "E:\\dev\\games\\CROSS!\\ref\\C740D9EE-2E3A-4C8D-9B46-43CE14D9FB03 10.jpg",
+  "outDir": "E:\\dev\\games\\CROSS!\\public\\evidence\\volcano_armored_truck",
+  "palette": [
+    "#3A1822",
+    "#64292B",
+    "#130508",
+    "#B64A34",
+    "#E19B67"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\volcano_armored_truck\\body_albedo.png",
+      "url": "/evidence/volcano_armored_truck/body_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\volcano_armored_truck\\body_roughness.png",
+      "url": "/evidence/volcano_armored_truck/body_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\volcano_armored_truck\\body_height.png",
+      "url": "/evidence/volcano_armored_truck/body_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\volcano_armored_truck\\body_normal.png",
+      "url": "/evidence/volcano_armored_truck/body_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\volcano_armored_truck\\body_ao.png",
+      "url": "/evidence/volcano_armored_truck/body_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 395,
+    "sourceHeight": 203,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 395,
+      "height": 203
+    },
+    "mask": {
+      "backgroundColor": "#361724",
+      "backgroundNoise": 15.937,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 0.9947
+    },
+    "mapStats": {
+      "valueRange": 0.4991,
+      "heightP90Gradient": 0.27409,
+      "roughnessBase": 0.795,
+      "roughnessVariation": 0.215,
+      "normalStrength": 0.477,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#3A1822",
+      "#64292B",
+      "#130508",
+      "#B64A34",
+      "#E19B67"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

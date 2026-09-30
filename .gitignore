@@ -3,6 +3,7 @@ node_modules/
 
 # Production build output (Vercel builds from source)
 dist/
+dev-dist/
 
 # Local prompt/spec docs — not part of the game
 arc.md

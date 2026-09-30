@@ -225,24 +225,19 @@ const WORLD_POOL: DailyMissionDef[] = [
     isComplete: (d) => (d.worldLanes['city'] ?? 0) >= 25,
   },
   {
-    id: 'dm_world_jungle', category: 'world', title: 'Jungle Trek: Cross 25 lanes in Jungle today', reward: 100, target: 25,
-    getProgress: (d) => { const c = d.worldLanes['jungle'] ?? 0; return { current: c, target: 25, formatted: `${Math.min(c, 25)}/25` }; },
-    isComplete: (d) => (d.worldLanes['jungle'] ?? 0) >= 25,
+    id: 'dm_world_river', category: 'world', title: 'River Run: Cross 25 lanes in River today', reward: 100, target: 25,
+    getProgress: (d) => { const c = d.worldLanes['river'] ?? 0; return { current: c, target: 25, formatted: `${Math.min(c, 25)}/25` }; },
+    isComplete: (d) => (d.worldLanes['river'] ?? 0) >= 25,
   },
   {
-    id: 'dm_world_desert', category: 'world', title: 'Dune Cruiser: Cross 25 lanes in Desert today', reward: 120, target: 25,
-    getProgress: (d) => { const c = d.worldLanes['desert'] ?? 0; return { current: c, target: 25, formatted: `${Math.min(c, 25)}/25` }; },
-    isComplete: (d) => (d.worldLanes['desert'] ?? 0) >= 25,
+    id: 'dm_world_volcano', category: 'world', title: 'Magma Trek: Cross 25 lanes in Volcano today', reward: 140, target: 25,
+    getProgress: (d) => { const c = d.worldLanes['volcano'] ?? 0; return { current: c, target: 25, formatted: `${Math.min(c, 25)}/25` }; },
+    isComplete: (d) => (d.worldLanes['volcano'] ?? 0) >= 25,
   },
   {
-    id: 'dm_world_snow', category: 'world', title: 'Blizzard Rider: Cross 25 lanes in Snow today', reward: 140, target: 25,
-    getProgress: (d) => { const c = d.worldLanes['snow'] ?? 0; return { current: c, target: 25, formatted: `${Math.min(c, 25)}/25` }; },
-    isComplete: (d) => (d.worldLanes['snow'] ?? 0) >= 25,
-  },
-  {
-    id: 'dm_world_neon', category: 'world', title: 'Night City: Cross 25 lanes in Neon today', reward: 160, target: 25,
-    getProgress: (d) => { const c = d.worldLanes['neon'] ?? 0; return { current: c, target: 25, formatted: `${Math.min(c, 25)}/25` }; },
-    isComplete: (d) => (d.worldLanes['neon'] ?? 0) >= 25,
+    id: 'dm_world_tokyo', category: 'world', title: 'Neon Drift: Cross 25 lanes in Tokyo today', reward: 160, target: 25,
+    getProgress: (d) => { const c = d.worldLanes['tokyo'] ?? 0; return { current: c, target: 25, formatted: `${Math.min(c, 25)}/25` }; },
+    isComplete: (d) => (d.worldLanes['tokyo'] ?? 0) >= 25,
   },
   {
     id: 'dm_world_beach', category: 'world', title: 'Coastal Drift: Cross 25 lanes in Beach today', reward: 180, target: 25,

@@ -1,4 +1,4 @@
-/** §11 — owns the current world: selection, lookup, lane→world progression. All 20 worlds supported. */
+/** §11 — owns the current world: selection, lookup, lane→world progression. Exactly five active worlds (CITY → RIVER → BEACH → VOLCANO → TOKYO). */
 import { WORLDS, WORLD_LENGTH, worldById, worldIndex, beachDistrict, type WorldConfig } from '../config/worlds.config';
 import type { World } from './World';
 import type { PropFactory, PropBuilder } from './environment/PropFactory';

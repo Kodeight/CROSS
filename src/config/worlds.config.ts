@@ -1,5 +1,5 @@
 /**
- * World and stage definitions for all 20 worlds.
+ * World and stage definitions for the five active CROSS! worlds.
  * Gameplay systems consume lane/vehicle config; visuals come from factories.
  */
 
@@ -56,7 +56,11 @@ function defaultStages(worldName: string, baseRoad: number, baseObst: number): W
   ];
 }
 
-export const WORLDS: WorldConfig[] = [
+/**
+ * Full 20-world history, preserved internally for safe save migration only.
+ * NEVER exposed to gameplay, store, selection, or progression — see WORLDS below.
+ */
+const ALL_WORLD_CONFIGS: WorldConfig[] = [
   // 01 — City
   {
     id: 'city', name: 'CITY', num: '01', price: 0,
@@ -64,7 +68,7 @@ export const WORLDS: WorldConfig[] = [
     sky: 0x8ecae6, fog: 0x8ecae6, fogNear: 2600, fogFar: 6000,
     hemiSky: 0xffffff, hemiGround: 0x8a8f7a, hemiI: 0.75, dirColor: 0xfff2dd, dirI: 0.65,
     laneMix: { road: 0.46, obst: 0.28 }, carSplit: 0.62, speedMul: 1.0,
-    carKinds: ['car', 'car', 'taxi', 'van', 'police', 'ambulance', 'fire_truck'], truckKinds: ['bus', 'truck', 'van'],
+    carKinds: ['city_taxi', 'city_taxi', 'city_suv', 'city_suv'], truckKinds: ['city_bus'],
     variants: ['crosswalk'], weather: null,
     difficultyBase: 1.0,
     stages: defaultStages('City', 0.42, 0.26),
@@ -76,7 +80,7 @@ export const WORLDS: WorldConfig[] = [
     sky: 0x82ccdd, fog: 0x93d5e4, fogNear: 1600, fogFar: 4400,
     hemiSky: 0xffffff, hemiGround: 0x4a7c59, hemiI: 0.8, dirColor: 0xfff9e6, dirI: 0.7,
     laneMix: { road: 0.44, obst: 0.30 }, carSplit: 0.58, speedMul: 0.95,
-    carKinds: ['log', 'lilypad', 'boat'], truckKinds: ['log', 'boat'],
+    carKinds: ['river_fishing_boat', 'river_speed_boat'], truckKinds: ['river_cargo_boat'],
     variants: ['bridge'], weather: null,
     difficultyBase: 1.08,
     stages: defaultStages('River', 0.44, 0.30),
@@ -88,7 +92,7 @@ export const WORLDS: WorldConfig[] = [
     sky: 0x9fdcf5, fog: 0x9fdcf5, fogNear: 1500, fogFar: 4200,
     hemiSky: 0xffffff, hemiGround: 0xc7b083, hemiI: 0.85, dirColor: 0xfff3d0, dirI: 0.78,
     laneMix: { road: 0.42, obst: 0.30 }, carSplit: 0.6, speedMul: 0.95,
-    carKinds: ['buggy', 'van', 'boat'], truckKinds: ['van', 'truck'],
+    carKinds: ['beach_dune_buggy', 'beach_atv'], truckKinds: ['beach_jet_ski', 'beach_dune_buggy'],
     variants: ['boardwalk'], weather: null,
     difficultyBase: 1.15,
     stages: defaultStages('Beach', 0.42, 0.30),
@@ -172,7 +176,7 @@ export const WORLDS: WorldConfig[] = [
     sky: 0x4a140e, fog: 0x5c1a12, fogNear: 1300, fogFar: 3600,
     hemiSky: 0xff7744, hemiGround: 0x2b0d06, hemiI: 0.85, dirColor: 0xff8844, dirI: 0.8,
     laneMix: { road: 0.45, obst: 0.32 }, carSplit: 0.58, speedMul: 1.05,
-    carKinds: ['miner', 'buggy', 'truck'], truckKinds: ['truck', 'miner'],
+    carKinds: ['volcano_armored_truck', 'volcano_drill_vehicle'], truckKinds: ['volcano_dump_truck', 'volcano_armored_truck'],
     variants: ['bridge'], weather: 'embers',
     difficultyBase: 1.68,
     stages: defaultStages('Volcano', 0.45, 0.32),
@@ -256,7 +260,7 @@ export const WORLDS: WorldConfig[] = [
     sky: 0x2c1f36, fog: 0x3c2b4a, fogNear: 1500, fogFar: 4000,
     hemiSky: 0xff9ff3, hemiGround: 0x221a28, hemiI: 0.82, dirColor: 0xffb8b8, dirI: 0.74,
     laneMix: { road: 0.48, obst: 0.28 }, carSplit: 0.62, speedMul: 1.05,
-    carKinds: ['car', 'taxi', 'sports', 'moto'], truckKinds: ['truck', 'bus'],
+    carKinds: ['tokyo_white_tuner', 'tokyo_red_tuner'], truckKinds: ['tokyo_neon_tram'],
     variants: ['crosswalk'], weather: null,
     difficultyBase: 2.45,
     stages: defaultStages('Tokyo', 0.48, 0.28),
@@ -299,24 +303,68 @@ export const WORLDS: WorldConfig[] = [
   },
 ];
 
+/**
+ * CROSS! now ships EXACTLY FIVE active worlds:
+ * CITY → RIVER → BEACH → VOLCANO → TOKYO.
+ * Everything else lives in ALL_WORLD_CONFIGS (legacy, migration only).
+ */
+export const ACTIVE_WORLD_IDS = ['city', 'river', 'beach', 'volcano', 'tokyo'] as const;
+export type ActiveWorldId = (typeof ACTIVE_WORLD_IDS)[number];
+
+const ACTIVE_WORLD_META: Record<string, { num: string; price: number }> = {
+  city: { num: '01', price: 0 },
+  river: { num: '02', price: 500 },
+  beach: { num: '03', price: 1200 },
+  volcano: { num: '04', price: 4500 },
+  tokyo: { num: '05', price: 9000 },
+};
+
+export const WORLDS: WorldConfig[] = ACTIVE_WORLD_IDS.map((id) => {
+  const cfg = ALL_WORLD_CONFIGS.find((w) => w.id === id)!;
+  const meta = ACTIVE_WORLD_META[id];
+  return { ...cfg, num: meta.num, price: meta.price };
+});
+
+/** Legacy 20-world history — save-migration use only, never gameplay. */
+export const LEGACY_WORLDS: WorldConfig[] = ALL_WORLD_CONFIGS;
+
+export function isActiveWorldId(id: string): boolean {
+  return (ACTIVE_WORLD_IDS as readonly string[]).includes(id.toLowerCase());
+}
+
 export function worldById(id: string): WorldConfig {
   const norm = id.toLowerCase();
-  // Support aliases for backwards compatibility
+  // Legacy names resolve to their nearest active world so old saves keep working.
   const aliasMap: Record<string, string> = {
-    neon: 'night_city',
-    countryside: 'farm',
-    temple: 'ruins',
-    ancient_ruins: 'ruins',
+    neon: 'tokyo',
+    night_city: 'tokyo',
+    countryside: 'city',
+    farm: 'city',
+    temple: 'volcano',
+    ancient_ruins: 'volcano',
+    ruins: 'volcano',
     flooded: 'river',
-    railway: 'highway',
-    industrial: 'harbor',
-    mountain: 'snow',
-    fantasy: 'candy',
-    pirate: 'harbor',
-    ocean: 'underwater',
-    moon: 'space',
-    sky: 'sky_island',
-    alien: 'space',
+    railway: 'city',
+    highway: 'city',
+    industrial: 'volcano',
+    harbor: 'river',
+    mountain: 'volcano',
+    snow: 'volcano',
+    fantasy: 'beach',
+    candy: 'beach',
+    pirate: 'river',
+    ocean: 'river',
+    underwater: 'river',
+    moon: 'tokyo',
+    space: 'tokyo',
+    sky: 'beach',
+    sky_island: 'beach',
+    alien: 'tokyo',
+    forest: 'city',
+    jungle: 'city',
+    desert: 'volcano',
+    wildlife: 'city',
+    airport: 'city',
   };
   const targetId = aliasMap[norm] || norm;
   for (const w of WORLDS) if (w.id === targetId) return w;

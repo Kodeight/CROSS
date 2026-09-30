@@ -1,0 +1,87 @@
+{
+  "ok": true,
+  "verdict": "pass",
+  "confidence": 0.829,
+  "estimatedFidelity": 0.829,
+  "targetThreshold": 0.7,
+  "materialId": "body",
+  "sourceImage": "E:\\dev\\games\\CROSS!\\ref\\C740D9EE-2E3A-4C8D-9B46-43CE14D9FB03 6.jpg",
+  "outDir": "E:\\dev\\games\\CROSS!\\public\\evidence\\river_cargo_boat",
+  "palette": [
+    "#35709A",
+    "#152F46",
+    "#271015",
+    "#38545F",
+    "#D3AF8B"
+  ],
+  "maps": {
+    "albedo": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\river_cargo_boat\\body_albedo.png",
+      "url": "/evidence/river_cargo_boat/body_albedo.png",
+      "channel": "albedo",
+      "source": "reference-pixel-extraction"
+    },
+    "roughness": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\river_cargo_boat\\body_roughness.png",
+      "url": "/evidence/river_cargo_boat/body_roughness.png",
+      "channel": "roughness",
+      "source": "reference-pixel-extraction"
+    },
+    "height": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\river_cargo_boat\\body_height.png",
+      "url": "/evidence/river_cargo_boat/body_height.png",
+      "channel": "height",
+      "source": "reference-pixel-extraction"
+    },
+    "normal": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\river_cargo_boat\\body_normal.png",
+      "url": "/evidence/river_cargo_boat/body_normal.png",
+      "channel": "normal",
+      "source": "reference-pixel-extraction"
+    },
+    "ao": {
+      "path": "E:\\dev\\games\\CROSS!\\public\\evidence\\river_cargo_boat\\body_ao.png",
+      "url": "/evidence/river_cargo_boat/body_ao.png",
+      "channel": "ao",
+      "source": "reference-pixel-extraction"
+    }
+  },
+  "diagnostics": {
+    "sourceWidth": 481,
+    "sourceHeight": 234,
+    "mapSize": 256,
+    "cropBBoxPixels": {
+      "x": 0,
+      "y": 0,
+      "width": 481,
+      "height": 234
+    },
+    "mask": {
+      "backgroundColor": "#46644A",
+      "backgroundNoise": 76.864,
+      "transparentPixelFraction": 0.0,
+      "foregroundCoverage": 0.9834
+    },
+    "mapStats": {
+      "valueRange": 0.5732,
+      "heightP90Gradient": 0.25539,
+      "roughnessBase": 0.762,
+      "roughnessVariation": 0.215,
+      "normalStrength": 0.456,
+      "blurRadius": 5
+    },
+    "palette": [
+      "#35709A",
+      "#152F46",
+      "#271015",
+      "#38545F",
+      "#D3AF8B"
+    ]
+  },
+  "warnings": [
+    "image is not clearly isolated from background; using most pixels as material evidence",
+    "object/background separation is weak",
+    "single-image inverse rendering cannot prove true physical PBR; confidence is capped"
+  ],
+  "limitation": "single-image PBR extraction is an estimate; 70%+ extraction confidence still needs render screenshot review"
+}

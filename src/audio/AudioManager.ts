@@ -537,7 +537,7 @@ export class AudioManager {
         filter.connect(ambGain);
         noise.start(0);
         createdNodes.push(noise, filter);
-      } else if (world === 'night_city' || world === 'neon') {
+      } else if (world === 'night_city' || world === 'neon' || world === 'tokyo') {
         // 09 NIGHT CITY: Cyberpunk electronic city hum + illuminated neon glow
         const osc = this.ctx.createOscillator();
         osc.type = 'sawtooth';

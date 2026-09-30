@@ -37,7 +37,7 @@ export const CHARACTERS: CharacterConfig[] = [
   // 09 — Night City: Cyberpunk DJ Chicken with visor & headphones
   { id: 'night_city', name: 'CYBERPUNK DJ', worldNum: '09', worldName: 'NIGHT CITY', cost: 5000, body: 0xffffff, accent: 0xff3fb4, beak: 0x38e1ff, comb: 0xff3fb4, feet: 0xff3fb4, skinType: 'night_city' },
   // 10 — Volcano: Magma Fire Chicken with obsidian lava armor
-  { id: 'volcano', name: 'MAGMA CHICKEN', worldNum: '10', worldName: 'VOLCANO', cost: 6500, body: 0x241410, accent: 0xff5252, beak: 0xff793f, comb: 0xff3838, feet: 0xff793f, skinType: 'volcano' },
+  { id: 'volcano', name: 'MAGMA CHICKEN', worldNum: '04', worldName: 'VOLCANO', cost: 6500, body: 0x241410, accent: 0xff5252, beak: 0xff793f, comb: 0xff3838, feet: 0xff793f, skinType: 'volcano' },
   // 11 — Airport: Airline Pilot Chicken with captain hat & tie
   { id: 'airport', name: 'AIRLINE PILOT', worldNum: '11', worldName: 'AIRPORT', cost: 8000, body: 0xffffff, accent: 0x1e272e, beak: 0xff9f1a, comb: 0xff2e44, feet: 0xff9f1a, skinType: 'airport' },
   // 12 — Harbor: Navy Captain Chicken with naval hat
@@ -51,7 +51,7 @@ export const CHARACTERS: CharacterConfig[] = [
   // 16 — Space: Astronaut Chicken in pressurized spacesuit
   { id: 'space', name: 'ASTRONAUT', worldNum: '16', worldName: 'SPACE', cost: 22000, body: 0xffffff, accent: 0x38e1ff, beak: 0xff9f1a, comb: 0xff4757, feet: 0xffffff, skinType: 'space' },
   // 17 — Tokyo: Samurai Chicken with red kabuto helmet
-  { id: 'tokyo', name: 'SAMURAI CHICKEN', worldNum: '17', worldName: 'TOKYO', cost: 27000, body: 0xffffff, accent: 0xe74c3c, beak: 0xff9f1a, comb: 0xff2e44, feet: 0xe08a00, skinType: 'tokyo' },
+  { id: 'tokyo', name: 'SAMURAI CHICKEN', worldNum: '05', worldName: 'TOKYO', cost: 27000, body: 0xffffff, accent: 0xe74c3c, beak: 0xff9f1a, comb: 0xff2e44, feet: 0xe08a00, skinType: 'tokyo' },
   // 18 — Wildlife: Safari Guide Chicken with camera & pith helmet
   { id: 'wildlife', name: 'WILDLIFE GUIDE', worldNum: '18', worldName: 'WILDLIFE', cost: 33000, body: 0xffffff, accent: 0xb08b52, beak: 0xff9f1a, comb: 0xff4757, feet: 0xb08b52, skinType: 'wildlife' },
   // 19 — Underwater: Scuba Diver Chicken with diving mask & snorkel

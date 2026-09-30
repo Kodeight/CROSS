@@ -285,3 +285,45 @@ export const WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
 export function collectibleForWorld(worldId: string): WorldCollectibleDef {
   return WORLD_COLLECTIBLES[worldId.toLowerCase()] ?? WORLD_COLLECTIBLES.city;
 }
+
+/**
+ * Active five-world collectible roster (CITY → RIVER → BEACH → VOLCANO → TOKYO).
+ * Each world's signature item maps to a usable superpower; visuals come from
+ * the img2threejs reference-built powerup factories (see GeneratedAssets).
+ */
+export const ACTIVE_WORLD_COLLECTIBLES: Record<string, WorldCollectibleDef> = {
+  city: WORLD_COLLECTIBLES.city,
+  river: {
+    id: 'tide_magnet',
+    worldId: 'river',
+    name: 'Tide Magnet',
+    category: 'nature',
+    color: 0xe74c3c,
+    glowColor: 0xffc93c,
+    emissive: 0x330805,
+    bonusCoins: 7,
+    powerType: 'magnet',
+    description: 'River-worn lodestone pulling every nearby coin to your hero.',
+    shape: 'cell',
+  },
+  beach: WORLD_COLLECTIBLES.beach,
+  volcano: WORLD_COLLECTIBLES.volcano,
+  tokyo: {
+    id: 'chrono_core',
+    worldId: 'tokyo',
+    name: 'Chrono Core',
+    category: 'tech',
+    color: 0xc77dff,
+    glowColor: 0xff3fb4,
+    emissive: 0x3a1a6a,
+    bonusCoins: 9,
+    powerType: 'time_warp',
+    description: 'Neon quantum core slowing world traffic by 65%.',
+    shape: 'chip',
+  },
+};
+
+export function activeCollectibleForWorld(worldId: string): WorldCollectibleDef {
+  const id = worldId.toLowerCase();
+  return ACTIVE_WORLD_COLLECTIBLES[id] ?? WORLD_COLLECTIBLES.city;
+}

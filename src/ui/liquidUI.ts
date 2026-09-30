@@ -75,11 +75,11 @@ const PRESETS = {
 /** Subtle per-world environmental influence — same material, whisper of tint. */
 const WORLD_TINTS: Record<string, string> = {
   city: '255, 253, 245',
-  jungle: '224, 255, 224',
-  desert: '255, 240, 200',
-  snow: '232, 243, 255',
-  neon: '204, 224, 255',
+  river: '210, 240, 255',
   beach: '255, 250, 222',
+  volcano: '255, 210, 180',
+  tokyo: '204, 224, 255',
+  neon: '204, 224, 255',
 };
 
 interface AttachOpts {

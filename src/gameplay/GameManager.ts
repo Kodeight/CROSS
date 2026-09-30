@@ -21,7 +21,7 @@ import type { PowerUpSystem } from './PowerUpSystem';
 import type { SuperpowerVFX } from './SuperpowerVFX';
 import type { FollowCamera } from '../renderer/Camera';
 import type { Lighting } from '../renderer/Lighting';
-import { collectibleForWorld } from '../config/collectibles.config';
+import { activeCollectibleForWorld } from '../config/collectibles.config';
 import { getPowerUpDef } from '../config/powerups.config';
 import { vibrate } from '../utils/DeviceUtils';
 
@@ -334,7 +334,8 @@ export class GameManager {
           if (Math.abs(dz) > 75) continue;
 
           c.taken = true;
-          this.coins.beginCollect(c.mesh);
+          // Premium pickup: pop, then suction toward the player (never a cut).
+          this.coins.beginCollect(c.mesh, this.player.position);
           const add = isMult ? 3 : 1;
           for (let k = 0; k < add; k++) this.coins.collect();
           this.missions.onCoin();
@@ -364,7 +365,7 @@ export class GameManager {
           col.taken = true;
           this.coins.beginCollect(col.mesh, this.player.position, 340);
 
-          const colDef = collectibleForWorld(lane.worldId || wid);
+          const colDef = activeCollectibleForWorld(lane.worldId || wid);
           const bonus = (isMult ? col.bonusCoins * 3 : col.bonusCoins) || 5;
           for (let k = 0; k < bonus; k++) this.coins.collect();
           this.score.addBonus(bonus * 2);

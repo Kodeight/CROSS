@@ -1,6 +1,7 @@
 /** Centralized save system: versioned, corruption-tolerant, single key. */
 
 import { TESTING_MODE } from '../config/game.config';
+import { worldById, isActiveWorldId } from '../config/worlds.config';
 import { SaveData, defaultSave, defaultDailyStreak } from './SaveData';
 import { Storage } from './Storage';
 
@@ -35,6 +36,26 @@ export class SaveManager {
         streak: parsed.streak ? { ...defaultDailyStreak(), ...parsed.streak } : base.streak,
         tutorialShown: parsed.tutorialShown ?? base.tutorialShown,
       } as SaveData;
+      // Five-world migration: remap any legacy world id to its active
+      // equivalent and drop worlds that no longer exist.
+      const remap = (id: string): string => worldById(id).id;
+      merged.selectedWorld = remap(merged.selectedWorld || 'city');
+      merged.lastWorldId = remap(merged.lastWorldId || merged.selectedWorld);
+      const seen = new Set<string>();
+      merged.unlockedWorlds = (merged.unlockedWorlds ?? ['city'])
+        .map(remap)
+        .filter((id) => isActiveWorldId(id) && !seen.has(id) && (seen.add(id), true));
+      if (!merged.unlockedWorlds.includes('city')) merged.unlockedWorlds.unshift('city');
+      if (!merged.unlockedWorlds.includes(merged.selectedWorld)) {
+        merged.selectedWorld = 'city';
+        merged.lastWorldId = 'city';
+      }
+      const prunedBest: Record<string, number> = {};
+      for (const [k, v] of Object.entries(merged.worldBest ?? {})) {
+        const id = remap(k);
+        if (isActiveWorldId(id)) prunedBest[id] = Math.max(prunedBest[id] ?? 0, v);
+      }
+      merged.worldBest = prunedBest;
       this.data = merged;
     } catch {
       this.data = defaultSave();
