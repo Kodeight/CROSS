@@ -1169,6 +1169,7 @@ body.is-touch .mobile-hint{display:inline !important}
 /* Real icon sizes (beats the old 16px menu-row rule). */
 #btn-play .play-ico svg{width:30px!important;height:30px!important}
 #btn-chars .btn-ico svg{width:32px!important;height:32px!important}
+#btn-chars .btn-ico img{width:32px!important;height:32px!important;object-fit:contain!important;display:block!important}
 #btn-worlds .btn-ico svg,#btn-missions .btn-ico svg,#btn-settings .btn-ico svg{width:24px!important;height:24px!important}
 #menu .btn-arr svg{width:18px!important;height:18px!important}
 /* Chicken art framed on the eyes. */
