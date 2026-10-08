@@ -3,6 +3,7 @@ import { CHARACTERS } from '../config/characters.config';
 import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
 import type { ProgressionSystem } from '../gameplay/ProgressionSystem';
+import { formatMenuCoins } from '../utils/Format';
 import { LOCK_SVG, type CharacterPreviewManager } from './Previews';
 import { liquidUI } from './liquidUI';
 import type { UIManager } from './UIManager';
@@ -26,7 +27,7 @@ export class CharacterSelect {
     grid.innerHTML = '';
     this.canvases = [];
     const coinsEl = document.getElementById('chars-coins');
-    if (coinsEl) coinsEl.textContent = String(this.save.data.coins);
+    if (coinsEl) coinsEl.textContent = formatMenuCoins(this.save.data.coins);
 
     for (const c of CHARACTERS) {
       const unlocked = this.save.isCharacterUnlocked(c.id);

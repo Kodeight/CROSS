@@ -13,6 +13,7 @@ import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
 import type { StreakSystem } from '../gameplay/StreakSystem';
 import type { QualityLevel } from '../config/game.config';
+import { formatMenuCoins } from '../utils/Format';
 import { liquidUI } from './liquidUI';
 
 const COIN_HTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" class="gold-star-coin-ico" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FCA71D" stroke="#B57E00" stroke-width="1.5"/><circle cx="12" cy="12" r="7.5" stroke="#FFE853" stroke-width="1" stroke-dasharray="1.5 1.5"/><polygon points="12,5.5 13.9,9.8 18.5,10.2 15,13.2 16,17.7 12,15.2 8,17.7 9,13.2 5.5,10.2 10.1,9.8" fill="#FFFDF5" stroke="#D97706" stroke-width="0.75" stroke-linejoin="round"/></svg>';
@@ -75,6 +76,9 @@ export class MissionsScreen {
   ) {}
 
   render(maxLane: number, nearMiss: number, activeWorldId?: string, runCoins = 0): void {
+    const coinsEl = document.getElementById('missions-coins');
+    if (coinsEl) coinsEl.textContent = formatMenuCoins(this.save.data.coins);
+
     // 0. Render Daily Streak Tracking System
     this.renderStreakSection(maxLane, nearMiss, activeWorldId, runCoins);
 
@@ -271,6 +275,9 @@ export class SettingsScreen {
   ) {}
 
   render(): void {
+    const coinsEl = document.getElementById('settings-coins');
+    if (coinsEl) coinsEl.textContent = formatMenuCoins(this.save.data.coins);
+
     const s = this.save.data.settings;
     const ICONS: Record<string, string> = {
       'set-music': '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>',

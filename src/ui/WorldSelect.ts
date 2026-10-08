@@ -4,6 +4,7 @@ import type { World } from '../world/World';
 import type { SaveManager } from '../save/SaveManager';
 import type { AudioManager } from '../audio/AudioManager';
 import type { ProgressionSystem } from '../gameplay/ProgressionSystem';
+import { formatMenuCoins } from '../utils/Format';
 import { LOCK_SVG } from './Previews';
 import { liquidUI } from './liquidUI';
 import type { UIManager } from './UIManager';
@@ -23,7 +24,7 @@ export class WorldSelect {
     if (!grid) return;
     grid.innerHTML = '';
     const coinsEl = document.getElementById('worlds-coins');
-    if (coinsEl) coinsEl.textContent = String(this.save.data.coins);
+    if (coinsEl) coinsEl.textContent = formatMenuCoins(this.save.data.coins);
     const sel = this.save.data.selectedWorld;
 
     // Filter to exactly the 5 active worlds

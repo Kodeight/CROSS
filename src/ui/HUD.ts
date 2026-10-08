@@ -4,7 +4,7 @@
 import type { SaveManager } from '../save/SaveManager';
 import type { WorldConfig } from '../config/worlds.config';
 import type { PowerUpSystem } from '../gameplay/PowerUpSystem';
-import { formatHudCoins } from '../utils/Format';
+import { formatHudCoins, formatMenuCoins } from '../utils/Format';
 import { applyWorldNotch, worldCompletionPct } from './worldNotch';
 
 export class HUD {
@@ -40,7 +40,14 @@ export class HUD {
       if (e) e.textContent = v;
     };
     // Wallet + this run's unbanked coins: the counter moves on every pickup.
-    set('hud-coins-val', formatHudCoins(this.save.data.coins + this.getRunCoins()));
+    const runTotal = this.save.data.coins + this.getRunCoins();
+    set('hud-coins-val', formatHudCoins(runTotal));
+    const menuCoins = formatMenuCoins(this.save.data.coins);
+    set('menu-coins', menuCoins);
+    set('chars-coins', menuCoins);
+    set('worlds-coins', menuCoins);
+    set('missions-coins', menuCoins);
+    set('settings-coins', menuCoins);
     this.updateWorldNotch();
     this.updatePowerUp();
   }

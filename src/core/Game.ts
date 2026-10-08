@@ -705,8 +705,11 @@ export class Game implements LoopDelegate {
     const openScreen = (target: GameState) => {
       this.ui.returnTo = this.ui.state === GameState.GAME_OVER ? GameState.GAME_OVER
         : this.ui.state === GameState.PAUSED ? GameState.PAUSED : GameState.MAIN_MENU;
+      this.charSelect.render();
+      this.worldSelect.render();
       this.missionsScreen.render(this.score.maxLane, this.manager.runNear, this.worlds.current.config.id, this.coins.runCoins);
       this.settingsScreen.render();
+      this.hud.update();
       this.audio.click();
       this.setState(target);
     };

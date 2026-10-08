@@ -202,11 +202,15 @@ class LiquidUIManager {
     const actionTints: Record<string, { rgb: string; opacity: number }> = {
       '#btn-resume': { rgb: '16,185,129', opacity: 0.40 },
       '#btn-again': { rgb: '16,185,129', opacity: 0.40 },
+      '#btn-restart-pause': { rgb: '37,99,235', opacity: 0.40 },
+      '#btn-home-pause': { rgb: '249,115,22', opacity: 0.40 },
+      '#btn-home': { rgb: '249,115,22', opacity: 0.40 },
+      '#btn-chars2': { rgb: '147,51,234', opacity: 0.40 },
       '#btn-reset-save': { rgb: '230,57,70', opacity: 0.35 },
     };
-    for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, .panel .modal-x, #app-error .btn')) {
+    for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, #app-error .btn')) {
       const key = b.id ? `#${b.id}` : '';
-      this.attachOne(b, { preset: 'secondary', borderRadius: 14, press: true, tint: actionTints[key] });
+      this.attachOne(b, { preset: 'secondary', borderRadius: 22, press: true, tint: actionTints[key] });
     }
     for (const c of qa('.char-card')) {
       // No press behaviour on store cards: they are the scroll surface —
