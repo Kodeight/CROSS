@@ -622,10 +622,31 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   transform:translateY(3px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 0 #9E1B24;
 }
-#gameover .menu-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
-#gameover .menu-row .btn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:12px 4px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px}
-.menu-row .btn svg{flex:none}
-#gameover .menu-row{grid-template-columns:1fr 1fr}
+#gameover .menu-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:14px;
+}
+#gameover .menu-row .btn{
+  min-height:52px!important;
+  height:52px!important;
+  padding:12px 14px!important;
+  font-size:14px!important;
+  font-weight:900!important;
+  letter-spacing:1px!important;
+  border-radius:18px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+}
+#gameover .menu-row .btn img,
+#gameover .menu-row .btn svg{
+  width:24px!important;
+  height:24px!important;
+  flex:none!important;
+}
 .btn.wide{width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px}
 #gameover .menu-row{grid-template-columns:1fr 1fr}
 .hint{font-size:12px;opacity:.6;font-weight:700;margin:12px 0 2px}
@@ -846,8 +867,9 @@ body.is-touch .mobile-hint{display:inline !important}
 }
 
 /* Modal header with top-right close: title left, X right, one row. */
-.modal-head{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex:none}
+.modal-head{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex:none;margin-bottom:6px}
 .modal-head h2{margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-head-right{display:flex;flex-direction:row;align-items:center;gap:8px;flex:none}
 .modal-x{width:40px;height:40px;flex:none;border:2.5px solid var(--red-dark);border-radius:14px;background:linear-gradient(180deg, #FF6B7A 0%, #E63946 100%);color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1.5px 0 rgba(255,255,255,0.5), 0 3.5px 0 var(--red-dark);touch-action:manipulation;transition:transform .12s ease, box-shadow .12s ease}
 .modal-x:active{transform:translateY(2px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), 0 1.5px 0 var(--red-dark)}
 .modal-x svg{display:block}
@@ -1413,23 +1435,79 @@ body.is-touch .mobile-hint{display:inline !important}
 /* Settings toggles carry icons next to their labels. */
 .panel .toggle{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important}
 .panel .toggle svg{flex:none!important}
-/* Missions readability: gray text goes green, blues go bright. */
-.m-sub{color:#8fe3ae!important}
-.m-card-bottom>div:last-child{color:#8fe3ae!important}
+/* Missions readability: all progress bars go theme green, text clearly readable */
+.m-sub{color:rgba(255,255,255,.75)!important}
+.m-prog-meta{color:#22c55e!important}
+.m-card-bottom>div:last-child{color:#22c55e!important}
 .m-locked-req{color:#a9e8c3!important}
-.ach-desc{color:#8fe3ae!important}
+.ach-desc{color:rgba(255,255,255,.75)!important}
 .m-world-tag{background:rgba(52,211,153,.25)!important;color:#a7f3d0!important}
-.m-badge-icon.cat-steps,.m-badge-icon.cat-runLane{background:rgba(56,189,248,.30)!important;color:#7dd3fc!important}
-.m-tier-tag.tier-standard{background:rgba(56,189,248,.30)!important;color:#bae6fd!important}
-.m-world-tag.global{background:rgba(56,189,248,.30)!important;color:#bae6fd!important}
-.m-prog-bar{background:linear-gradient(90deg,#7dd3fc,#38bdf8)!important}
-.daily-badge{color:#5eb2ff!important}
-.daily-badge svg{color:#5eb2ff!important}
-/* Vertical composition: main menu rides higher, bottom panel compacts —
-   clear responsive gap, curved edge and fade preserved. */
+.m-badge-icon.cat-steps,.m-badge-icon.cat-runLane{background:rgba(52,211,153,.25)!important;color:#86efac!important}
+.m-tier-tag.tier-standard{background:rgba(52,211,153,.25)!important;color:#86efac!important}
+.m-world-tag.global{background:rgba(52,211,153,.25)!important;color:#86efac!important}
+.m-prog-bar{background:linear-gradient(90deg,#4ade80,#22c55e)!important}
+.m-prog-bar.bar-done{background:linear-gradient(90deg,#4ade80,#16a34a)!important}
+
+/* Daily missions header: crisp high-contrast white text on dark surface */
+.daily-header-row{
+  background:rgba(20,29,48,0.75)!important;
+  border:1px solid rgba(255,255,255,0.25)!important;
+  border-radius:14px!important;
+}
+.daily-badge{
+  color:#ffffff!important;
+  font-weight:900!important;
+}
+.daily-badge svg{
+  color:#4ade80!important;
+}
+.daily-timer{
+  background:rgba(15,23,42,0.9)!important;
+  color:#4ade80!important;
+  border:1px solid rgba(74,222,128,0.4)!important;
+}
+
+/* Secondary menus: shortened to prevent bottom panel collision, and eliminate box inside a box */
+.panel-screen{
+  padding:16px 16px calc(68px + env(safe-area-inset-bottom, 16px))!important;
+}
+.panel{
+  max-height:clamp(360px, 72vh, 580px)!important;
+}
+.panel-scroll{
+  background:transparent!important;
+  border:none!important;
+  box-shadow:none!important;
+  outline:none!important;
+}
+
+/* Bottom panel: smooth gradient transition from white at bottom fading to transparent blur at top */
+#pwa-bottom-panel{
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  bottom:0!important;
+  z-index:21!important;
+  pointer-events:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  backdrop-filter:blur(16px)!important;
+  -webkit-backdrop-filter:blur(16px)!important;
+  mask-image:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 28%, black 60%)!important;
+  -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 28%, black 60%)!important;
+}
+.pwa-panel-body{
+  background:#ffffff!important;
+  padding:14px 12px calc(8px + env(safe-area-inset-bottom,12px))!important;
+}
+.pwa-panel-body::after{
+  background:#ffffff!important;
+}
+
+/* Vertical composition: main menu rides higher, bottom panel compacts */
 #menu{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))!important}
-.pwa-panel-curve-wrap{height:clamp(16px,2.5vh,24px)!important}
-.pwa-panel-body{padding:16px 12px calc(8px + env(safe-area-inset-bottom,12px))!important}
+.pwa-panel-curve-wrap{height:clamp(18px,2.8vh,26px)!important}
 .pwa-panel-content{padding-top:0!important}
 .pwa-panel-controls{margin-bottom:3px!important}
 .pwa-panel-secondary{margin-top:2px!important}

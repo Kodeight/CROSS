@@ -56,7 +56,7 @@ function createMissionCard(
       <div class="m-prog-track">
         <div class="m-prog-bar${isDone ? ' bar-done' : ''}" style="width: ${pct}%"></div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:900;color:#8a8f99;margin-top:2px;">
+      <div class="m-prog-meta" style="display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:900;color:#22c55e;margin-top:3px;">
         <span>${isDone ? 'COMPLETED' : progressRatioStr}</span>
         <span>${pct}%</span>
       </div>

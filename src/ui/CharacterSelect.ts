@@ -58,6 +58,14 @@ export class CharacterSelect {
       const h = document.createElement('h3');
       h.textContent = c.name;
       info.appendChild(h);
+
+      if (c.rarity) {
+        const rarityBadge = document.createElement('span');
+        rarityBadge.className = `char-rarity rarity-${c.rarity}`;
+        rarityBadge.textContent = c.rarity.toUpperCase();
+        info.appendChild(rarityBadge);
+      }
+
       const p = document.createElement('p');
       p.textContent = selected ? 'SELECTED' : unlocked ? 'UNLOCKED' : `${price} COINS`;
       info.appendChild(p);

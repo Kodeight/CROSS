@@ -59,11 +59,19 @@ export class PWABottomPanel {
       // shift. Visibility is decided below, never deferred to the loader.
       el.hidden = false;
 
-      // Rounded upper corners curving upward into gameplay area with subtle flat center
+      // Rounded upper corners curving upward into gameplay area with seamless gradient fade
       el.innerHTML = `
         <div class="pwa-panel-curve-wrap" aria-hidden="true">
           <svg class="pwa-panel-svg" viewBox="0 0 1000 80" preserveAspectRatio="none">
-            <path id="pwa-panel-curve-path" d="M 0,80 L 0,40 C 0,16 22,4 52,4 C 180,4 280,34 400,40 L 600,40 C 720,34 820,4 948,4 C 978,4 1000,16 1000,40 L 1000,80 Z" fill="#FFFDF5" />
+            <defs>
+              <linearGradient id="pwa-panel-curve-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0" />
+                <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.45" />
+                <stop offset="70%" stop-color="#FFFFFF" stop-opacity="0.85" />
+                <stop offset="100%" stop-color="#FFFFFF" stop-opacity="1" />
+              </linearGradient>
+            </defs>
+            <path id="pwa-panel-curve-path" d="M 0,80 L 0,40 C 0,16 22,4 52,4 C 180,4 280,34 400,40 L 600,40 C 720,34 820,4 948,4 C 978,4 1000,16 1000,40 L 1000,80 Z" fill="url(#pwa-panel-curve-grad)" />
           </svg>
         </div>
         <div class="pwa-panel-body">
@@ -205,14 +213,14 @@ export class PWABottomPanel {
   }
 
   public setPreGameTheme(): void {
-    const bg = '#FFFDF5';
+    const bg = '#FFFFFF';
     const text = '#1E2430';
     if (this.container) {
       this.container.style.setProperty('--panel-ground-color', bg);
       this.container.style.setProperty('--panel-text-color', text);
     }
     if (this.pathEl) {
-      this.pathEl.setAttribute('fill', bg);
+      this.pathEl.setAttribute('fill', 'url(#pwa-panel-curve-grad)');
     }
   }
 
