@@ -1222,7 +1222,7 @@ body.is-touch .mobile-hint{display:inline !important}
    Pure-BLUR menus: zero color slab, only frosted glass.
    Centered | divider, normal-weight tagline, masked scrollbars.
    ============================================================ */
-.menu-card-stack,.panel,.over-card,.menu-card,.err-card{
+.menu-card-stack{
   text-shadow:0 1px 8px rgba(0,0,0,.65)!important;
 }
 /* Transparent slabs ONLY where real backdrop blur exists;
@@ -1424,3 +1424,12 @@ body.is-touch .mobile-hint{display:inline !important}
 .m-prog-bar{background:linear-gradient(90deg,#7dd3fc,#38bdf8)!important}
 .daily-badge{color:#5eb2ff!important}
 .daily-badge svg{color:#5eb2ff!important}
+/* Vertical composition: main menu rides higher, bottom panel compacts —
+   clear responsive gap, curved edge and fade preserved. */
+#menu{padding-bottom:calc(132px + env(safe-area-inset-bottom,0px))!important}
+.pwa-panel-curve-wrap{height:clamp(16px,2.5vh,24px)!important}
+.pwa-panel-body{padding:16px 12px calc(8px + env(safe-area-inset-bottom,12px))!important}
+.pwa-panel-content{padding-top:0!important}
+.pwa-panel-controls{margin-bottom:3px!important}
+.pwa-panel-secondary{margin-top:2px!important}
+.pwa-panel-progress-wrap{margin-top:3px!important}
