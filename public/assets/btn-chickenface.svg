@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 180" width="700" height="180" preserveAspectRatio="none">
+<defs>
+  <radialGradient id="body" cx="42%" cy="28%" r="78%">
+    <stop offset="0" stop-color="#ffffff"/>
+    <stop offset=".72" stop-color="#f7f7f5"/>
+    <stop offset="1" stop-color="#d9dce1"/>
+  </radialGradient>
+  <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ff516b"/>
+    <stop offset=".5" stop-color="#f21f4b"/>
+    <stop offset="1" stop-color="#bd123d"/>
+  </linearGradient>
+  <linearGradient id="beak" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffd83f"/>
+    <stop offset=".55" stop-color="#ffb51f"/>
+    <stop offset="1" stop-color="#ed7e09"/>
+  </linearGradient>
+  <radialGradient id="eye" cx="35%" cy="25%" r="70%">
+    <stop offset="0" stop-color="#6d3417"/>
+    <stop offset=".45" stop-color="#32160c"/>
+    <stop offset="1" stop-color="#09090b"/>
+  </radialGradient>
+  <linearGradient id="wing" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#fff"/>
+    <stop offset="1" stop-color="#dfe3e8"/>
+  </linearGradient>
+  <filter id="softShadow" x="-30%" y="-30%" width="160%" height="170%">
+    <feDropShadow dx="0" dy="9" stdDeviation="7" flood-color="#071a4d" flood-opacity=".38"/>
+  </filter>
+  <filter id="outline" x="-20%" y="-20%" width="140%" height="140%">
+    <feMorphology in="SourceAlpha" operator="dilate" radius="5" result="d"/>
+    <feFlood flood-color="#073c8c" flood-opacity=".95" result="c"/>
+    <feComposite in="c" in2="d" operator="in" result="o"/>
+    <feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+<defs>
+  <clipPath id="buttonClip"><rect x="0" y="0" width="700" height="180" rx="24"/></clipPath>
+  <linearGradient id="blueFade" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#315fe8" stop-opacity="0"/>
+    <stop offset="0.48" stop-color="#315fe8" stop-opacity="0.02"/>
+    <stop offset="0.72" stop-color="#315fe8" stop-opacity="0.08"/>
+    <stop offset="1" stop-color="#315fe8" stop-opacity="0.18"/>
+  </linearGradient>
+</defs>
+<g clip-path="url(#buttonClip)">
+  <rect width="700" height="180" fill="url(#blueFade)"/>
+  <!-- Large logo-style chicken anchored to the RIGHT. It intentionally crops against
+       the button edges, matching the reference Characters button treatment. -->
+  <g transform="translate(398 -70) scale(0.72)">
+    <g filter="url(#softShadow)">
+  <!-- comb: three rounded lobes like the CROSS! logo chicken -->
+  <path d="M184 118 C155 91 161 48 197 38 C224 30 244 48 250 74 C257 38 282 17 310 28 C340 40 343 76 326 101 C353 80 389 91 396 120 C404 153 381 177 349 179 L169 179 C145 171 141 140 157 121 C164 113 173 111 184 118Z" fill="url(#red)" stroke="#8d1235" stroke-width="5"/>
+
+  <!-- back wing -->
+  <path d="M116 283 C76 256 53 274 61 312 C67 339 92 353 128 349 C111 373 124 397 151 398 C178 399 194 374 193 338Z" fill="url(#wing)" stroke="#bfc6cf" stroke-width="5"/>
+  <path d="M396 283 C436 256 459 274 451 312 C445 339 420 353 384 349 C401 373 388 397 361 398 C334 399 318 374 319 338Z" fill="url(#wing)" stroke="#bfc6cf" stroke-width="5"/>
+
+  <!-- body/head silhouette -->
+  <path d="M256 105 C176 105 119 164 119 252 C119 351 168 428 256 439 C344 428 393 351 393 252 C393 164 336 105 256 105Z" fill="url(#body)" stroke="#073c8c" stroke-width="9"/>
+
+  <!-- subtle face shading -->
+  <ellipse cx="196" cy="323" rx="34" ry="24" fill="#ff8c98" opacity=".27"/>
+  <ellipse cx="316" cy="323" rx="34" ry="24" fill="#ff8c98" opacity=".27"/>
+
+  <!-- eyebrows -->
+  <path d="M164 211 Q193 187 220 207" fill="none" stroke="#24252a" stroke-width="9" stroke-linecap="round"/>
+  <path d="M292 207 Q319 187 348 211" fill="none" stroke="#24252a" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- eyes -->
+  <ellipse cx="193" cy="253" rx="34" ry="46" fill="url(#eye)" stroke="#111216" stroke-width="4"/>
+  <ellipse cx="319" cy="253" rx="34" ry="46" fill="url(#eye)" stroke="#111216" stroke-width="4"/>
+  <ellipse cx="182" cy="236" rx="11" ry="14" fill="#fff"/>
+  <ellipse cx="308" cy="236" rx="11" ry="14" fill="#fff"/>
+  <circle cx="204" cy="270" r="5" fill="#b85b24" opacity=".8"/>
+  <circle cx="330" cy="270" r="5" fill="#b85b24" opacity=".8"/>
+
+  <!-- beak upper -->
+  <path d="M211 282 Q256 252 301 282 Q293 317 256 321 Q219 317 211 282Z" fill="url(#beak)" stroke="#d8780a" stroke-width="5"/>
+  <!-- open mouth -->
+  <path d="M224 303 Q256 291 288 303 Q283 354 256 363 Q229 354 224 303Z" fill="#521018" stroke="#b62b20" stroke-width="5"/>
+  <path d="M237 334 Q256 319 275 334 Q268 349 256 350 Q244 349 237 334Z" fill="#ff5062"/>
+  <!-- beak center seam -->
+  <path d="M213 286 Q256 303 299 286" fill="none" stroke="#e58b0b" stroke-width="4"/>
+
+  <!-- wattle -->
+  <path d="M237 367 C226 384 233 406 256 414 C279 406 286 384 275 367 C267 377 245 377 237 367Z" fill="url(#red)" stroke="#a9143b" stroke-width="4"/>
+
+  <!-- small front wings -->
+  <path d="M127 337 C145 315 174 313 191 334 C199 344 194 360 181 367 C161 377 137 367 127 337Z" fill="url(#wing)" stroke="#c3c9d0" stroke-width="5"/>
+  <path d="M385 337 C367 315 338 313 321 334 C313 344 318 360 331 367 C351 377 375 367 385 337Z" fill="url(#wing)" stroke="#c3c9d0" stroke-width="5"/>
+
+  <!-- cheek highlights -->
+  <ellipse cx="193" cy="316" rx="17" ry="11" fill="#ff9da7" opacity=".5"/>
+  <ellipse cx="319" cy="316" rx="17" ry="11" fill="#ff9da7" opacity=".5"/>
+</g>
+  </g>
+</g>
+</svg>

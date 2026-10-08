@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 22 72 92" width="144" height="184" fill="none">
+  <defs>
+    <radialGradient id="btnSamShade" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.75"/>
+      <stop offset="70%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#0F2657" stop-opacity="0.18"/>
+    </radialGradient>
+  </defs>
+  <circle cx="96" cy="82" r="28" fill="url(#btnSamShade)" stroke="#0F2657" stroke-width="2.5"/>
+  <ellipse cx="84" cy="80" rx="4.5" ry="6" fill="#181A1F"/>
+  <circle cx="85.5" cy="78" r="1.8" fill="#FFFFFF"/>
+  <ellipse cx="108" cy="80" rx="4.5" ry="6" fill="#181A1F"/>
+  <circle cx="109.5" cy="78" r="1.8" fill="#FFFFFF"/>
+  <polygon points="96,82 88,96 104,96" fill="#ff9f1a" stroke="#D97706" stroke-width="1.5"/>
+  <path d="M68,70 Q96,30 124,70 Q130,86 124,96 L120,92 Q96,84 72,92 L68,96 Q62,86 68,70 Z" fill="#E74C3C" stroke="#991B1B" stroke-width="2.5"/>
+  <polygon points="96,26 90,44 102,44" fill="#F1C40F" stroke="#B08B52" stroke-width="1.5"/>
+  <path d="M84,38 Q96,30 108,38" stroke="#F1C40F" stroke-width="2.5" fill="none"/>
+</svg>

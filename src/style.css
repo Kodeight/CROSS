@@ -386,6 +386,22 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   text-align: center;
   margin: auto 0;
   max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Glassmorphism menu background: frosted, rounded, floating over the world */
+  background: rgba(13, 22, 41, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 28px;
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  padding: clamp(14px, 2.4vh, 20px) clamp(14px, 4vw, 20px);
+  box-sizing: border-box;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .menu-card-stack {
+    background: rgba(13, 22, 41, 0.92);
+  }
 }
 
 .main-logo-wrap {
@@ -606,9 +622,6 @@ img,button{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
   transform:translateY(3px);
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), 0 1px 0 #9E1B24;
 }
-  transform:translateY(2px);
-  box-shadow:0 2px 0 #7F1D1D;
-}
 #gameover .menu-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
 #gameover .menu-row .btn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:12px 4px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:6px}
 .menu-row .btn svg{flex:none}
@@ -631,7 +644,7 @@ body.is-touch .mobile-hint{display:inline !important}
    TODO: RESTORE AFTER PWA VIEWPORT ROOT-CAUSE FIX
    Original: background:rgba(30,36,48,.75);
    ============================================================ */
-.panel-screen{position:fixed;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15, 23, 42, 0.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.panel-screen{position:fixed;inset:0;z-index:26;display:flex;align-items:center;justify-content:center;padding:16px;background:transparent}
 .panel{background:#FFFDF5;border-radius:26px;padding:22px;width:min(480px,calc(100vw - 32px));max-height:86vh;overflow:auto;overflow-x:hidden;box-shadow:0 10px 30px rgba(15, 38, 87, 0.35);border:2.5px solid #0F2657}
 /* Masked scroll panels: outer panel clips (overflow hidden + radius), the
    inner scroll container does the actual scrolling so the scrollbar can
@@ -1070,3 +1083,344 @@ body.is-touch .mobile-hint{display:inline !important}
    ancestors), so backdrop refraction keeps working. */
 #world-header.wh-swap .wh-top,#world-header.wh-swap .wh-name{animation:whText .38s ease}
 @keyframes whText{0%{opacity:0;filter:blur(7px);transform:translateY(5px)}55%{opacity:1;filter:blur(2px)}100%{opacity:1;filter:blur(0);transform:none}}
+
+/* ============================================================
+   Jewel-glass menu buttons (close to UI.bot.png).
+   White icon left, white label, contextual art extreme right.
+   ============================================================ */
+#btn-play,.btn-menu-chars,.btn-menu-worlds,.btn-menu-missions,.btn-menu-settings{
+  width:100%!important;
+  height:clamp(50px,6.4vh,58px)!important;
+  min-height:50px!important;
+  border-radius:22px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:14px!important;
+  padding:0 18px!important;
+  font-size:clamp(14px,3.8vw,16px)!important;
+  font-weight:900!important;
+  letter-spacing:1.2px!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.5)!important;
+  backdrop-filter:blur(14px) saturate(1.3);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);
+  overflow:hidden!important;
+  position:relative!important;
+}
+#btn-play::after,.btn-menu-chars::after,.btn-menu-worlds::after,.btn-menu-missions::after,.btn-menu-settings::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:1!important;
+  background:linear-gradient(90deg,rgba(0,0,0,0) 60%,rgba(0,0,0,.30) 85%,rgba(0,0,0,.38) 100%);
+  border-radius:inherit;
+}
+#menu .btn-ico,#menu .play-ico{flex:none;display:flex;align-items:center;justify-content:center}
+#menu .btn-txt,#menu .play-lbl{flex:none;font-weight:900}
+#btn-play{
+  background:linear-gradient(180deg,rgba(52,211,153,.78) 0%,rgba(16,185,129,.72) 55%,rgba(5,150,105,.78) 100%)!important;
+  border:1px solid rgba(167,243,208,.75)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.55),0 0 32px rgba(52,211,153,.7)!important;
+  font-family:'Nunito',system-ui,sans-serif!important;
+}
+.btn-menu-chars{
+  background:linear-gradient(180deg,rgba(59,130,246,.82) 0%,rgba(37,99,235,.85) 60%,rgba(30,58,138,.88) 100%)!important;
+  border:1px solid rgba(147,197,253,.7)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 28px rgba(37,99,235,.7)!important;
+}
+.btn-menu-worlds{
+  background:linear-gradient(180deg,rgba(251,191,36,.70) 0%,rgba(249,115,22,.68) 60%,rgba(194,65,12,.74) 100%)!important;
+  border:1px solid rgba(253,230,138,.65)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 28px rgba(249,115,22,.7)!important;
+}
+.btn-menu-missions{
+  background:linear-gradient(180deg,rgba(196,141,255,.62) 0%,rgba(147,51,234,.66) 60%,rgba(126,34,206,.72) 100%)!important;
+  border:1px solid rgba(233,213,255,.6)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 28px rgba(168,85,247,.7)!important;
+}
+.btn-menu-settings{
+  background:linear-gradient(180deg,rgba(251,113,133,.66) 0%,rgba(225,29,72,.68) 60%,rgba(190,18,60,.74) 100%)!important;
+  border:1px solid rgba(255,205,213,.6)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 28px rgba(244,63,94,.7)!important;
+}
+#btn-play:active,.btn-menu-chars:active,.btn-menu-worlds:active,.btn-menu-missions:active,.btn-menu-settings:active{
+  transform:translateY(2px)!important;
+  filter:brightness(.94)!important;
+}
+/* Button artwork lives ON the button itself (::before, parent layer),
+   always under the readability gradient (::after). Engine-proof. */
+.btn-menu-chars::before,.btn-menu-worlds::before,.btn-menu-missions::before,.btn-menu-settings::before{
+  content:'';position:absolute;top:0;right:0;bottom:0;left:36%;z-index:0;pointer-events:none;
+  border-radius:0 22px 22px 0;background-repeat:no-repeat;
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 38%)!important;
+  mask-image:linear-gradient(90deg,transparent 0%,#000 38%)!important;
+}
+.btn-menu-chars::before{background-image:url("/assets/cross-chicken.svg");background-size:cover;background-position:right center}
+.btn-menu-worlds::before{background-image:url("/assets/world-previews/beach.jpg");background-size:cover;background-position:right center}
+.btn-menu-missions::before{background-image:url("/assets/coin-star.svg");background-size:auto 165%;background-position:right center}
+.btn-menu-settings::before{background-image:url("/assets/settings-scene.svg");background-size:cover;background-position:right center}
+#btn-play::after,.btn-menu-chars::after,.btn-menu-worlds::after,.btn-menu-missions::after,.btn-menu-settings::after{z-index:1!important}
+#menu .btn-ico,#menu .play-ico,#menu .btn-txt,#menu .play-lbl{position:relative!important;z-index:2!important}
+#menu .btn-arr{
+  position:absolute!important;right:0!important;top:0!important;bottom:0!important;
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;
+  padding:0 14px 0 0!important;margin:0!important;background:none!important;
+  z-index:3!important;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.65))!important;
+}
+/* Real icon sizes (beats the old 16px menu-row rule). */
+#btn-play .play-ico svg{width:30px!important;height:30px!important}
+#btn-chars .btn-ico svg{width:32px!important;height:32px!important}
+#btn-worlds .btn-ico svg,#btn-missions .btn-ico svg,#btn-settings .btn-ico svg{width:24px!important;height:24px!important}
+#menu .btn-arr svg{width:18px!important;height:18px!important}
+/* Chicken art framed on the eyes. */
+/* PLAY carries no artwork and no scrim: clean glass, centered icon + label. */
+#btn-play::after{display:none!important}
+/* PLAY: smoothly flowing multicolor glass, white icon + label. */
+#btn-play{
+  border:1px solid rgba(255,255,255,.5)!important;
+  background:linear-gradient(120deg,#34d399,#38bdf8,#a78bfa,#f472b6,#fbbf24,#34d399)!important;
+  background-size:300% 300%!important;
+  animation:playFlow 8s ease-in-out infinite!important;
+  color:#fff!important;
+  text-shadow:0 2px 8px rgba(0,0,0,.45)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.55),
+    0 0 18px rgba(52,211,153,.85),0 0 44px rgba(56,189,248,.5),0 0 72px rgba(244,114,182,.35)!important;
+}
+@keyframes playFlow{
+  0%,100%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+}
+/* Engine content wrapper: keep icon+label left-aligned like the button. */
+#menu #btn-play .ql-content,#menu .btn-menu-chars .ql-content,#menu .btn-menu-worlds .ql-content,#menu .btn-menu-missions .ql-content,#menu .btn-menu-settings .ql-content{
+  justify-content:flex-start!important;gap:14px!important;padding:0 18px!important;
+}
+
+/* Stacked full-width menu buttons with equal gaps. */
+#menu .menu-card-stack{gap:10px!important}
+#menu .menu-row{grid-template-columns:1fr!important;gap:10px!important;width:100%!important;margin:0!important;padding:0!important}
+#menu .menu-row .btn{margin-left:0!important;margin-right:0!important}
+
+/* Button scene art width/object-position are set in the art block above. */
+/* Glowy gold borders on the menu best-score + coins stats (menu only). */
+#menu .menu-stats .stat{
+  border:1px solid rgba(255,232,83,.55)!important;
+  box-shadow:0 0 16px rgba(255,210,63,.35),inset 0 1px 0 rgba(255,255,255,.2)!important;
+}
+/* Slim translucent scrollbars on browser (masked variant below wins). */
+.panel-scroll,.menu-card-stack,.panel,.over-card{
+  scrollbar-width:thin!important;
+  scrollbar-color:rgba(255,255,255,.35) transparent!important;
+  overflow-x:hidden!important;
+}
+.panel-scroll::-webkit-scrollbar,.menu-card-stack::-webkit-scrollbar{width:8px!important;height:8px!important}
+.panel-scroll::-webkit-scrollbar-track,.menu-card-stack::-webkit-scrollbar-track{background:transparent!important}
+.panel-scroll::-webkit-scrollbar-thumb,.menu-card-stack::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.28)!important;border-radius:99px!important;
+  border:2px solid transparent!important;background-clip:content-box!important;
+}
+
+/* ============================================================
+   Pure-BLUR menus: zero color slab, only frosted glass.
+   Centered | divider, normal-weight tagline, masked scrollbars.
+   ============================================================ */
+.menu-card-stack,.panel,.over-card,.menu-card,.err-card{
+  text-shadow:0 1px 8px rgba(0,0,0,.65)!important;
+}
+/* Transparent slabs ONLY where real backdrop blur exists;
+   otherwise the opaque fallback above keeps text readable. */
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .menu-card-stack,.panel,.over-card,.menu-card,.err-card{background:transparent!important}
+  .panel-screen,#gameover{background:transparent!important}
+}
+#menu .tagline{font-weight:800!important;color:#fff!important;text-shadow:0 2px 8px rgba(0,0,0,.6)!important;letter-spacing:1.5px!important}
+.panel-scroll,.menu-card-stack,.panel,.over-card{
+  scrollbar-width:none!important;
+  -ms-overflow-style:none!important;
+}
+.panel-scroll::-webkit-scrollbar,.menu-card-stack::-webkit-scrollbar,
+.panel::-webkit-scrollbar,.over-card::-webkit-scrollbar{display:none!important}
+/* Transparent menu stats (best score + coins): white text on the glass. */
+#menu .menu-stats{background:none!important}
+#menu .menu-stats .stat{background:transparent!important;box-shadow:none!important}
+#menu .menu-stats .stat-best{
+  border:1px solid rgba(125,211,252,.6)!important;border-right:none!important;
+  box-shadow:0 0 14px rgba(56,189,248,.35),inset 0 1px 0 rgba(255,255,255,.2)!important;
+}
+#menu .menu-stats .stat-coins{
+  border:1px solid rgba(255,232,83,.6)!important;border-left:none!important;
+  box-shadow:0 0 14px rgba(250,204,21,.35),inset 0 1px 0 rgba(255,255,255,.2)!important;
+}
+#menu .stat-label{color:rgba(255,255,255,.65)!important}
+#menu .stat span:last-child{color:#fff!important}
+/* Frosted top bar: coin pill + utility buttons get blurry glass bg. */
+.top-coin-pill,.top-icon-btn{
+  background:rgba(25,39,66,.55)!important;
+  backdrop-filter:blur(14px) saturate(1.3)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(1.3)!important;
+}
+
+/* ============================================================
+   Same glass language on every other screen (panels, cards,
+   buttons, toggles). Bottom panel untouched.
+   ============================================================ */
+.panel,.over-card,.menu-card,.err-card{
+  background:rgba(13,22,41,.68)!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.25)!important;
+  border-radius:28px!important;
+  backdrop-filter:blur(22px) saturate(1.4);
+  -webkit-backdrop-filter:blur(22px) saturate(1.4);
+  box-shadow:0 24px 64px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.25)!important;
+}
+.panel h2,.over-card h2,.err-title{color:#fff!important}
+.panel-sub,.err-desc,.err-hint{color:rgba(255,255,255,.8)!important}
+.panel .row{background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.2)!important;color:#fff!important}
+.settings-explain{color:rgba(255,255,255,.72)!important}
+.vol-val{color:#fff!important}
+#final-score{color:#fff!important}
+#final-best,#final-stats{color:rgba(255,255,255,.8)!important}
+#final-coins{color:#FFE853!important}
+#new-best{background:linear-gradient(180deg,#FFE853,#FCA71D)!important;color:#0F2657!important}
+.panel .btn,.over-card .btn{
+  border-radius:18px!important;
+  backdrop-filter:blur(14px) saturate(1.3);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);
+}
+.btn.primary{
+  background:linear-gradient(180deg,rgba(52,211,153,.85),rgba(16,185,129,.78) 55%,rgba(5,150,105,.82))!important;
+  border:1px solid rgba(167,243,208,.8)!important;color:#fff!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.55),0 0 20px rgba(52,211,153,.5)!important;
+}
+.btn.secondary{
+  background:linear-gradient(180deg,rgba(96,165,250,.7),rgba(37,99,235,.72))!important;
+  border:1px solid rgba(191,219,254,.65)!important;color:#fff!important;
+}
+.btn.back,.btn.danger{
+  background:linear-gradient(180deg,rgba(251,113,133,.7),rgba(225,29,72,.7))!important;
+  border:1px solid rgba(255,205,213,.65)!important;color:#fff!important;
+}
+.char-card{
+  background:rgba(255,255,255,.10)!important;
+  border:1px solid rgba(255,255,255,.22)!important;
+  border-radius:20px!important;
+  backdrop-filter:blur(14px) saturate(1.3);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);
+  box-shadow:0 10px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.2)!important;
+  color:#fff!important;
+}
+.char-card.selected{border-color:rgba(255,232,83,.85)!important;box-shadow:0 0 0 2px rgba(255,232,83,.55),0 10px 28px rgba(0,0,0,.4)!important}
+.char-card h3{color:#fff!important}
+.char-card p{color:rgba(255,255,255,.75)!important}
+.char-card .prev-wrap{background:rgba(0,0,0,.3)!important}
+.m-card,.ach-card{
+  background:rgba(255,255,255,.10)!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  backdrop-filter:blur(14px) saturate(1.3);
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);
+}
+.m-title,.ach-name{color:#fff!important}
+.m-sub,.m-prog-meta,.ach-desc{color:rgba(255,255,255,.72)!important}
+.ach-h{color:#fff!important}
+.daily-header-row{background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.25)!important}
+.daily-badge{color:#FFE853!important}
+.daily-timer{background:rgba(0,0,0,.35)!important;color:#fff!important;border:1px solid rgba(255,255,255,.25)!important}
+.toggle{
+  background:linear-gradient(180deg,rgba(52,211,153,.85),rgba(16,185,129,.8))!important;
+  color:#fff!important;border:1px solid rgba(167,243,208,.7)!important;border-radius:99px!important;
+}
+.toggle[aria-pressed="false"]{background:rgba(255,255,255,.16)!important;color:#fff!important;border:1px solid rgba(255,255,255,.3)!important}
+.vol-slider{accent-color:#34D399}
+.panel-screen{
+  background:transparent;
+}
+#gameover{
+  background:transparent;
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .panel,.over-card,.menu-card,.err-card{background:rgba(13,22,41,.94)!important}
+  .panel-screen,#gameover{background:rgba(8,14,28,.82)}
+}
+
+/* All menus match the Main Menu: sharp world, frosted transparent
+   panels, no backdrop layer under any menu. */
+#settings-screen .panel{
+  background:transparent!important;
+  border:1px solid rgba(255,255,255,.35)!important;
+  box-shadow:none!important;
+  overflow-y:auto!important;
+}
+/* In-game HUD matches the pre-game top bar: dark frosted glass. */
+#hud-coins,#btn-pause,#hud-power{
+  background:rgba(25,39,66,.55)!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.30)!important;
+  backdrop-filter:blur(14px) saturate(1.3)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(1.3)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.25)!important;
+}
+#btn-pause{color:#FFE853!important}
+/* Pause menu: same jewel-glass buttons as the main menu — stacked,
+   full-width, equal 10px gaps, no X (BACK resumes at the bottom). */
+#pause-screen .panel.narrow{display:grid!important;gap:10px!important}
+#pause-screen .panel.narrow>.ql-content{display:flex!important;flex-direction:column!important;gap:10px!important}
+#pause-screen .panel.narrow h2{margin:0!important}
+#pause-screen .btn{
+  width:100%!important;min-height:50px!important;height:clamp(50px,6.4vh,58px)!important;
+  border-radius:22px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  font-weight:900!important;letter-spacing:1.2px!important;font-size:clamp(14px,3.8vw,16px)!important;
+  color:#fff!important;border:1px solid rgba(255,255,255,.5)!important;
+  backdrop-filter:blur(14px) saturate(1.3)!important;-webkit-backdrop-filter:blur(14px) saturate(1.3)!important;
+}
+#btn-resume{
+  background:linear-gradient(180deg,rgba(52,211,153,.78) 0%,rgba(16,185,129,.72) 55%,rgba(5,150,105,.78) 100%)!important;
+  border:1px solid rgba(167,243,208,.75)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.55),0 0 26px rgba(52,211,153,.55)!important;
+}
+#btn-restart-pause{
+  background:linear-gradient(180deg,rgba(96,165,250,.66) 0%,rgba(37,99,235,.70) 60%,rgba(29,78,216,.74) 100%)!important;
+  border:1px solid rgba(191,219,254,.65)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 18px rgba(59,130,246,.5)!important;
+}
+#btn-home-pause{
+  background:linear-gradient(180deg,rgba(251,191,36,.70) 0%,rgba(249,115,22,.68) 60%,rgba(194,65,12,.74) 100%)!important;
+  border:1px solid rgba(253,230,138,.65)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 18px rgba(249,115,22,.5)!important;
+}
+#btn-resume:active,#btn-restart-pause:active,#btn-home-pause:active{
+  transform:translateY(2px)!important;filter:brightness(.94)!important;
+}
+/* Every button with an icon: icon + label locked together, centered. */
+#pause-screen .btn,#gameover .btn,.panel .btn,.char-card .btn,.err-card .btn{
+  display:flex!important;align-items:center!important;justify-content:center!important;gap:8px!important;
+}
+#pause-screen .btn svg,#gameover .btn svg,.panel .btn svg,.char-card .btn svg,.err-card .btn svg{flex:none!important}
+.menu-card-stack,.panel,.over-card,.menu-card,.err-card,.menu-stats-strip{
+  background:transparent!important;
+  border:1px solid rgba(255,255,255,.35)!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(22px) saturate(1.4)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.4)!important;
+}
+/* PLAY: icon + label centered as one group, gap matches stats above. */
+#btn-play{margin:0!important;justify-content:center!important}
+#menu #btn-play .ql-content{justify-content:center!important}
+/* REPLAY TUTORIAL: distinct blue updated-style glass (not red). */
+#btn-replay-tutorial{
+  background:linear-gradient(180deg,rgba(96,165,250,.66) 0%,rgba(37,99,235,.70) 60%,rgba(29,78,216,.74) 100%)!important;
+  border:1px solid rgba(191,219,254,.65)!important;color:#fff!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 18px rgba(59,130,246,.5)!important;
+}
+/* Settings toggles carry icons next to their labels. */
+.panel .toggle{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important}
+.panel .toggle svg{flex:none!important}
+/* Missions readability: gray text goes green, blues go bright. */
+.m-sub{color:#8fe3ae!important}
+.m-card-bottom>div:last-child{color:#8fe3ae!important}
+.m-locked-req{color:#a9e8c3!important}
+.ach-desc{color:#8fe3ae!important}
+.m-world-tag{background:rgba(52,211,153,.25)!important;color:#a7f3d0!important}
+.m-badge-icon.cat-steps,.m-badge-icon.cat-runLane{background:rgba(56,189,248,.30)!important;color:#7dd3fc!important}
+.m-tier-tag.tier-standard{background:rgba(56,189,248,.30)!important;color:#bae6fd!important}
+.m-world-tag.global{background:rgba(56,189,248,.30)!important;color:#bae6fd!important}
+.m-prog-bar{background:linear-gradient(90deg,#7dd3fc,#38bdf8)!important}
+.daily-badge{color:#5eb2ff!important}
+.daily-badge svg{color:#5eb2ff!important}

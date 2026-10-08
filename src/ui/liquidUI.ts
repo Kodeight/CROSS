@@ -64,10 +64,9 @@ const PRESETS = {
   primary: { ...GLASS_BASE, material: 'regular', blur: 10, refractionStrength: 24, bezelWidth: 30, thickness: 26, edgeHighlight: 1, specularStrength: 0.5, elevation: 1.2 },
   /** Secondary buttons: same family, lighter emphasis. */
   secondary: { ...GLASS_BASE, material: 'thin', blur: 8, refractionStrength: 16, bezelWidth: 24, thickness: 18, edgeHighlight: 0.7, specularStrength: 0.3, elevation: 0.7 },
-  /** Large panels/sheets: heavy frost so the backdrop reads as creamy
-   * blur, with real displacement + rim light underneath for the liquid
-   * identity. Text stays crisp above the filter layers. */
-  panel: { ...GLASS_BASE, material: 'regular', blur: 18, refractionStrength: 20, bezelWidth: 28, thickness: 20, edgeHighlight: 0.8, specularStrength: 0.35, tint: '255,253,245', tintOpacity: 0.12, elevation: 1 },
+  /** Large panels/sheets: pure frosted blur, zero color wash — the blur
+   * layer is the background. Tint stays on buttons only. */
+  panel: { ...GLASS_BASE, material: 'regular', blur: 18, refractionStrength: 20, bezelWidth: 28, thickness: 20, edgeHighlight: 0.8, specularStrength: 0.35, tint: '255,255,255', tintOpacity: 0, adaptiveTint: false, elevation: 1 },
   /** Small cards (character/world): cheap, readable. */
   card: { ...GLASS_BASE, material: 'thin', blur: 6, refractionStrength: 14, bezelWidth: 22, thickness: 16, edgeHighlight: 0.55, specularStrength: 0.28, elevation: 0.7 },
 } satisfies Record<string, Partial<LiquidGlassConfig>>;
@@ -180,35 +179,29 @@ class LiquidUIManager {
     const pause = q('#btn-pause');
     if (pause) this.attachOne(pause, { preset: 'utility', borderRadius: 14, press: true });
     const menu = q('#menu .menu-card');
-    if (menu) this.attachOne(menu, { preset: 'panel', borderRadius: 24, allowScroll: true });
+    if (menu) this.strip(menu);
+    const glassMenu = q('#menu .menu-card-stack');
+    if (glassMenu) this.strip(glassMenu);
     const play = q('#btn-play');
-    if (play) this.attachOne(play, { preset: 'primary', borderRadius: 20, press: { scale: 0.96, squish: 0.02 }, tint: { rgb: '252,167,29', opacity: 0.35 } });
-    // Game color identity per button, INSIDE the liquid material at clearly
-    // visible strength (NOT pale): violet/cyan/amber/coral + brand primary.
-    const menuTints: Record<string, { rgb: string; opacity: number }> = {
-      '#btn-chars': { rgb: '139,92,246', opacity: 0.32 },
-      '#btn-worlds': { rgb: '34,211,238', opacity: 0.30 },
-      '#btn-missions': { rgb: '245,158,11', opacity: 0.30 },
-      '#btn-settings': { rgb: '244,63,94', opacity: 0.28 },
-    };
-    for (const b of qa('#btn-chars, #btn-worlds, #btn-missions, #btn-settings, #menu .btn.wide, #btn-install')) {
-      const key = b.id ? `#${b.id}` : '';
-      this.attachOne(b, { preset: 'secondary', borderRadius: 24, press: true, tint: menuTints[key] });
+    if (play) this.attachOne(play, { preset: 'primary', borderRadius: 20, press: { scale: 0.96, squish: 0.02 }, tint: { rgb: '16,185,129', opacity: 0.40 } });
+    // Art-backed menu buttons stay engine-free: filter layers sit over
+    // artwork and soften it. CSS owns their glass + press states.
+    for (const id of ['#btn-chars', '#btn-worlds', '#btn-missions', '#btn-settings']) {
+      this.strip(q(id));
     }
-    for (const p of qa('#chars-screen .panel, #worlds-screen .panel, #missions-screen .panel, #pause-screen .panel')) {
-      this.attachOne(p, { preset: 'panel', borderRadius: 22 });
+    for (const b of qa('#menu .btn.wide, #btn-install')) {
+      this.attachOne(b, { preset: 'secondary', borderRadius: 24, press: true });
     }
-    // Settings rows are short but can exceed small landscape heights —
-    // keep the host scrollable while the engine owns overflow.
-    const settings = q('#settings-screen .panel');
-    if (settings) this.attachOne(settings, { preset: 'panel', borderRadius: 22, allowScroll: true });
+    for (const p of qa('#chars-screen .panel, #worlds-screen .panel, #missions-screen .panel, #pause-screen .panel, #settings-screen .panel')) {
+      this.strip(p);
+    }
     const over = q('#gameover .over-card');
-    if (over) this.attachOne(over, { preset: 'panel', borderRadius: 24 });
+    if (over) this.strip(over);
     // Primary continues (resume / play again) use brand warm orange-yellow; secondary actions
     // remain neutral.
     const actionTints: Record<string, { rgb: string; opacity: number }> = {
-      '#btn-resume': { rgb: '252,167,29', opacity: 0.32 },
-      '#btn-again': { rgb: '252,167,29', opacity: 0.32 },
+      '#btn-resume': { rgb: '16,185,129', opacity: 0.40 },
+      '#btn-again': { rgb: '16,185,129', opacity: 0.40 },
       '#btn-reset-save': { rgb: '230,57,70', opacity: 0.35 },
     };
     for (const b of qa('#gameover .btn, #pause-screen .btn, .panel .btn, .panel .modal-x, #app-error .btn')) {
@@ -258,6 +251,25 @@ class LiquidUIManager {
    */
   notifyWorldChange(): void {
     // Intentionally animation-free: see above.
+  }
+
+  /**
+   * Menu containers carry NO background: destroy any attached glass
+   * engine and opt out permanently so refresh() never repaints one.
+   * Buttons, pills and cards keep their own glass.
+   */
+  private strip(host: HTMLElement | null): void {
+    if (!host) return;
+    try {
+      const existing = this.engines.get(host);
+      if (existing) {
+        existing.destroy();
+        this.engines.delete(host);
+      }
+    } catch { /* ignore */ }
+    try {
+      host.dataset.liquid = 'off';
+    } catch { /* ignore */ }
   }
 
   /** Content layer for floating feedback (engine wraps children in .ql-content). */

@@ -71,10 +71,10 @@ export class WorldSelect {
       b.className = 'btn' + (selected ? '' : ' primary');
       b.dataset.press = 'off';
       if (selected) {
-        b.textContent = 'PLAYING';
+        b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>PLAYING';
         b.disabled = true;
       } else if (unlocked) {
-        b.textContent = 'SELECT';
+        b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.53.85l11-6.86a1 1 0 0 0 0-1.7l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>SELECT';
         b.onclick = () => {
           this.save.data.selectedWorld = w.id;
           this.save.data.lastWorldId = w.id;
@@ -87,7 +87,7 @@ export class WorldSelect {
           window.setTimeout(() => card.classList.remove('pop'), 350);
         };
       } else {
-        b.textContent = price === 0 ? 'FREE' : 'UNLOCK';
+        b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>' + (price === 0 ? 'FREE' : 'UNLOCK');
         b.disabled = this.save.data.coins < price;
         b.onclick = () => {
           if (this.progression.unlockWorld(w.id, price)) {

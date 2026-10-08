@@ -136,7 +136,11 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        enabled: true,
+        // Service worker must NEVER run in dev: it precaches aggressively
+        // (clientsClaim + skipWaiting + 60-day image cache) and keeps
+        // serving stale HTML/CSS/JS while iterating. Production PWA
+        // precache is unaffected (build-time generateSW).
+        enabled: false,
         type: 'module',
       },
     }),

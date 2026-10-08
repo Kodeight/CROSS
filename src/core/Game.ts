@@ -699,7 +699,6 @@ export class Game implements LoopDelegate {
     on('btn-play', () => { void this.newRun(); });
     on('btn-again', () => { void this.newRun(); });
     on('btn-resume', () => this.resume());
-    on('btn-x-pause', () => this.resume());
     on('btn-restart-pause', () => { void this.newRun(); });
     on('btn-home-pause', () => { this.audio.click(); this.toMenu(); });
     on('btn-home', () => { this.audio.click(); this.toMenu(); });
